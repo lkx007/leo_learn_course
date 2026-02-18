@@ -1,0 +1,6 @@
+temp_assets/
+.venv/
+
+__pycache__
+
+*.mp4
