@@ -10,7 +10,7 @@ def speak(text):
     print(text)
     # 语音播报
     clean_text = text.replace("🎮 ", "").replace("🤖 ", "").replace("👉 ", "").replace("🧑 ", "").replace("🎉 ", "").replace("😭 ", "").replace("🤝 ", "").replace("😵 ", "")
-    os.system(f"say -r 150 '{clean_text}'")
+    os.system(f"say -r 150 -- '{clean_text}'")
 
 speak("🎮 欢迎来到石头剪刀布大赛！")
 speak("规则：石头砸剪刀，剪刀剪布，布包石头")

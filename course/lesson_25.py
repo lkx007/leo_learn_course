@@ -53,11 +53,20 @@ def draw_fan(angle):
         t.circle(80, 60)
         t.end_fill()
         
+    # --- 新增：显示计数器 ---
+    t.penup()
+    t.goto(0, 250)
+    t.color("black")
+    current_rotations = int(angle // 360)
+    # 使用总圈数变量 rotations (在外部定义)
+    t.write(f"当前旋转：{current_rotations} / 总计：10", align="center", font=("Arial", 20, "bold"))
+    # -----------------------
     t.color("black")
 
 # --- 2. 动画循环 ---
 speak("🚀 电风扇启动！准备转动 10 圈...")
 
+# 设定总圈数
 rotations = 10
 angle = 0
 # 每一步旋转的角度
