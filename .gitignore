@@ -1,0 +1,6 @@
+.DS_Store
+*.py
+*.pyc
+__pycache__/
+implementation_plan/
+make_video.py
