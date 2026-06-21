@@ -59,6 +59,21 @@ def slugify(name: str) -> str:
     return "doc-" + base
 
 
+def fix_relative_links(html_body: str, base_rel_dir: str) -> str:
+    """把文档里的相对 img/href 路径，改成相对仓库根目录，
+    这样把多个目录下的文档内联进根目录 HTML 时，图片仍能正确显示。"""
+    if not base_rel_dir:
+        return html_body
+
+    def repl(m):
+        attr, url = m.group(1), m.group(2)
+        if re.match(r"^(https?:|data:|mailto:|#|/)", url):
+            return m.group(0)
+        return '%s="%s/%s"' % (attr, base_rel_dir.rstrip("/"), url)
+
+    return re.sub(r'(src|href)="([^"]+)"', repl, html_body)
+
+
 # ---------------------------------------------------------------------------
 # 收集文件
 # ---------------------------------------------------------------------------
@@ -171,6 +186,10 @@ for group_title, group_desc, files, kind in GROUPS:
         if kind == "md":
             title = title_from_md(raw, name)
             body = md_to_html(raw)
+            rel_dir = os.path.relpath(os.path.dirname(path), ROOT)
+            if rel_dir == ".":
+                rel_dir = ""
+            body = fix_relative_links(body, rel_dir)
         else:
             title = name
             body = "<pre><code class=\"language-python\">%s</code></pre>" % html.escape(raw)
@@ -255,7 +274,7 @@ a:hover{text-decoration:underline}
 .doc th{background:#f1f4ff}
 .doc tr:nth-child(even) td{background:#fafbff}
 .doc hr{border:none;border-top:1px dashed var(--line);margin:1.6em 0}
-.doc img{max-width:100%}
+.doc img{max-width:100%;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(16,24,40,.08);margin:.6em 0;background:#fff}
 .back-top{display:inline-block;margin-top:14px;font-size:12.5px;color:var(--muted)}
 
 .menu-btn{display:none}
