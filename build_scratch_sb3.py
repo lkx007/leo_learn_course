@@ -23,6 +23,7 @@ from scratch.sb3_builder import (
     PLANE_SVG,
     SB3Builder,
     Script,
+    SHARK_SVG,
     SMALL_FISH_SVG,
 )
 
@@ -48,7 +49,7 @@ def sb3_name_for_md(md_filename):
     if m:
         n = int(m.group(1))
         title = m.group(2).split("（")[0].split("(")[0].strip()
-        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大"}
+        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大", 5: "G04_大鱼吃小鱼④完整版"}
         if n in gmap:
             return f"{gmap[n]}_参考答案.sb3"
         return None
@@ -285,6 +286,12 @@ def adv_07_tank(b: SB3Builder):
     b.script("Sprite1").flag().say("坦克大战：方向键移动，空格发射", 2).forever(loop)
 
 
+def _fish_clean(b: SB3Builder):
+    """Remove default empty Sprite1 from fish game projects."""
+    if "Sprite1" in b.sprites and not b.sprites["Sprite1"]["blocks"]:
+        b.remove_sprite("Sprite1")
+
+
 def _fish_move_loop(b: SB3Builder, sprite: str) -> Script:
     loop = Script(b, sprite)
     loop.if_key("up arrow", Script(b, sprite).change_y(10))
@@ -296,6 +303,7 @@ def _fish_move_loop(b: SB3Builder, sprite: str) -> Script:
 
 def game_fish_01(b: SB3Builder):
     """G01: 大鱼方向键游动"""
+    _fish_clean(b)
     b.add_sprite("BigFish", BIG_FISH_SVG)
     b.script("BigFish").flag().set_size(80).go_xy(0, 0).say("方向键游！大鱼吃小鱼 ①", 2)
     b.script("BigFish").flag().forever(_fish_move_loop(b, "BigFish"))
@@ -313,6 +321,7 @@ def game_fish_02(b: SB3Builder):
 
 def game_fish_03(b: SB3Builder):
     """G03: 吃掉变大 + 得分"""
+    _fish_clean(b)
     b.add_sprite("BigFish", BIG_FISH_SVG)
     b.add_sprite("SmallFish", SMALL_FISH_SVG)
     b.ensure_var("BigFish", "得分")
@@ -329,6 +338,36 @@ def game_fish_03(b: SB3Builder):
     b.script("SmallFish").flag().hide()
     b.script("SmallFish").flag().repeat(10, Script(b, "SmallFish").create_clone("SmallFish"))
     b.script("SmallFish").clone_start().show().go_random_xy(-220, 220, -160, 160).forever(swim)
+
+
+def game_fish_04(b: SB3Builder):
+    """G04: 完整版 — 吃音效 + 鲨鱼 + Game Over"""
+    _fish_clean(b)
+    b.add_sprite("BigFish", BIG_FISH_SVG)
+    b.add_sprite("SmallFish", SMALL_FISH_SVG)
+    b.add_sprite("Shark", SHARK_SVG)
+    b.ensure_var("BigFish", "得分")
+    b.ensure_sound("BigFish", "Pop")
+
+    eat = Script(b, "BigFish").play_sound("Pop").change_var("得分", 1).change_size(5)
+    game_over = Script(b, "BigFish").say_join("游戏结束！得分：", "得分", 2).stop_all()
+
+    body = _fish_move_loop(b, "BigFish")
+    body.if_touching("SmallFish", eat)
+    body.if_touching("Shark", game_over)
+
+    b.script("BigFish").flag().set_var("得分", 0).set_size(60).go_xy(0, 0).say("躲鲨鱼！吃小鱼！🐟", 2)
+    b.script("BigFish").flag().forever(body)
+
+    swim = Script(b, "SmallFish")
+    swim.if_touching("BigFish", Script(b, "SmallFish").delete_clone())
+    swim.point_towards("_mouse_").move_steps(5)
+    b.script("SmallFish").flag().hide()
+    b.script("SmallFish").flag().repeat(10, Script(b, "SmallFish").create_clone("SmallFish"))
+    b.script("SmallFish").clone_start().show().go_random_xy(-220, 220, -160, 160).forever(swim)
+
+    patrol = Script(b, "Shark").move_steps(8).if_on_edge_bounce()
+    b.script("Shark").flag().set_size(130).go_xy(-180, 120).forever(patrol)
 
 
 LESSONS = [
@@ -368,6 +407,7 @@ LESSONS = [
     ("G01_大鱼吃小鱼①游起来_参考答案.sb3", game_fish_01),
     ("G02_大鱼吃小鱼②小鱼群_参考答案.sb3", game_fish_02),
     ("G03_大鱼吃小鱼③吃掉变大_参考答案.sb3", game_fish_03),
+    ("G04_大鱼吃小鱼④完整版_参考答案.sb3", game_fish_04),
 ]
 
 

@@ -50,7 +50,7 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 2. **Python 编程课**（练）：真正动手写代码，掌握语法。→ `course/课程大纲.md`
 3. **AI 训练师课**（创）：学会跟真 AI 聊天、用提示词/技能/工具/MCP，把点子变成软件。→ `AI训练师课程/AI训练师课程大纲.md`
    - **进阶 4 课**：模型 · Harness · OpenClaw（基础毕业后）
-   - **实战项目**：🐟 [大鱼吃小鱼](AI训练师课程/AI训练师项目大纲_大鱼吃小鱼.md) — 语音指挥 AI + Scratch 分步做游戏
+   - **实战项目**：🐟 [大鱼吃小鱼](AI训练师课程/AI训练师项目大纲_大鱼吃小鱼.md) — 语音指挥 AI + Scratch 分步做游戏（G01–G04 参考答案 sb3）
    - **语音指挥台**（Chrome）：[voice-ai.html](https://lkx007.github.io/leo_learn_course/voice-ai.html) — 按住说话，复制粘贴给 Cursor
 
 > 想先了解整体情况？请看 `课程分析报告.md`。

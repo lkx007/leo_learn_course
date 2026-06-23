@@ -50,6 +50,13 @@ SMALL_FISH_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 36">
   <circle cx="14" cy="15" r="3" fill="#fff"/><circle cx="14" cy="15" r="1.5" fill="#000"/>
 </svg>"""
 
+SHARK_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70">
+  <ellipse cx="52" cy="35" rx="46" ry="26" fill="#64748b" stroke="#334155" stroke-width="2"/>
+  <polygon points="92,35 115,18 115,52" fill="#64748b"/>
+  <circle cx="24" cy="28" r="6" fill="#fff"/><circle cx="24" cy="28" r="3" fill="#ef4444"/>
+  <path d="M30 48 L55 42 L80 48" fill="none" stroke="#334155" stroke-width="3"/>
+</svg>"""
+
 
 class Script:
     """Build a linked chain of Scratch blocks."""
@@ -339,6 +346,18 @@ class Script:
         self.random_var("随机x", xlo, xhi)
         self.random_var("随机y", ylo, yhi)
         return self.go_xy_vars("随机x", "随机y")
+
+    def play_sound(self, name: str) -> "Script":
+        self._link(self._block("sound_play", fields={"SOUND_MENU": [name, None]}))
+        return self
+
+    def stop_all(self) -> "Script":
+        self._link(self._block("control_stop", fields={"STOP_OPTION": ["all", None]}))
+        return self
+
+    def if_on_edge_bounce(self) -> "Script":
+        self._link(self._block("motion_ifonedgebounce"))
+        return self
 
     def set_random_x(self, lo: int, hi: int, y: int) -> "Script":
         rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
@@ -647,6 +666,56 @@ class SB3Builder:
         sp["layerOrder"] = len(self.sprites)
         self.sprites[name] = sp
         return sp
+
+    def remove_sprite(self, name: str) -> None:
+        self.sprites.pop(name, None)
+
+    def _pop_wav_bytes(self) -> tuple[bytes, int, int]:
+        import io
+        import math
+        import struct
+        import wave
+
+        rate = 22050
+        duration = 0.12
+        freq = 880.0
+        n = int(rate * duration)
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as w:
+            w.setnchannels(1)
+            w.setsampwidth(2)
+            w.setframerate(rate)
+            frames = bytearray()
+            for i in range(n):
+                amp = 16000 * (1.0 - i / n)
+                val = int(amp * math.sin(2 * math.pi * freq * i / rate))
+                frames.extend(struct.pack("<h", val))
+            w.writeframes(bytes(frames))
+        data = buf.getvalue()
+        return data, rate, n
+
+    def ensure_sound(self, sprite: str, name: str, *, wav: bytes | None = None, sample_rate: int = 22050, sample_count: int | None = None) -> str:
+        sp = self.sprites[sprite]
+        for snd in sp["sounds"]:
+            if snd["name"] == name:
+                return snd["assetId"]
+        if wav is None:
+            wav, sample_rate, sample_count = self._pop_wav_bytes()
+        elif sample_count is None:
+            sample_count = max(0, (len(wav) - 44) // 2)
+        aid = _bid()
+        fname = f"{aid}.wav"
+        self.assets[fname] = wav
+        sp["sounds"].append({
+            "name": name,
+            "assetId": aid,
+            "dataFormat": "wav",
+            "format": "",
+            "rate": sample_rate,
+            "sampleCount": sample_count,
+            "md5ext": fname,
+        })
+        return aid
 
     def script(self, sprite: str = "Sprite1") -> Script:
         if sprite not in self.sprites:

@@ -229,7 +229,7 @@ def sb3_name_for_md(md_filename):
         return f"A{int(m.group(1)):02d}_{title}_参考答案.sb3"
     m = re.match(r"AI训练师项目(\d+)课_(.+)\.md", md_filename)
     if m:
-        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大"}
+        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大", 5: "G04_大鱼吃小鱼④完整版"}
         n = int(m.group(1))
         if n in gmap:
             return f"{gmap[n]}_参考答案.sb3"
@@ -613,6 +613,7 @@ LANDING_PAGE = """<!DOCTYPE html>
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
       <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
       <a class="btn btn-primary" href="voice-ai.html">🎤 语音指挥 AI</a>
+      <a class="btn btn-primary" href="course.html#doc-AI训练师项目大纲_大鱼吃小鱼-md">🐟 大鱼吃小鱼项目</a>
       <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
       <a class="btn btn-secondary" href="course.html#doc-Scratch桌面版使用指南-md">🐱 Scratch 指南</a>
     </div>
