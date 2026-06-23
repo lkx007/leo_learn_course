@@ -271,6 +271,12 @@ def copy_assets():
         os.makedirs(os.path.dirname(dst), exist_ok=True)
         shutil.copytree(src, dst)
 
+    site_dir = os.path.join(ROOT, "site")
+    if os.path.isdir(site_dir):
+        for name in os.listdir(site_dir):
+            if name.endswith(".html"):
+                shutil.copy2(os.path.join(site_dir, name), os.path.join(DOCS_DIR, name))
+
 
 def build_pages():
     os.makedirs(DOCS_DIR, exist_ok=True)
@@ -383,6 +389,7 @@ a:hover{text-decoration:underline}
 .path{background:rgba(30,41,59,.8);border:1px solid #334155;border-radius:16px;padding:24px;max-width:640px;margin:0 auto 40px;text-align:center}
 .path p{margin:0;color:var(--muted)}
 .path strong{color:#fde68a}
+.tools-section .hero-btns{margin-top:0}
 footer{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem;border-top:1px solid #1e293b}
 footer a{color:#64748b}
 """
@@ -483,6 +490,14 @@ LANDING_PAGE = """<!DOCTYPE html>
     <p>推荐学习路径：<strong>Scratch（玩）</strong> → <strong>Python（练）</strong> → <strong>AI 训练师（创）</strong></p>
   </div>
 
+  <section class="section tools-section">
+    <h2>快捷入口</h2>
+    <div class="hero-btns">
+      <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
+      <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
+    </div>
+  </section>
+
   <section class="section">
     <h2>选择一条学习线</h2>
     <div class="grid">{cards}</div>
@@ -512,6 +527,8 @@ def main():
         print("✅ 已生成 GitHub Pages 站点：%s/" % DOCS_DIR)
         print("   首页：docs/index.html")
         print("   课程：docs/course.html")
+        print("   第一课：docs/day1.html")
+        print("   指法：docs/typing.html")
 
 
 if __name__ == "__main__":

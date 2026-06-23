@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>魔法指法特训 · 小鱼编程</title>
+  <style>
+    :root {
+      --bg: #0f172a; --panel: #1e293b; --ink: #f8fafc; --muted: #94a3b8;
+      --brand: #5b8def; --ok: #10b981; --bad: #ef4444; --hi: #f59e0b;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(ellipse at top, #1e3a5f 0%, var(--bg) 60%);
+      padding: 16px;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 20px; }
+    header h1 { margin: 0 0 6px; font-size: 1.5rem; }
+    header p { margin: 0; color: var(--muted); font-size: 0.9rem; }
+    header a { color: #93c5fd; font-size: 0.85rem; }
+    .panel {
+      background: var(--panel); border: 1px solid #334155;
+      border-radius: 16px; padding: 18px; margin-bottom: 14px;
+    }
+    .modes { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .modes button {
+      flex: 1; min-width: 100px; padding: 10px; border-radius: 10px;
+      border: 1px solid #475569; background: #0f172a; color: var(--ink);
+      cursor: pointer; font-size: 0.9rem;
+    }
+    .modes button.active { background: var(--brand); border-color: var(--brand); font-weight: 700; }
+    .kb { font-family: ui-monospace, Menlo, monospace; font-size: 13px; line-height: 1.9; text-align: center; }
+    .key { display: inline-block; min-width: 2.2em; padding: 2px 6px; margin: 1px;
+      border-radius: 6px; background: #334155; }
+    .key.hi { background: var(--hi); color: #000; font-weight: 700; transform: scale(1.08); }
+    .target {
+      font-family: ui-monospace, Menlo, monospace; font-size: 1.15rem;
+      background: #0f172a; padding: 14px; border-radius: 10px; word-break: break-all;
+      min-height: 3em; line-height: 1.6;
+    }
+    .target .done { color: var(--ok); }
+    .target .cur { background: var(--brand); color: #fff; border-radius: 3px; }
+    .target .todo { color: var(--muted); }
+    input[type=text] {
+      width: 100%; margin-top: 12px; padding: 14px; font-size: 1.1rem;
+      border-radius: 10px; border: 2px solid #475569; background: #0f172a;
+      color: var(--ink); font-family: ui-monospace, Menlo, monospace;
+    }
+    input[type=text]:focus { outline: none; border-color: var(--brand); }
+    .stats { display: flex; flex-wrap: wrap; gap: 12px; font-size: 0.9rem; color: var(--muted); }
+    .stats strong { color: #fff; }
+    .msg { text-align: center; min-height: 1.5em; margin-top: 10px; font-weight: 600; }
+    .msg.ok { color: var(--ok); }
+    .msg.bad { color: var(--bad); }
+    .btn-row { display: flex; gap: 10px; margin-top: 12px; }
+    .btn {
+      flex: 1; padding: 12px; border: none; border-radius: 10px;
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    .btn-go { background: linear-gradient(135deg, var(--brand), #7c5cff); color: #fff; }
+    .btn-skip { background: #334155; color: var(--ink); }
+    .tip { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🖐️ 魔法指法特训</h1>
+      <p>看着屏幕打字 · 手指练熟了写代码更快</p>
+      <a href="index.html">← 返回首页</a>
+    </header>
+
+    <div class="panel">
+      <div class="modes" id="modes">
+        <button data-mode="easy" class="active">🌟 入门</button>
+        <button data-mode="symbol">🪄 符号</button>
+        <button data-mode="code">🐍 代码</button>
+      </div>
+      <div class="stats">
+        <span>第 <strong id="round">0</strong>/<strong id="total">8</strong> 轮</span>
+        <span>得分 <strong id="score">0</strong></span>
+        <span>速度 <strong id="cpm">0</strong> 字/分</span>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="kb" id="keyboard"></div>
+    </div>
+
+    <div class="panel">
+      <div class="target" id="target">点「开始」开始练习</div>
+      <input type="text" id="input" placeholder="在这里输入…" autocomplete="off" autocapitalize="off" spellcheck="false" disabled>
+      <div class="msg" id="msg"></div>
+      <div class="btn-row">
+        <button class="btn btn-go" id="startBtn">开始练习</button>
+        <button class="btn btn-skip" id="skipBtn" disabled>跳过</button>
+      </div>
+      <p class="tip">💡 入门练字母和短词；符号练 Python 常用符号；代码练真实语句。iPad 也能用！</p>
+    </div>
+  </div>
+
+  <script>
+    const POOLS = {
+      easy: [
+        "asdf jkl;", "hello", "fish", "code", "print", "leo", "scratch",
+        "home row", "fff jjj", "aaa lll", "the cat", "run fast"
+      ],
+      symbol: [
+        'print("hi")', "if x > 0:", "name = 'leo'", "for i in range(5):",
+        "def say():", "import random", "x = 1 + 2", "True and False",
+        "list = [1, 2, 3]", "try: except:", "with open() as f:"
+      ],
+      code: [
+        "print('Hello World')", "import random", "def my_func():",
+        "for i in range(10):", "if __name__ == '__main__':",
+        "return True", "while True:", "class MyClass:", "except Exception:",
+        "len(my_list)", "random.randint(1, 10)"
+      ]
+    };
+
+    const KB_ROWS = [
+      "`1234567890-=",
+      "qwertyuiop[]\\",
+      "asdfghjkl;'",
+      "zxcvbnm,./"
+    ];
+
+    const ROUNDS = 8;
+    let mode = "easy", round = 0, score = 0, current = "", startTime = 0, totalChars = 0, playing = false;
+
+    const el = id => document.getElementById(id);
+    const targetEl = el("target"), inputEl = el("input"), msgEl = el("msg");
+
+    function renderKeyboard(ch) {
+      const c = (ch || "").toLowerCase();
+      el("keyboard").innerHTML = KB_ROWS.map(row =>
+        row.split("").map(k => {
+          const label = k === " " ? "␣" : k;
+          const cls = c && k === c ? "key hi" : "key";
+          return `<span class="${cls}">${label}</span>`;
+        }).join("")
+      ).join("<br>");
+    }
+
+    function renderTarget(text, typed) {
+      let html = "";
+      for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        const esc = ch === " " ? "·" : ch === "<" ? "&lt;" : ch === ">" ? "&gt;" : ch === "&" ? "&amp;" : ch;
+        if (i < typed.length) html += `<span class="done">${esc}</span>`;
+        else if (i === typed.length) html += `<span class="cur">${esc}</span>`;
+        else html += `<span class="todo">${esc}</span>`;
+      }
+      targetEl.innerHTML = html || "完成！";
+      renderKeyboard(text[typed.length] || null);
+    }
+
+    function pickQuestion() {
+      const pool = POOLS[mode];
+      return pool[Math.floor(Math.random() * pool.length)];
+    }
+
+    function startRound() {
+      if (round >= ROUNDS) return finish();
+      current = pickQuestion();
+      inputEl.value = "";
+      inputEl.disabled = false;
+      el("skipBtn").disabled = false;
+      msgEl.textContent = "";
+      msgEl.className = "msg";
+      round++;
+      el("round").textContent = round;
+      startTime = Date.now();
+      renderTarget(current, "");
+      inputEl.focus();
+    }
+
+    function finish() {
+      playing = false;
+      inputEl.disabled = true;
+      el("skipBtn").disabled = true;
+      el("startBtn").textContent = "再来一次";
+      const mins = (Date.now() - startTime) / 60000 || 0.01;
+      const cpm = Math.round(totalChars / mins);
+      el("cpm").textContent = cpm;
+      let praise = cpm < 60 ? "🐢 慢慢来，多练几次！" :
+        cpm < 120 ? "🐇 不错，有程序员的感觉了！" :
+        cpm < 200 ? "🏎️ 速度很快！" : "🚀 键盘侠客！";
+      msgEl.textContent = `🎉 完成！得分 ${score} · ${praise}`;
+      msgEl.className = "msg ok";
+      try {
+        const best = JSON.parse(localStorage.getItem("xiaoyu_typing_best") || "{}");
+        if (!best[mode] || score > best[mode].score) {
+          best[mode] = { score, cpm, date: new Date().toISOString().slice(0, 10) };
+          localStorage.setItem("xiaoyu_typing_best", JSON.stringify(best));
+        }
+      } catch (_) {}
+    }
+
+    function startGame() {
+      round = 0; score = 0; totalChars = 0;
+      el("score").textContent = 0;
+      el("cpm").textContent = 0;
+      el("startBtn").textContent = "进行中…";
+      playing = true;
+      startTime = Date.now();
+      startRound();
+    }
+
+    inputEl.addEventListener("input", () => {
+      if (!playing) return;
+      const typed = inputEl.value;
+      renderTarget(current, typed);
+      if (typed.length > current.length) {
+        inputEl.value = typed.slice(0, current.length);
+        return;
+      }
+      if (typed === current) {
+        score += 10;
+        totalChars += current.length;
+        el("score").textContent = score;
+        msgEl.textContent = "✨ 正确！";
+        msgEl.className = "msg ok";
+        setTimeout(() => {
+          if (round >= ROUNDS) finish();
+          else startRound();
+        }, 400);
+      } else if (!current.startsWith(typed)) {
+        msgEl.textContent = "再试一次，看高亮的键";
+        msgEl.className = "msg bad";
+      } else {
+        msgEl.textContent = "";
+      }
+    });
+
+    el("startBtn").addEventListener("click", () => {
+      if (playing && round < ROUNDS) return;
+      startGame();
+    });
+
+    el("skipBtn").addEventListener("click", () => {
+      if (!playing) return;
+      startRound();
+    });
+
+    document.getElementById("modes").addEventListener("click", e => {
+      const btn = e.target.closest("button[data-mode]");
+      if (!btn || playing) return;
+      mode = btn.dataset.mode;
+      document.querySelectorAll(".modes button").forEach(b => b.classList.toggle("active", b === btn));
+    });
+
+    renderKeyboard(null);
+  </script>
+</body>
+</html>

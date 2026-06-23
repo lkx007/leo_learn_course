@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>第一课 · 小鱼编程</title>
+  <style>
+    :root { --bg: #0f172a; --panel: #1e293b; --ink: #f8fafc; --muted: #94a3b8; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: "PingFang SC", sans-serif;
+      background: var(--bg);
+      padding: 20px 16px 48px;
+    }
+    header { text-align: center; max-width: 640px; margin: 0 auto 24px; }
+    header h1 { margin: 0 0 8px; font-size: 1.6rem; }
+    header p { color: var(--muted); margin: 0; }
+    header a { color: #93c5fd; font-size: 0.85rem; }
+    .progress { max-width: 640px; margin: 0 auto 20px; }
+    .bar { height: 8px; background: #334155; border-radius: 999px; overflow: hidden; }
+    .bar span { display: block; height: 100%; background: linear-gradient(90deg, #10b981, #38bdf8); width: 0%; transition: width .3s; }
+    .pct { text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 8px; }
+    .steps { max-width: 640px; margin: 0 auto; }
+    .step {
+      background: var(--panel); border-radius: 16px; padding: 20px;
+      margin-bottom: 14px; border-left: 5px solid;
+    }
+    .step.done { opacity: 0.65; }
+    .step.s1 { border-color: #fb923c; }
+    .step.s2 { border-color: #a78bfa; }
+    .step.s3 { border-color: #2563eb; }
+    .step.s4 { border-color: #10b981; }
+    .num { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .step h2 { margin: 6px 0 8px; font-size: 1.1rem; }
+    .step p { margin: 0 0 14px; color: #cbd5e1; font-size: 0.95rem; }
+    .step a {
+      display: inline-block; background: #0284c7; color: #fff; text-decoration: none;
+      padding: 10px 18px; border-radius: 10px; font-weight: 600; margin-right: 8px;
+    }
+    .step a.sec { background: #334155; }
+    .step button {
+      background: transparent; border: 1px solid #475569; color: var(--muted);
+      padding: 8px 14px; border-radius: 8px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>⭐ 第一课</h1>
+    <p>按顺序完成 · 约 60–90 分钟 · 可拆两天</p>
+    <a href="index.html">← 返回首页</a>
+  </header>
+
+  <div class="progress">
+    <div class="bar"><span id="bar"></span></div>
+    <div class="pct"><span id="pct">0</span>% · <span id="msg">开始吧！</span></div>
+  </div>
+
+  <div class="steps">
+    <div class="step s1" data-id="scratch-guide">
+      <div class="num">第 1 步 · 10 分钟</div>
+      <h2>🐱 认识 Scratch</h2>
+      <p>先看桌面版怎么用：界面、拖积木、保存 sb3</p>
+      <a href="course.html#doc-Scratch桌面版使用指南-md">打开 Scratch 指南</a>
+      <button onclick="toggle('scratch-guide')">✓ 完成了</button>
+    </div>
+    <div class="step s2" data-id="scratch">
+      <div class="num">第 2 步 · 40 分钟</div>
+      <h2>🐱 Scratch 你好小猫</h2>
+      <p>打开 Scratch App · 跟着课程做 · 保存 <code>小鱼_S01_你好小猫.sb3</code></p>
+      <a href="course.html#doc-第01课_你好小猫_Scratch-md">打开 Scratch 第01课</a>
+      <button onclick="toggle('scratch')">✓ 完成了</button>
+    </div>
+    <div class="step s3" data-id="ai">
+      <div class="num">第 3 步 · 25 分钟</div>
+      <h2>🤖 认识 AI 朋友</h2>
+      <p>小鱼口述 · 家长代打 · 对比「你好」和具体自我介绍</p>
+      <a href="course.html#doc-第01课_认识AI朋友-md">打开 AI 第01课</a>
+      <button onclick="toggle('ai')">✓ 完成了</button>
+    </div>
+    <div class="step s4" data-id="typing">
+      <div class="num">第 4 步 · 15 分钟（可选）</div>
+      <h2>🖐️ 魔法指法热身</h2>
+      <p>浏览器里练打字 · 为以后写 Python 做准备</p>
+      <a href="typing.html">打开指法特训</a>
+      <a class="sec" href="course.html#doc-番外篇_魔法指法-md">阅读指法讲解</a>
+      <button onclick="toggle('typing')">✓ 完成了</button>
+    </div>
+  </div>
+
+  <script>
+    const KEY = "xiaoyu_day1_done";
+    const IDS = ["scratch-guide", "scratch", "ai", "typing"];
+    const MSGS = ["开始吧！", "不错！", "过半啦！", "快完成了！", "🎉 第一课全部完成！"];
+
+    function load() {
+      try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch { return []; }
+    }
+    function save(arr) { localStorage.setItem(KEY, JSON.stringify(arr)); render(); }
+
+    function toggle(id) {
+      let d = load();
+      d = d.includes(id) ? d.filter(x => x !== id) : [...d, id];
+      save(d);
+    }
+
+    function render() {
+      const d = load();
+      IDS.forEach(id => {
+        const el = document.querySelector(`[data-id="${id}"]`);
+        if (el) el.classList.toggle("done", d.includes(id));
+      });
+      const pct = Math.round((d.length / IDS.length) * 100);
+      document.getElementById("bar").style.width = pct + "%";
+      document.getElementById("pct").textContent = pct;
+      document.getElementById("msg").textContent = MSGS[Math.min(d.length, MSGS.length - 1)];
+    }
+    render();
+  </script>
+</body>
+</html>
