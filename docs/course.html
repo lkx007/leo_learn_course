@@ -64,6 +64,8 @@ a:hover{text-decoration:underline}
 .run-web{display:inline-block;background:linear-gradient(135deg,#059669,#10b981);color:#fff !important;
   padding:10px 18px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px}
 .run-web:hover{opacity:.92;text-decoration:none}
+.sb3-dl{margin:14px 0 0}
+.sb3-hint{font-size:12px;color:var(--muted);margin-left:6px}
 .menu-btn{display:none}
 @media (max-width:880px){
   .wrap{display:block}
@@ -135,6 +137,8 @@ a:hover{text-decoration:underline}
 <p><strong>本地离线</strong>：双击 <strong><code>课程合集.html</code></strong>（全部课程预渲染，带目录和搜索）</p>
 <p><strong>公网在线</strong>：部署到 GitHub Pages 后访问<br>
 👉 <strong>https://lkx007.github.io/leo_learn_course/</strong></p>
+<p><strong>Python 实验室</strong>：浏览器里直接写代码、运行、调试（基于 Pyodide）<br>
+👉 <strong>https://lkx007.github.io/leo_learn_course/python.html</strong></p>
 <p>重新生成网页：</p>
 <pre><code class="language-bash">pip install markdown   # 仅首次需要
 python3 build_html.py              # 本地 课程合集.html
@@ -2442,7 +2446,7 @@ while angle &lt; total_angle:
 <blockquote>
 <p>打开方式：打开 Mac 上的 <strong>Scratch 桌面应用</strong> 🐱（Scratch Desktop，无需联网）。<br>
 不熟悉操作？请先读 <strong>《Scratch桌面版使用指南》</strong>（<code>Scratch桌面版使用指南.md</code>，含带图的界面讲解）。<br>
-每节课都有配套 <code>.sb3</code> 工程文件（在 <code>course/</code> 目录，如 <code>scratch_lesson_01.sb3</code>），可在桌面应用里用 <strong>File（文件）→ Load from your computer（从电脑中上传）</strong> 打开参考答案。</p>
+每节课都有配套 <strong>参考答案 <code>.sb3</code></strong>（在 <code>course/scratch_answers/</code> 目录），可在桌面应用里用 <strong>File（文件）→ Load from your computer（从电脑中上传）</strong> 打开。</p>
 </blockquote>
 <hr>
 <h2>🆕 新手必读</h2>
@@ -2719,7 +2723,7 @@ while angle &lt; total_angle:
 <p>点 <strong>"声音"</strong>，拖 <code>播放声音 [meow]</code> 接在下面！</p>
 <h2>6. 小挑战 🌟</h2>
 <p>设计一个欢迎程序：绿旗点击 → 说欢迎语 → 用 <code>重复执行</code> 不停说"准备好了吗？"</p>
-<p><strong>加油！你就是小小程序员！</strong> 🚀✨</p>
+<p><strong>加油！你就是小小程序员！</strong> 🚀✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S01_你好小猫_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第02课_神奇的盒子_Scratch-md" class="doc">
@@ -2746,7 +2750,7 @@ while angle &lt; total_angle:
 <p>新建变量 <code>snack</code>，设为 <code>"Pizza"</code>，说出来！</p>
 <h2>5. 小挑战 🌟</h2>
 <p>新建变量 <code>hero</code>，设为你的偶像名字，让小猫说：<code>"我最崇拜的人是：XXX！"</code></p>
-<p><strong>加油！你就是小小程序员！</strong> 🚀✨</p>
+<p><strong>加油！你就是小小程序员！</strong> 🚀✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S02_神奇的盒子_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第03课_数学魔法_Scratch-md" class="doc">
@@ -2790,7 +2794,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 1. 询问第一个数字 → 存入变量 <code>a</code><br>
 2. 询问第二个数字 → 存入变量 <code>b</code><br>
 3. 说出 <code>a + b</code> 的结果！</p>
-<p><strong>加油！你就是数学魔法师！</strong> 🧙‍♂️✨</p>
+<p><strong>加油！你就是数学魔法师！</strong> 🧙‍♂️✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S03_数学魔法_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第04课_会聊天的小猫_Scratch-md" class="doc">
@@ -2820,7 +2824,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>设计 <strong>"你好，朋友！"</strong> 程序：<br>
 1. 问名字 → 问心情<br>
 2. 说：<code>"很高兴认识你，XXX！希望你今天 XXX！"</code></p>
-<p><strong>加油！你让小猫学会聊天了！</strong> 💬🐱</p>
+<p><strong>加油！你让小猫学会聊天了！</strong> 💬🐱</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S04_会聊天的小猫_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第05课_真真假假_Scratch-md" class="doc">
@@ -2862,7 +2866,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 - 问：<code>"你是机器人吗？（是/不是）"</code><br>
 - 回答 <code>"是"</code> → 说：<code>"嘀嘀嘀！发现机器人！🤖"</code><br>
 - 回答 <code>"不是"</code> → 说：<code>"欢迎人类朋友！😄"</code></p>
-<p><strong>加油！你就是逻辑大师！</strong> 🧠✨</p>
+<p><strong>加油！你就是逻辑大师！</strong> 🧠✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S05_真真假假_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第06课_魔法门卫_Scratch-md" class="doc">
@@ -2887,7 +2891,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <h2>4. 小挑战 🌟</h2>
 <p>设计 <strong>"芝麻开门"</strong> 程序：<br>
 口令正确 → 说 <code>"✨ 金光闪闪！你获得了所有宝藏！🏆"</code></p>
-<p><strong>加油！你就是逻辑大师！</strong> 🔑✨</p>
+<p><strong>加油！你就是逻辑大师！</strong> 🔑✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S06_魔法门卫_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第07课_左转还是右转_Scratch-md" class="doc">
@@ -2914,7 +2918,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>设计 <strong>"智能门卫 2.0"</strong>：<br>
 - 密码正确 → 说 <code>"🎊 欢迎回家！"</code><br>
 - 密码错误 → 说 <code>"🚨 警报！警报！非法入侵！"</code></p>
-<p><strong>加油！你掌握了二选一的魔法！</strong> 🔄✨</p>
+<p><strong>加油！你掌握了二选一的魔法！</strong> 🔄✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S07_左转还是右转_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第08课_石头剪刀布_Scratch-md" class="doc">
@@ -2954,7 +2958,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>加上 <strong>判断输赢</strong> 的逻辑：<br>
 - <code>player = computer</code> → 平局！<br>
 - <code>player = 1 且 computer = 2</code> → 你赢了！🎉</p>
-<p><strong>加油！你已经能做真正的游戏了！</strong> 🎮✨</p>
+<p><strong>加油！你已经能做真正的游戏了！</strong> 🎮✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S08_石头剪刀布_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第09课_遇见小猫_Scratch-md" class="doc">
@@ -2995,7 +2999,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <h2>4. 小挑战 🌟</h2>
 <p>设计 <strong>"小猫散步"</strong>：<br>
 重复执行 → 移动 10 步 → 如果碰到边缘就右转 180 度！</p>
-<p><strong>加油！你就是舞台导演！</strong> 🎬✨</p>
+<p><strong>加油！你就是舞台导演！</strong> 🎬✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S09_遇见小猫_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第10课_画个正方形_Scratch-md" class="doc">
@@ -3043,7 +3047,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>5. 小挑战 🌟</h2>
 <p>设计 <strong>"彩色螺旋"</strong>：<code>重复执行 100 次</code> → <code>移动 (循环计数) 步</code> → <code>右转 91 度</code> → <code>将画笔颜色增加 10</code></p>
-<p><strong>加油！你就是小小画家！</strong> 🎨✨</p>
+<p><strong>加油！你就是小小画家！</strong> 🎨✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S10_画个正方形_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第11课_复制魔法_Scratch-md" class="doc">
@@ -3078,7 +3082,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>用 <code>重复执行</code> + <code>移动 10 步</code> + <code>右转 1 度</code>，让小猫画一个圆圈！</p>
-<p><strong>加油！你掌握了复制魔法！</strong> 🔄✨</p>
+<p><strong>加油！你掌握了复制魔法！</strong> 🔄✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S11_复制魔法_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第12课_绚丽的烟花_Scratch-md" class="doc">
@@ -3114,7 +3118,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>加上 <strong>"画笔"</strong> 扩展，让小猫一边变色一边画线！</p>
-<p><strong>加油！你就是烟花导演！</strong> 🎆✨</p>
+<p><strong>加油！你就是烟花导演！</strong> 🎆✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S12_绚丽的烟花_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第13课_搭建小火车_Scratch-md" class="doc">
@@ -3137,7 +3141,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>新建列表 <code>购物车</code>，用 <code>询问</code> + <code>将 (回答) 加入 购物车</code> 让玩家自己添加商品！</p>
-<p><strong>加油！你就是列表魔法师！</strong> 🚂✨</p>
+<p><strong>加油！你就是列表魔法师！</strong> 🚂✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S13_搭建小火车_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第14课_添加车厢_Scratch-md" class="doc">
@@ -3175,7 +3179,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>设计 <strong>"购物车管理"</strong>：<br>
 - 输入 <code>删除</code> → 删除列表最后一项<br>
 - 输入商品名 → 加入购物车</p>
-<p><strong>加油！你就是购物车高手！</strong> 🛒✨</p>
+<p><strong>加油！你就是购物车高手！</strong> 🛒✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S14_添加车厢_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第15课_车厢里有什么_Scratch-md" class="doc">
@@ -3195,7 +3199,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>让玩家输入一个数字 N，说出 <code>列表 的第 (N) 项</code> 是什么！</p>
-<p><strong>加油！你就是检阅大师！</strong> 🔍✨</p>
+<p><strong>加油！你就是检阅大师！</strong> 🔍✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S15_车厢里有什么_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第16课_检阅火车_Scratch-md" class="doc">
@@ -3217,7 +3221,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>用遍历循环计算列表里<strong>所有数字的和</strong>！</p>
-<p><strong>加油！你就是遍历大师！</strong> 🔄✨</p>
+<p><strong>加油！你就是遍历大师！</strong> 🔄✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S16_检阅火车_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第17课_召唤自制积木_Scratch-md" class="doc">
@@ -3244,7 +3248,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>然后在主程序里直接调用 <code>跳一跳</code>！</p>
 <h2>4. 小挑战 🌟</h2>
 <p>制作一个 <code>转圈圈</code> 自制积木，让小猫转 10 圈！</p>
-<p><strong>加油！你就是积木魔法师！</strong> 🧱✨</p>
+<p><strong>加油！你就是积木魔法师！</strong> 🧱✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S17_召唤自制积木_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第18课_积木的秘密_Scratch-md" class="doc">
@@ -3266,7 +3270,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <p>主程序：<code>跳 5 下</code> ← 跳 5 次！</p>
 <h2>4. 小挑战 🌟</h2>
 <p>制作 <code>说 N 遍 [消息]</code> 自制积木，让小猫把一句话说 N 遍！</p>
-<p><strong>加油！你解锁了参数的秘密！</strong> 🔑✨</p>
+<p><strong>加油！你解锁了参数的秘密！</strong> 🔑✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S18_积木的秘密_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第19课_给积木加脑袋_Scratch-md" class="doc">
@@ -3292,7 +3296,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>给 <code>跳 N 下</code> 加一个条件：<strong>只有当 N &gt; 0 时才跳</strong>！</p>
-<p><strong>加油！你的积木有大脑了！</strong> 🧠✨</p>
+<p><strong>加油！你的积木有大脑了！</strong> 🧠✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S19_给积木加脑袋_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第20课_超级积木_Scratch-md" class="doc">
@@ -3318,7 +3322,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>给小助手加上 <strong>"退出"</strong> 功能：输入 <code>exit</code> 就停止程序！</p>
-<p><strong>加油！你就是超级积木大师！</strong> 🏗️✨</p>
+<p><strong>加油！你就是超级积木大师！</strong> 🏗️✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S20_超级积木_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第21课_接苹果游戏_Scratch-md" class="doc">
@@ -3359,7 +3363,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>加上 <strong>计分系统</strong>：接到苹果 → <code>将 分数 增加 1</code>，说分数 1 秒！</p>
-<p><strong>加油！你就是游戏设计师！</strong> 🎮✨</p>
+<p><strong>加油！你就是游戏设计师！</strong> 🎮✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S21_接苹果游戏_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第22课_打地鼠_Scratch-md" class="doc">
@@ -3401,7 +3405,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>加上 <strong>倒计时</strong>：用变量 <code>time</code> 每秒减 1，到 0 游戏结束！</p>
-<p><strong>加油！你就是游戏开发大师！</strong> 🎮✨</p>
+<p><strong>加油！你就是游戏开发大师！</strong> 🎮✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S22_打地鼠_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第23课_迷宫大冒险_Scratch-md" class="doc">
@@ -3444,7 +3448,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </code></pre>
 <h2>4. 小挑战 🌟</h2>
 <p>加上 <strong>"碰到墙壁就回到起点"</strong> 的规则！</p>
-<p><strong>加油！你就是迷宫设计师！</strong> 🎯✨</p>
+<p><strong>加油！你就是迷宫设计师！</strong> 🎯✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S23_迷宫大冒险_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-第24课_我的第一个大作_Scratch-md" class="doc">
@@ -3513,7 +3517,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 编程不是记住所有积木，而是 <strong>用计算思维解决问题</strong>。</p>
 <p><strong>未来的编程之星，继续加油！</strong> 🌟🚀</p>
 <hr>
-<p><em>Scratch 课程完结 · 恭喜毕业！</em> 🎓✨</p>
+<p><em>Scratch 课程完结 · 恭喜毕业！</em> 🎓✨</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/S24_我的第一个大作_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch桌面版使用指南-md" class="doc">
@@ -3778,7 +3782,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>让蜗牛角色 <strong>真的往上移动</strong>：把 <code>高度</code> 乘以一个数，连到蜗牛的 <code>y 坐标</code>，看它一格格往上爬！</li>
 <li>换个题：白天爬 5 米、晚上滑 4 米，井深 15 米，几天出来？</li>
 </ol>
-<p><strong>你用编程解决了一道数学难题，太厉害啦！</strong> 🐌🏆</p>
+<p><strong>你用编程解决了一道数学难题，太厉害啦！</strong> 🐌🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A01_蜗牛爬井_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第02课_聪明小买手-md" class="doc">
@@ -3855,7 +3859,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>加一个 <strong>打折</strong> 功能：总价超过 30 元，打 9 折（总价 × 0.9）。</li>
 <li>如果钱不够，让小猫说："还差 XX 元！"</li>
 </ol>
-<p><strong>你做了一台真的会算账的收银机，恭喜小老板！</strong> 🛒🏆</p>
+<p><strong>你做了一台真的会算账的收银机，恭喜小老板！</strong> 🛒🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A02_聪明小买手_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第03课_公平分糖果-md" class="doc">
@@ -3928,7 +3932,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>用 <strong>克隆</strong>（下一个游戏会学）让屏幕上真的出现一颗颗糖，分给几个小朋友！</li>
 <li>判断公不公平：如果 <code>剩下 = 0</code> 就说"完美平分！🎉"，否则说"还剩一些，谁来吃掉？😋"</li>
 </ol>
-<p><strong>你学会了除法和余数，还做了一台分糖机！</strong> 🍬🏆</p>
+<p><strong>你学会了除法和余数，还做了一台分糖机！</strong> 🍬🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A03_公平分糖果_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第04课_乘法魔方-md" class="doc">
@@ -3994,7 +3998,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
    否则 说 连接 [正确答案是 ] 和 (a × b)</code></li>
 <li>让小猫把 <strong>1 到 9 的整张乘法表</strong> 都说一遍（循环套循环！）。</li>
 </ol>
-<p><strong>你不但学会了乘法，还知道了它的"出生秘密"！</strong> ✖️🏆</p>
+<p><strong>你不但学会了乘法，还知道了它的"出生秘密"！</strong> ✖️🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A04_乘法魔方_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第05课_飞机大战①起飞与开火-md" class="doc">
@@ -4071,7 +4075,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>让子弹 <strong>飞快一点 / 慢一点</strong>（改 <code>将 y 坐标增加</code> 的数字）。</li>
 <li>给发射加上 <strong>声音</strong> <code>播放声音 [pew]</code>，更有打击感！</li>
 </ol>
-<p><strong>下一节，我们让敌机出现，开始真正的战斗！</strong> 👾➡️ 进阶第06课</p>
+<p><strong>下一节，我们让敌机出现，开始真正的战斗！</strong> 👾➡️ 进阶第06课</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A05_飞机大战①起飞与开火_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第06课_飞机大战②敌机来袭-md" class="doc">
@@ -4183,7 +4187,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>分数到 10，<strong>敌机变快</strong>，增加难度！</li>
 <li>加一个 <strong>开始画面</strong> 和 <strong>得分排行</strong>，分享给朋友比高分！</li>
 </ol>
-<p><strong>你做出了一个完整的飞机大战，太了不起啦！</strong> ✈️🏆</p>
+<p><strong>你做出了一个完整的飞机大战，太了不起啦！</strong> ✈️🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A06_飞机大战②敌机来袭_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第07课_坦克大战-md" class="doc">
@@ -4311,7 +4315,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>加 <strong>生命值</strong>：被敌人撞到 −1 血，血量为 0 游戏结束。</li>
 <li>做一个 <strong>双人对战</strong>：玩家 1 用方向键，玩家 2 用 WASD，看谁先打中对方 5 次！</li>
 </ol>
-<p><strong>指挥官，你已经造出了一辆真正的战斗坦克！</strong> 🚀🏆</p>
+<p><strong>指挥官，你已经造出了一辆真正的战斗坦克！</strong> 🚀🏆</p><p class="sb3-dl"><a class="run-web" href="scratch_answers/A07_坦克大战_参考答案.sb3" download>📥 下载参考答案 .sb3</a><span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-AI训练师课程大纲-md" class="doc">

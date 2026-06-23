@@ -17,11 +17,13 @@ import json
 import os
 import re
 import shutil
+import subprocess
 import sys
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 LOCAL_OUTPUT = os.path.join(ROOT, "课程合集.html")
 DOCS_DIR = os.path.join(ROOT, "docs")
+SCRATCH_ANSWERS = os.path.join(ROOT, "course", "scratch_answers")
 
 try:
     import markdown
@@ -205,6 +207,31 @@ def build_python_lessons_json():
     return len(items)
 
 
+def sb3_name_for_md(md_filename):
+    m = re.match(r"第(\d+)课_(.+)_Scratch\.md", md_filename)
+    if m:
+        return f"S{int(m.group(1)):02d}_{m.group(2)}_参考答案.sb3"
+    m = re.match(r"Scratch进阶第(\d+)课_(.+)\.md", md_filename)
+    if m:
+        title = m.group(2).split("（")[0].split("(")[0].strip()
+        return f"A{int(m.group(1)):02d}_{title}_参考答案.sb3"
+    return None
+
+
+def sb3_download_link(md_filename: str) -> str:
+    sb3 = sb3_name_for_md(md_filename)
+    if not sb3:
+        return ""
+    path = os.path.join(SCRATCH_ANSWERS, sb3)
+    if not os.path.isfile(path):
+        return ""
+    return (
+        '<p class="sb3-dl"><a class="run-web" href="scratch_answers/%s" download>'
+        "📥 下载参考答案 .sb3</a>"
+        '<span class="sb3-hint"> · Scratch 桌面版 → 文件 → 从电脑中上传</span></p>'
+    ) % html.escape(sb3)
+
+
 def build_course_html(*, online: bool = False):
     groups = collect_groups()
     nav_parts = []
@@ -227,6 +254,8 @@ def build_course_html(*, online: bool = False):
                 if rel_dir == ".":
                     rel_dir = ""
                 body = fix_relative_links(body, rel_dir)
+                if online:
+                    body += sb3_download_link(name)
             else:
                 title = name
                 body = "<pre><code class=\"language-python\">%s</code></pre>" % html.escape(raw)
@@ -338,6 +367,11 @@ def copy_assets():
 
 def build_pages():
     os.makedirs(DOCS_DIR, exist_ok=True)
+    subprocess.run(
+        [sys.executable, os.path.join(ROOT, "build_scratch_sb3.py"), "--copy-docs"],
+        cwd=ROOT,
+        check=True,
+    )
     course_html, total, group_meta = build_course_html(online=True)
     landing_html = build_landing_html(group_meta, total)
     n_py = build_python_lessons_json()
@@ -411,6 +445,8 @@ a:hover{text-decoration:underline}
 .run-web{display:inline-block;background:linear-gradient(135deg,#059669,#10b981);color:#fff !important;
   padding:10px 18px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px}
 .run-web:hover{opacity:.92;text-decoration:none}
+.sb3-dl{margin:14px 0 0}
+.sb3-hint{font-size:12px;color:var(--muted);margin-left:6px}
 .menu-btn{display:none}
 @media (max-width:880px){
   .wrap{display:block}
@@ -559,6 +595,7 @@ LANDING_PAGE = """<!DOCTYPE html>
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
       <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
       <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
+      <a class="btn btn-secondary" href="course.html#doc-Scratch桌面版使用指南-md">🐱 Scratch 指南</a>
     </div>
   </section>
 

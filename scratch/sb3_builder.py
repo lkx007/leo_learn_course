@@ -1,0 +1,540 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""Build minimal valid Scratch 3 (.sb3) project files."""
+
+from __future__ import annotations
+
+import json
+import uuid
+import zipfile
+from pathlib import Path
+from typing import Any
+
+
+def _bid() -> str:
+    return uuid.uuid4().hex[:20]
+
+
+# Simple orange cat SVG (opens fine in Scratch Desktop)
+CAT_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="52" r="38" fill="#FFAB19" stroke="#CC8B17" stroke-width="2"/>
+  <polygon points="20,25 30,5 40,25" fill="#FFAB19" stroke="#CC8B17"/>
+  <polygon points="60,25 70,5 80,25" fill="#FFAB19" stroke="#CC8B17"/>
+  <circle cx="38" cy="48" r="6" fill="#fff"/><circle cx="38" cy="48" r="3" fill="#000"/>
+  <circle cx="62" cy="48" r="6" fill="#fff"/><circle cx="62" cy="48" r="3" fill="#000"/>
+  <path d="M35 68 Q50 82 65 68" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round"/>
+</svg>"""
+
+APPLE_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60">
+  <circle cx="30" cy="34" r="22" fill="#e11d48"/>
+  <path d="M30 12 Q38 8 34 18" stroke="#16a34a" stroke-width="4" fill="none"/>
+</svg>"""
+
+DOT_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+  <circle cx="10" cy="10" r="8" fill="#fbbf24"/>
+</svg>"""
+
+PLANE_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
+  <polygon points="40,5 70,70 40,55 10,70" fill="#38bdf8" stroke="#0284c7" stroke-width="2"/>
+</svg>"""
+
+
+class Script:
+    """Build a linked chain of Scratch blocks."""
+
+    def __init__(self, builder: "SB3Builder", sprite_name: str):
+        self.b = builder
+        self.sprite_name = sprite_name
+        self.sprite = builder.sprites[sprite_name]
+        self.blocks: dict[str, Any] = self.sprite["blocks"]
+        self.head: str | None = None
+        self.tail: str | None = None
+        self.y = 50
+
+    def _link(self, block_id: str, *, x: int | None = None) -> str:
+        blk = self.blocks[block_id]
+        if self.tail:
+            self.blocks[self.tail]["next"] = block_id
+            blk["parent"] = self.tail
+            blk["topLevel"] = False
+        else:
+            self.head = block_id
+            blk["topLevel"] = True
+            blk["x"] = x if x is not None else 50
+            blk["y"] = self.y
+        self.tail = block_id
+        return block_id
+
+    def _block(self, opcode: str, *, inputs=None, fields=None, mutation=None, shadow=False) -> str:
+        bid = _bid()
+        self.blocks[bid] = {
+            "opcode": opcode,
+            "next": None,
+            "parent": None,
+            "inputs": inputs or {},
+            "fields": fields or {},
+            "shadow": shadow,
+            "topLevel": False,
+        }
+        if mutation:
+            self.blocks[bid]["mutation"] = mutation
+        return bid
+
+    def _lit_str(self, text: str) -> list:
+        return [1, [10, str(text)]]
+
+    def _lit_num(self, num: float | int) -> list:
+        n = str(int(num)) if float(num).is_integer() else str(num)
+        return [1, [4, n]]
+
+    def _substack(self, bid: str) -> list:
+        return [2, bid]
+
+    def _var_field(self, name: str) -> list:
+        vid = self.b.ensure_var(self.sprite_name, name)
+        return [name, vid]
+
+    def _var_input(self, name: str) -> list:
+        rid = self._block("data_variable", fields={"VARIABLE": self._var_field(name)})
+        return [2, rid]
+
+    def _list_field(self, name: str) -> list:
+        lid = self.b.ensure_list(self.sprite_name, name)
+        return [name, lid]
+
+    def _answer(self) -> list:
+        rid = self._block("sensing_answer")
+        return [2, rid]
+
+    def flag(self) -> "Script":
+        self._link(self._block("event_whenflagclicked"))
+        return self
+
+    def say(self, text: str, secs: float = 2) -> "Script":
+        self._link(self._block(
+            "looks_sayforsecs",
+            inputs={"MESSAGE": self._lit_str(text), "SECS": self._lit_num(secs)},
+        ))
+        return self
+
+    def ask(self, question: str) -> "Script":
+        self._link(self._block("sensing_askandwait", inputs={"QUESTION": self._lit_str(question)}))
+        return self
+
+    def set_var(self, name: str, value: str | float | int) -> "Script":
+        if isinstance(value, str) and not value.isidentifier():
+            val_in = self._lit_str(value)
+        elif isinstance(value, str):
+            val_in = self._var_input(value)
+        else:
+            val_in = self._lit_num(value)
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": val_in},
+            fields={"VARIABLE": self._var_field(name)},
+        ))
+        return self
+
+    def change_var(self, name: str, delta: float | int) -> "Script":
+        self._link(self._block(
+            "data_changevariableby",
+            inputs={"VALUE": self._lit_num(delta)},
+            fields={"VARIABLE": self._var_field(name)},
+        ))
+        return self
+
+    def say_join(self, a: str, b_var: str, secs: float = 2) -> "Script":
+        jid = self._block("operator_join", inputs={
+            "STRING1": self._lit_str(a),
+            "STRING2": self._var_input(b_var),
+        })
+        self._link(self._block(
+            "looks_sayforsecs",
+            inputs={"MESSAGE": [2, jid], "SECS": self._lit_num(secs)},
+        ))
+        return self
+
+    def say_expr(self, text: str, expr_block: str, secs: float = 2) -> "Script":
+        jid = self._block("operator_join", inputs={
+            "STRING1": self._lit_str(text),
+            "STRING2": [2, expr_block],
+        })
+        self._link(self._block(
+            "looks_sayforsecs",
+            inputs={"MESSAGE": [2, jid], "SECS": self._lit_num(secs)},
+        ))
+        return self
+
+    def say_math(self, a: str, op: str, b: str, prefix: str = "", secs: float = 2) -> "Script":
+        ops = {"+": "operator_add", "-": "operator_sub", "*": "operator_multiply", "/": "operator_divide"}
+        mid = self._block(ops[op], inputs={"NUM1": self._lit_num(a), "NUM2": self._lit_num(b)})
+        if prefix:
+            return self.say_expr(prefix, mid, secs)
+        self._link(self._block(
+            "looks_sayforsecs",
+            inputs={"MESSAGE": [2, mid], "SECS": self._lit_num(secs)},
+        ))
+        return self
+
+    def say_var_expr(self, prefix: str, var_a: str, op: str, var_b: str, secs: float = 2) -> "Script":
+        ops = {"+": "operator_add", "-": "operator_sub", "*": "operator_multiply", "/": "operator_divide"}
+        va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
+        vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
+        mid = self._block(ops[op], inputs={"NUM1": [2, va], "NUM2": [2, vb]})
+        return self.say_expr(prefix, mid, secs)
+
+    def if_eq_answer(self, value: str, then: Script, else_: Script | None = None) -> "Script":
+        eq = self._block("operator_equals", inputs={
+            "OPERAND1": self._answer(),
+            "OPERAND2": self._lit_str(value),
+        })
+        sub = then.blocks
+        then_tail = then.tail
+        sub_id = then.head
+        if else_:
+            sub2 = else_.blocks
+            sub2_id = else_.head
+            bid = self._block("control_if_else", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+                "SUBSTACK2": self._substack(sub2_id) if sub2_id else [2, None],
+            })
+        else:
+            bid = self._block("control_if", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+            })
+        self.blocks.update(sub)
+        if else_:
+            self.blocks.update(sub2)
+        self._link(bid)
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
+        if else_ and sub2_id:
+            self.blocks[sub2_id]["parent"] = bid
+        return self
+
+    def if_var_eq(self, var: str, value: str | int, then: Script, else_: Script | None = None) -> "Script":
+        va = self._block("data_variable", fields={"VARIABLE": self._var_field(var)})
+        eq = self._block("operator_equals", inputs={
+            "OPERAND1": [2, va],
+            "OPERAND2": self._lit_num(value) if isinstance(value, int) else self._lit_str(value),
+        })
+        sub_id = then.head
+        self.blocks.update(then.blocks)
+        if else_:
+            sub2_id = else_.head
+            self.blocks.update(else_.blocks)
+            bid = self._block("control_if_else", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id),
+                "SUBSTACK2": self._substack(sub2_id),
+            })
+            self.blocks[sub2_id]["parent"] = bid
+        else:
+            bid = self._block("control_if", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id),
+            })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def wait(self, secs: float) -> "Script":
+        self._link(self._block("control_wait", inputs={"DURATION": self._lit_num(secs)}))
+        return self
+
+    def repeat(self, times: int, body: Script) -> "Script":
+        sub_id = body.head
+        self.blocks.update(body.blocks)
+        bid = self._block("control_repeat", inputs={
+            "TIMES": self._lit_num(times),
+            "SUBSTACK": self._substack(sub_id),
+        })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def forever(self, body: Script) -> "Script":
+        sub_id = body.head
+        self.blocks.update(body.blocks)
+        bid = self._block("control_forever", inputs={"SUBSTACK": self._substack(sub_id)})
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def move(self, steps: int) -> "Script":
+        self._link(self._block("motion_movesteps", inputs={"STEPS": self._lit_num(steps)}))
+        return self
+
+    def turn_right(self, deg: int = 90) -> "Script":
+        self._link(self._block("motion_turnright", inputs={"DEGREES": self._lit_num(deg)}))
+        return self
+
+    def go_xy(self, x: int, y: int) -> "Script":
+        self._link(self._block("motion_gotoxy", inputs={"X": self._lit_num(x), "Y": self._lit_num(y)}))
+        return self
+
+    def change_y(self, dy: int) -> "Script":
+        self._link(self._block("motion_changeyby", inputs={"DY": self._lit_num(dy)}))
+        return self
+
+    def change_x(self, dx: int) -> "Script":
+        self._link(self._block("motion_changexby", inputs={"DX": self._lit_num(dx)}))
+        return self
+
+    def set_random_x(self, lo: int, hi: int, y: int) -> "Script":
+        rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
+        self._link(self._block("motion_gotoxy", inputs={"X": [2, rnd], "Y": self._lit_num(y)}))
+        return self
+
+    def random_var(self, name: str, lo: int, hi: int) -> "Script":
+        rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": [2, rnd]},
+            fields={"VARIABLE": self._var_field(name)},
+        ))
+        return self
+
+    def add_to_list(self, item: str, list_name: str) -> "Script":
+        self._link(self._block(
+            "data_addtolist",
+            inputs={"ITEM": self._lit_str(item)},
+            fields={"LIST": self._list_field(list_name)},
+        ))
+        return self
+
+    def add_answer_to_list(self, list_name: str) -> "Script":
+        self._link(self._block(
+            "data_addtolist",
+            inputs={"ITEM": self._answer()},
+            fields={"LIST": self._list_field(list_name)},
+        ))
+        return self
+
+    def say_list(self, prefix: str, list_name: str, secs: float = 2) -> "Script":
+        item = self._block("data_itemoflist", inputs={"INDEX": self._lit_num(1)}, fields={"LIST": self._list_field(list_name)})
+        return self.say_expr(prefix, item, secs)
+
+    def pen_clear(self) -> "Script":
+        self.b.use_extension("pen")
+        self._link(self._block("pen_clear"))
+        return self
+
+    def pen_down(self) -> "Script":
+        self.b.use_extension("pen")
+        self._link(self._block("pen_penDown"))
+        return self
+
+    def pen_up(self) -> "Script":
+        self.b.use_extension("pen")
+        self._link(self._block("pen_penUp"))
+        return self
+
+    def hide(self) -> "Script":
+        self._link(self._block("looks_hide"))
+        return self
+
+    def show(self) -> "Script":
+        self._link(self._block("looks_show"))
+        return self
+
+    def key_flag_script(self, key: str) -> "Script":
+        self.head = self.tail = None
+        self._link(self._block("event_whenkeypressed", fields={"KEY_OPTION": [key, None]}))
+        return self
+
+    def clone_start(self) -> "Script":
+        self.head = self.tail = None
+        self._link(self._block("control_start_as_clone"))
+        return self
+
+    def create_clone(self, target: str = "_myself_") -> "Script":
+        self._link(self._block("control_create_clone_of", fields={"CLONE_OPTION": [target, None]}))
+        return self
+
+    def delete_clone(self) -> "Script":
+        self._link(self._block("control_delete_this_clone"))
+        return self
+
+    def key_pressed(self, key: str) -> str:
+        return self._block("sensing_keypressed", fields={"KEY_OPTION": [key, None]})
+
+    def if_key(self, key: str, then: Script) -> "Script":
+        cond = self.key_pressed(key)
+        sub_id = then.head
+        self.blocks.update(then.blocks)
+        bid = self._block("control_if", inputs={
+            "CONDITION": [2, cond],
+            "SUBSTACK": self._substack(sub_id),
+        })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def touching(self, target: str) -> str:
+        return self._block("sensing_touchingobject", fields={"TOUCHINGOBJECTMENU": [target, None]})
+
+    def repeat_until_touch(self, target: str, body: Script) -> "Script":
+        cond = self.touching(target)
+        sub_id = body.head
+        self.blocks.update(body.blocks)
+        bid = self._block("control_repeat_until", inputs={
+            "CONDITION": [2, cond],
+            "SUBSTACK": self._substack(sub_id),
+        })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def define_block(self, name: str, body: Script) -> tuple[str, str]:
+        proto = _bid()
+        self.blocks[proto] = {
+            "opcode": "procedures_prototype",
+            "next": None,
+            "parent": None,
+            "inputs": {},
+            "fields": {},
+            "shadow": True,
+            "topLevel": False,
+            "mutation": {
+                "tagName": "mutation",
+                "proccode": name,
+                "argumentids": "[]",
+                "argumentnames": "[]",
+                "argumentdefaults": "[]",
+                "warp": "false",
+            },
+        }
+        def_id = _bid()
+        sub_id = body.head
+        self.blocks.update(body.blocks)
+        self.blocks[def_id] = {
+            "opcode": "procedures_definition",
+            "next": sub_id,
+            "parent": None,
+            "inputs": {"custom_block": [1, proto]},
+            "fields": {},
+            "shadow": False,
+            "topLevel": True,
+            "x": 50,
+            "y": self.y,
+        }
+        self.blocks[sub_id]["parent"] = def_id
+        call_id = _bid()
+        self.blocks[call_id] = {
+            "opcode": "procedures_call",
+            "next": None,
+            "parent": None,
+            "inputs": {},
+            "fields": {},
+            "shadow": False,
+            "topLevel": False,
+            "mutation": {
+                "tagName": "mutation",
+                "proccode": name,
+                "argumentids": "[]",
+                "warp": "false",
+            },
+        }
+        self.y += 200
+        return def_id, call_id
+
+    def call(self, call_id: str) -> "Script":
+        self._link(call_id)
+        return self
+
+
+class SB3Builder:
+    def __init__(self):
+        self.extensions: set[str] = set()
+        self.assets: dict[str, str] = {}
+        self.stage = self._empty_target(is_stage=True, name="Stage")
+        self.sprites: dict[str, dict] = {"Stage": self.stage}
+        self._var_ids: dict[tuple[str, str], str] = {}
+        self._list_ids: dict[tuple[str, str], str] = {}
+
+    def use_extension(self, name: str):
+        self.extensions.add(name)
+
+    def ensure_var(self, sprite: str, name: str) -> str:
+        key = (sprite, name)
+        if key not in self._var_ids:
+            vid = _bid()
+            self._var_ids[key] = vid
+            self.sprites[sprite]["variables"][vid] = [name, 0]
+        return self._var_ids[key]
+
+    def ensure_list(self, sprite: str, name: str) -> str:
+        key = (sprite, name)
+        if key not in self._list_ids:
+            lid = _bid()
+            self._list_ids[key] = lid
+            self.sprites[sprite]["lists"][lid] = [name, []]
+        return self._list_ids[key]
+
+    def _costume(self, name: str, svg: str) -> dict:
+        aid = _bid()
+        fname = f"{aid}.svg"
+        self.assets[fname] = svg
+        return {
+            "name": name,
+            "bitmapResolution": 1,
+            "dataFormat": "svg",
+            "assetId": aid,
+            "md5ext": fname,
+            "rotationCenterX": 50,
+            "rotationCenterY": 50,
+        }
+
+    def _empty_target(self, *, is_stage: bool, name: str, svg: str = CAT_SVG) -> dict:
+        BACKDROP = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">
+  <rect width="480" height="360" fill="#4fc3f7"/>
+  <rect y="280" width="480" height="80" fill="#66bb6a"/>
+</svg>"""
+        return {
+            "isStage": is_stage,
+            "name": name,
+            "variables": {},
+            "lists": {},
+            "broadcasts": {},
+            "blocks": {},
+            "comments": {},
+            "currentCostume": 0,
+            "costumes": [self._costume("backdrop1", BACKDROP)] if is_stage else [self._costume("costume1", svg)],
+            "sounds": [],
+            "volume": 100,
+            "visible": not is_stage,
+            "x": 0,
+            "y": 0,
+            "size": 100,
+            "direction": 90,
+            "draggable": False,
+            "rotationStyle": "all around",
+            "layerOrder": 0 if is_stage else len(self.sprites),
+        }
+
+    def add_sprite(self, name: str, svg: str = CAT_SVG) -> dict:
+        sp = self._empty_target(is_stage=False, name=name, svg=svg)
+        sp["layerOrder"] = len(self.sprites)
+        self.sprites[name] = sp
+        return sp
+
+    def script(self, sprite: str = "Sprite1") -> Script:
+        if sprite not in self.sprites:
+            self.add_sprite(sprite)
+        return Script(self, sprite)
+
+    def save(self, path: Path):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        project = {
+            "targets": list(self.sprites.values()),
+            "monitors": [],
+            "extensions": sorted(self.extensions),
+            "meta": {"semver": "3.0.0", "vm": "11.5.0", "agent": "leo_learn_course sb3_builder"},
+        }
+        with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
+            zf.writestr("project.json", json.dumps(project, ensure_ascii=False))
+            for fname, content in self.assets.items():
+                zf.writestr(fname, content)

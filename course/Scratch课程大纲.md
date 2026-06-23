@@ -6,7 +6,7 @@
 
 > 打开方式：打开 Mac 上的 **Scratch 桌面应用** 🐱（Scratch Desktop，无需联网）。
 > 不熟悉操作？请先读 **《Scratch桌面版使用指南》**（`Scratch桌面版使用指南.md`，含带图的界面讲解）。
-> 每节课都有配套 `.sb3` 工程文件（在 `course/` 目录，如 `scratch_lesson_01.sb3`），可在桌面应用里用 **File（文件）→ Load from your computer（从电脑中上传）** 打开参考答案。
+> 每节课都有配套 **参考答案 `.sb3`**（在 `course/scratch_answers/` 目录），可在桌面应用里用 **File（文件）→ Load from your computer（从电脑中上传）** 打开。
 
 ---
 

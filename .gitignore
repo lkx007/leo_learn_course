@@ -1,5 +1,8 @@
 .DS_Store
 *.py
+!build_html.py
+!build_scratch_sb3.py
+!scratch/*.py
 *.pyc
 __pycache__/
 implementation_plan/
