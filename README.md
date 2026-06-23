@@ -13,15 +13,29 @@
 
 ## 📖 一键查看全部课程（推荐）
 
-不想一个个打开 Markdown？直接双击打开 **`课程合集.html`**！
-它把三条学习线的全部课程都预渲染进了一个网页，**离线可用、带目录和搜索**。
+不想一个个打开 Markdown？有两种方式：
 
-如果新增或修改了课程，想重新生成这个网页：
+**本地离线**：双击 **`课程合集.html`**（全部课程预渲染，带目录和搜索）
+
+**公网在线**：部署到 GitHub Pages 后访问  
+👉 **https://lkx007.github.io/leo_learn_course/**
+
+重新生成网页：
 
 ```bash
 pip install markdown   # 仅首次需要
-python3 build_html.py  # 重新生成 课程合集.html
+python3 build_html.py              # 本地 课程合集.html
+python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 ```
+
+### 发布到 GitHub Pages
+
+1. 推送代码到 GitHub（仓库 `lkx007/leo_learn_course`）
+2. 打开仓库 **Settings → Pages**
+3. **Build and deployment → Source** 选 **GitHub Actions**
+4. 推送 `main` 分支后，Actions 会自动构建并发布 `docs/` 站点
+
+首次也可手动构建：`python3 build_html.py --pages`，然后把 `docs/` 推上去，Source 选 **Deploy from a branch → main → /docs**。
 
 ## 🧭 三条学习线
 
