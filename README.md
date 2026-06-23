@@ -49,6 +49,9 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
    - 含 **进阶篇**：用 Scratch 解决现实数学问题（蜗牛爬井、找零、分糖、乘法）+ 做游戏（飞机大战、坦克大战）。评审见 `course/Scratch课程评审.md`。
 2. **Python 编程课**（练）：真正动手写代码，掌握语法。→ `course/课程大纲.md`
 3. **AI 训练师课**（创）：学会跟真 AI 聊天、用提示词/技能/工具/MCP，把点子变成软件。→ `AI训练师课程/AI训练师课程大纲.md`
+   - **进阶 4 课**：模型 · Harness · OpenClaw（基础毕业后）
+   - **实战项目**：🐟 [大鱼吃小鱼](AI训练师课程/AI训练师项目大纲_大鱼吃小鱼.md) — 语音指挥 AI + Scratch 分步做游戏
+   - **语音指挥台**（Chrome）：[voice-ai.html](https://lkx007.github.io/leo_learn_course/voice-ai.html) — 按住说话，复制粘贴给 Cursor
 
 > 想先了解整体情况？请看 `课程分析报告.md`。
 > 想要现成的学习计划？请看 `暑假教学日程表.md`（8 周，三条线交替）。
@@ -62,7 +65,8 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
   - `课程大纲.md`：Python 主线大纲。
   - `Scratch课程大纲.md`：Scratch 主线大纲。
   - `typing_game.py`：特制的编程打字训练游戏。
-- `AI训练师课程/`：**新增** 的"用 AI"特训营（提示词、技能 Skills、工具 Tools、MCP、把点子变软件）。
+- `AI训练师课程/`：**用 AI** 特训营（提示词、Skills、Tools、MCP、进阶、大鱼吃小鱼项目课）。
+- `site/`：GitHub Pages 静态页（`voice-ai.html` 语音指挥台、`python.html`、`typing.html` 等）。
 - `implementation_plan/`：需求开发记录与计划归档。
 - `课程分析报告.md`：对全部课程的分析与新增内容说明。
 - `需求.md`：项目的原始需求文档。

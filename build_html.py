@@ -138,6 +138,12 @@ def collect_groups():
         name = os.path.basename(path)
         if name.startswith("AI训练师课程大纲"):
             return (0, 0, name)
+        if name.startswith("AI训练师项目大纲"):
+            return (3, 0, name)
+        if name.startswith("AI训练师项目"):
+            return (4, first_number(name), name)
+        if name.startswith("AI训练师进阶"):
+            return (2, first_number(name), name)
         return (1, first_number(name), name)
 
     ai_files.sort(key=ai_key)
@@ -153,7 +159,7 @@ def collect_groups():
         ("📚 开始这里", "总览、分析与学习计划", overview_files, "md", "guide"),
         ("🐍 Python 课程", "课程大纲与每课讲解", py_course_files, "md", "python"),
         ("🐱 Scratch 课程", "图形化课程 · 基础 + 进阶（数学/游戏）", scratch_files, "md", "scratch"),
-        ("🧑‍🚀 AI 训练师课程", "提示词 · Skills · Tools · MCP · 把点子变软件", ai_files, "md", "ai"),
+        ("🧑‍🚀 AI 训练师课程", "基础 + 进阶 + 🐟大鱼吃小鱼项目 · 语音指挥", ai_files, "md", "ai"),
         ("💻 Python 源码", "可运行的课程代码", py_src, "py", "code"),
     ]
 
@@ -221,6 +227,12 @@ def sb3_name_for_md(md_filename):
     if m:
         title = m.group(2).split("（")[0].split("(")[0].strip()
         return f"A{int(m.group(1)):02d}_{title}_参考答案.sb3"
+    m = re.match(r"AI训练师项目(\d+)课_(.+)\.md", md_filename)
+    if m:
+        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大"}
+        n = int(m.group(1))
+        if n in gmap:
+            return f"{gmap[n]}_参考答案.sb3"
     return None
 
 
@@ -600,6 +612,7 @@ LANDING_PAGE = """<!DOCTYPE html>
     <div class="hero-btns">
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
       <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
+      <a class="btn btn-primary" href="voice-ai.html">🎤 语音指挥 AI</a>
       <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
       <a class="btn btn-secondary" href="course.html#doc-Scratch桌面版使用指南-md">🐱 Scratch 指南</a>
     </div>

@@ -16,7 +16,15 @@ import re
 import shutil
 from pathlib import Path
 
-from scratch.sb3_builder import APPLE_SVG, DOT_SVG, PLANE_SVG, SB3Builder, Script
+from scratch.sb3_builder import (
+    APPLE_SVG,
+    BIG_FISH_SVG,
+    DOT_SVG,
+    PLANE_SVG,
+    SB3Builder,
+    Script,
+    SMALL_FISH_SVG,
+)
 
 ROOT = Path(__file__).parent
 OUT = ROOT / "course" / "scratch_answers"
@@ -36,6 +44,14 @@ def sb3_name_for_md(md_filename):
     if m:
         title = m.group(2).split("（")[0].split("(")[0].strip()
         return f"A{int(m.group(1)):02d}_{title}_参考答案.sb3"
+    m = re.match(r"AI训练师项目(\d+)课_(.+)\.md", md_filename)
+    if m:
+        n = int(m.group(1))
+        title = m.group(2).split("（")[0].split("(")[0].strip()
+        gmap = {2: "G01_大鱼吃小鱼①游起来", 3: "G02_大鱼吃小鱼②小鱼群", 4: "G03_大鱼吃小鱼③吃掉变大"}
+        if n in gmap:
+            return f"{gmap[n]}_参考答案.sb3"
+        return None
     return None
 
 
@@ -269,6 +285,52 @@ def adv_07_tank(b: SB3Builder):
     b.script("Sprite1").flag().say("坦克大战：方向键移动，空格发射", 2).forever(loop)
 
 
+def _fish_move_loop(b: SB3Builder, sprite: str) -> Script:
+    loop = Script(b, sprite)
+    loop.if_key("up arrow", Script(b, sprite).change_y(10))
+    loop.if_key("down arrow", Script(b, sprite).change_y(-10))
+    loop.if_key("left arrow", Script(b, sprite).change_x(-10))
+    loop.if_key("right arrow", Script(b, sprite).change_x(10))
+    return loop
+
+
+def game_fish_01(b: SB3Builder):
+    """G01: 大鱼方向键游动"""
+    b.add_sprite("BigFish", BIG_FISH_SVG)
+    b.script("BigFish").flag().set_size(80).go_xy(0, 0).say("方向键游！大鱼吃小鱼 ①", 2)
+    b.script("BigFish").flag().forever(_fish_move_loop(b, "BigFish"))
+
+
+def game_fish_02(b: SB3Builder):
+    """G02: 大鱼 + 克隆小鱼群"""
+    game_fish_01(b)
+    b.add_sprite("SmallFish", SMALL_FISH_SVG)
+    swim = Script(b, "SmallFish").point_towards("_mouse_").move_steps(4)
+    b.script("SmallFish").flag().hide()
+    b.script("SmallFish").flag().repeat(8, Script(b, "SmallFish").create_clone("SmallFish"))
+    b.script("SmallFish").clone_start().show().go_random_xy(-200, 200, -150, 150).forever(swim)
+
+
+def game_fish_03(b: SB3Builder):
+    """G03: 吃掉变大 + 得分"""
+    b.add_sprite("BigFish", BIG_FISH_SVG)
+    b.add_sprite("SmallFish", SMALL_FISH_SVG)
+    b.ensure_var("BigFish", "得分")
+    body = _fish_move_loop(b, "BigFish")
+    body.if_touching(
+        "SmallFish",
+        Script(b, "BigFish").change_var("得分", 1).change_size(5),
+    )
+    b.script("BigFish").flag().set_var("得分", 0).set_size(60).go_xy(0, 0).say("吃小鱼变大！得分！", 2)
+    b.script("BigFish").flag().forever(body)
+    swim = Script(b, "SmallFish")
+    swim.if_touching("BigFish", Script(b, "SmallFish").delete_clone())
+    swim.point_towards("_mouse_").move_steps(5)
+    b.script("SmallFish").flag().hide()
+    b.script("SmallFish").flag().repeat(10, Script(b, "SmallFish").create_clone("SmallFish"))
+    b.script("SmallFish").clone_start().show().go_random_xy(-220, 220, -160, 160).forever(swim)
+
+
 LESSONS = [
     ("S01_你好小猫_参考答案.sb3", lesson_01),
     ("S02_神奇的盒子_参考答案.sb3", lesson_02),
@@ -303,6 +365,9 @@ LESSONS = [
     ("A05_飞机大战①起飞与开火_参考答案.sb3", adv_05_plane),
     ("A06_飞机大战②敌机来袭_参考答案.sb3", adv_06_plane2),
     ("A07_坦克大战_参考答案.sb3", adv_07_tank),
+    ("G01_大鱼吃小鱼①游起来_参考答案.sb3", game_fish_01),
+    ("G02_大鱼吃小鱼②小鱼群_参考答案.sb3", game_fish_02),
+    ("G03_大鱼吃小鱼③吃掉变大_参考答案.sb3", game_fish_03),
 ]
 
 

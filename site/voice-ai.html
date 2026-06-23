@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎤 语音指挥 AI · 大鱼吃小鱼 · 小鱼编程</title>
+  <style>
+    :root {
+      --bg: #0c4a6e; --panel: #0f172a; --ink: #f0f9ff; --muted: #94a3b8;
+      --brand: #38bdf8; --brand2: #22d3ee; --ok: #34d399; --rec: #ef4444;
+      --fish: #f97316;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: radial-gradient(ellipse at top, #0369a1 0%, var(--bg) 45%, #082f49 100%);
+      padding: 16px;
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }
+    header { text-align: center; margin-bottom: 18px; }
+    header h1 { margin: 0 0 6px; font-size: 1.55rem; }
+    header p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+    header a { color: var(--brand); font-size: 0.85rem; }
+    .panel {
+      background: rgba(15, 23, 42, 0.92); border: 1px solid #334155;
+      border-radius: 18px; padding: 18px; margin-bottom: 14px;
+      backdrop-filter: blur(8px);
+    }
+    .steps {
+      display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+    }
+    .steps button {
+      flex: 1; min-width: 72px; padding: 8px 6px; border-radius: 10px;
+      border: 1px solid #475569; background: #1e293b; color: var(--ink);
+      cursor: pointer; font-size: 0.78rem; line-height: 1.3;
+    }
+    .steps button.active {
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      color: #0f172a; font-weight: 800; border-color: transparent;
+    }
+    .lesson-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 4px; color: var(--fish); }
+    .lesson-desc { font-size: 0.88rem; color: var(--muted); margin: 0 0 12px; }
+    .example {
+      background: #1e293b; border-radius: 12px; padding: 12px 14px;
+      font-size: 0.88rem; line-height: 1.65; white-space: pre-wrap;
+      border-left: 4px solid var(--brand); margin-bottom: 14px;
+    }
+    .mic-wrap { text-align: center; padding: 8px 0 4px; }
+    .mic {
+      width: 120px; height: 120px; border-radius: 50%; border: none;
+      background: linear-gradient(145deg, #334155, #1e293b);
+      color: #fff; font-size: 2.8rem; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      transition: transform 0.15s, box-shadow 0.15s;
+      user-select: none; touch-action: none;
+    }
+    .mic:active, .mic.recording {
+      transform: scale(1.06);
+      background: linear-gradient(145deg, var(--rec), #b91c1c);
+      box-shadow: 0 0 0 8px rgba(239, 68, 68, 0.25);
+    }
+    .mic-hint { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+    .status { text-align: center; min-height: 1.4em; font-weight: 600; margin: 10px 0; }
+    .status.rec { color: var(--rec); }
+    .status.ok { color: var(--ok); }
+    textarea {
+      width: 100%; min-height: 140px; padding: 14px; border-radius: 12px;
+      border: 2px solid #475569; background: #0f172a; color: var(--ink);
+      font-size: 1rem; line-height: 1.6; resize: vertical;
+      font-family: inherit;
+    }
+    textarea:focus { outline: none; border-color: var(--brand); }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 12px; }
+    .btn {
+      flex: 1; min-width: 120px; padding: 12px 16px; border: none;
+      border-radius: 12px; font-size: 1rem; font-weight: 700; cursor: pointer;
+    }
+    .btn-copy { background: linear-gradient(135deg, var(--ok), #059669); color: #fff; }
+    .btn-clear { background: #334155; color: var(--ink); }
+    .btn-example { background: #1e40af; color: #fff; }
+    .flow {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+      text-align: center; font-size: 0.75rem; color: var(--muted); margin-bottom: 12px;
+    }
+    .flow span { background: #1e293b; padding: 8px 4px; border-radius: 8px; }
+    .warn {
+      background: #422006; border: 1px solid #92400e; border-radius: 10px;
+      padding: 10px 12px; font-size: 0.82rem; color: #fcd34d; margin-top: 12px;
+    }
+    .unsupported { display: none; color: #fca5a5; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>🎤 语音指挥 AI</h1>
+      <p>大鱼吃小鱼项目 · 说话代替打字 · 复制粘贴给 Cursor</p>
+      <a href="index.html">← 返回首页</a> · <a href="course.html#doc-AI训练师项目大纲_大鱼吃小鱼-md">📖 项目课</a>
+    </header>
+
+    <div class="panel unsupported" id="unsupported">
+      ⚠️ 此浏览器不支持语音识别。请用 <strong>Chrome</strong> 或 <strong>Edge</strong>，<br>
+      或使用 macOS <strong>连按 Fn 听写</strong> 在 Cursor 里直接说话。
+    </div>
+
+    <div class="panel" id="main">
+      <div class="flow">
+        <span>① 按住说话</span>
+        <span>② 变成文字</span>
+        <span>③ 复制</span>
+        <span>④ 粘贴给 AI</span>
+      </div>
+
+      <div class="steps" id="steps"></div>
+
+      <p class="lesson-title" id="lessonTitle"></p>
+      <p class="lesson-desc" id="lessonDesc"></p>
+      <div class="example" id="example"></div>
+
+      <div class="mic-wrap">
+        <button type="button" class="mic" id="micBtn" title="按住说话">🎙️</button>
+        <p class="mic-hint">按住按钮说话，松手结束 · 可以说和例句不一样的话</p>
+      </div>
+      <p class="status" id="status"></p>
+
+      <textarea id="output" placeholder="你说的话会出现在这里…也可以直接改几个字"></textarea>
+
+      <div class="btn-row">
+        <button type="button" class="btn btn-copy" id="copyBtn">📋 复制给 AI</button>
+        <button type="button" class="btn btn-example" id="fillBtn">📝 填入例句</button>
+        <button type="button" class="btn btn-clear" id="clearBtn">🗑️ 清空</button>
+      </div>
+
+      <div class="warn">
+        💡 <strong>给爸爸妈妈：</strong>复制后粘贴到 Cursor <strong>Agent</strong> 模式。
+        小鱼负责说和试玩，家长负责点运行。麦克风需 HTTPS 或 localhost。
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LESSONS = [
+      {
+        id: "practice",
+        label: "练习关",
+        title: "🌟 练习关：跟 AI 打招呼",
+        desc: "先练 3 句，熟悉按住说话 → 复制 → 粘贴",
+        example: "你好，我是小鱼，我要做一个大鱼吃小鱼游戏。\n\n我是 Scratch 老师，请用简单积木语言，告诉我怎么让一条鱼动起来。"
+      },
+      {
+        id: "01",
+        label: "第01关",
+        title: "📋 第 01 关：设计游戏规则",
+        desc: "让 AI 帮你整理游戏设计说明书",
+        example: "【角】你是儿童 Scratch 游戏设计师，帮 7 岁小朋友整理想法。\n【清】我要做 Scratch 游戏「大鱼吃小鱼」。\n【步】请帮我写一份设计说明书，包含：\n1. 角色有哪些（名字、颜色、大小）\n2. 玩家怎么控制\n3. 吃到鱼会发生什么\n4. 怎么算赢、怎么算输\n5. 分 4 步开发计划\n【例】方向键移动大鱼，碰到小鱼就变大。\n请用简单中文，每条一行。"
+      },
+      {
+        id: "02",
+        label: "第02关",
+        title: "🐋 第 02 关：大鱼游起来",
+        desc: "方向键控制 BigFish 移动",
+        example: "【角】你是 Scratch 3 老师，教 7 岁孩子。\n【清】Scratch 桌面版，角色 BigFish 蓝色大鱼。\n【步】用「当绿旗 + 重复执行 + 如果按下方向键」写出让大鱼上下左右移动的中文积木步骤，每次 10 步，开始在屏幕中间。\n【例】类似飞机大战，但要四个方向。\n只要游起来，不要其他功能。"
+      },
+      {
+        id: "03",
+        label: "第03关",
+        title: "🐠 第 03 关：小鱼群游动",
+        desc: "克隆 SmallFish，满屏游",
+        example: "【角】Scratch 3 老师，BigFish 已会方向键移动。\n【清】加 SmallFish 橙色小鱼，比 BigFish 小。\n【步】请说明：\n1. SmallFish 绿旗隐藏\n2. 绿旗克隆 8 次\n3. 克隆体：显示、随机位置、重复「面向鼠标指针，移动 4 步」\n【例】像飞机大战克隆子弹，但小鱼不删除。\n用 Scratch 中文积木名。"
+      },
+      {
+        id: "04",
+        label: "第04关",
+        title: "😋 第 04 关：吃掉变大得分",
+        desc: "碰撞、变量、删除克隆体",
+        example: "【角】Scratch 3 老师。\n【清】BigFish 方向键移动，SmallFish 是克隆体。\n【步】\n1. BigFish 变量「得分」，绿旗为 0，绿旗大小 60\n2. BigFish 循环里：碰到 SmallFish → 得分+1，大小+5\n3. SmallFish 克隆体：碰到 BigFish → 删除此克隆体\n【例】经典大鱼吃小鱼越吃越大。\n分两个角色写步骤。"
+      },
+      {
+        id: "05",
+        label: "第05关",
+        title: "🔊 第 05 关：音效与结束",
+        desc: "吃音效、鲨鱼、Game Over",
+        example: "【角】Scratch 3 老师。\n【清】大鱼吃小鱼已有得分和克隆小鱼。\n【步】\n1. 吃到 SmallFish 播放 Pop 声音\n2. 加 Shark 大鲨鱼在上方巡逻，碰到边缘反弹\n3. BigFish 碰到 Shark：说「游戏结束！得分：」加得分变量，停止全部\n【例】简单就好，7 岁能懂。"
+      },
+      {
+        id: "06",
+        label: "第06关",
+        title: "🎓 第 06 关：毕业创意",
+        desc: "加你自己的创意 + 演示词",
+        example: "【角】Scratch 游戏教练。\n【清】我的大鱼吃小鱼基本完成了。\n【步】我想加这个创意：（在这里说出你的想法，比如无敌星、换紫色皮肤、得分 20 通关）\n请告诉我改哪个角色、加哪些积木，一步一步来。\n再帮我写 30 秒演示台词给爸爸妈妈听。"
+      }
+    ];
+
+    let current = 0;
+    let recognition = null;
+    let recording = false;
+
+    const stepsEl = document.getElementById("steps");
+    const lessonTitle = document.getElementById("lessonTitle");
+    const lessonDesc = document.getElementById("lessonDesc");
+    const exampleEl = document.getElementById("example");
+    const output = document.getElementById("output");
+    const statusEl = document.getElementById("status");
+    const micBtn = document.getElementById("micBtn");
+    const unsupported = document.getElementById("unsupported");
+    const main = document.getElementById("main");
+
+    function renderLesson(idx) {
+      current = idx;
+      const L = LESSONS[idx];
+      document.querySelectorAll(".steps button").forEach((b, i) => {
+        b.classList.toggle("active", i === idx);
+      });
+      lessonTitle.textContent = L.title;
+      lessonDesc.textContent = L.desc;
+      exampleEl.textContent = L.example;
+    }
+
+    LESSONS.forEach((L, i) => {
+      const btn = document.createElement("button");
+      btn.textContent = L.label;
+      btn.type = "button";
+      btn.addEventListener("click", () => renderLesson(i));
+      stepsEl.appendChild(btn);
+    });
+    renderLesson(0);
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      unsupported.style.display = "block";
+      main.style.opacity = "0.5";
+      micBtn.disabled = true;
+    } else {
+      recognition = new SpeechRecognition();
+      recognition.lang = "zh-CN";
+      recognition.continuous = false;
+      recognition.interimResults = true;
+
+      recognition.onstart = () => {
+        recording = true;
+        micBtn.classList.add("recording");
+        statusEl.textContent = "🔴 正在听…请说话";
+        statusEl.className = "status rec";
+      };
+
+      recognition.onend = () => {
+        recording = false;
+        micBtn.classList.remove("recording");
+        if (statusEl.classList.contains("rec")) {
+          statusEl.textContent = "✅ 听完了，可以改几个字再复制";
+          statusEl.className = "status ok";
+        }
+      };
+
+      recognition.onerror = (e) => {
+        statusEl.textContent = "⚠️ " + (e.error === "not-allowed" ? "请允许麦克风权限" : e.error);
+        statusEl.className = "status";
+      };
+
+      recognition.onresult = (e) => {
+        let text = "";
+        for (let i = e.resultIndex; i < e.results.length; i++) {
+          text += e.results[i][0].transcript;
+        }
+        if (e.results[e.results.length - 1].isFinal) {
+          const prev = output.value.trim();
+          output.value = prev ? prev + "\n\n" + text : text;
+        } else {
+          statusEl.textContent = "… " + text;
+        }
+      };
+
+      function startRec() {
+        if (!recognition || recording) return;
+        try { recognition.start(); } catch (_) {}
+      }
+      function stopRec() {
+        if (!recognition || !recording) return;
+        try { recognition.stop(); } catch (_) {}
+      }
+
+      micBtn.addEventListener("mousedown", startRec);
+      micBtn.addEventListener("mouseup", stopRec);
+      micBtn.addEventListener("mouseleave", stopRec);
+      micBtn.addEventListener("touchstart", (e) => { e.preventDefault(); startRec(); });
+      micBtn.addEventListener("touchend", (e) => { e.preventDefault(); stopRec(); });
+    }
+
+    document.getElementById("copyBtn").addEventListener("click", async () => {
+      const t = output.value.trim();
+      if (!t) { statusEl.textContent = "还没有文字哦"; return; }
+      try {
+        await navigator.clipboard.writeText(t);
+        statusEl.textContent = "✅ 已复制！去 Cursor 粘贴吧";
+        statusEl.className = "status ok";
+      } catch {
+        output.select();
+        document.execCommand("copy");
+        statusEl.textContent = "✅ 已复制（备用方式）";
+        statusEl.className = "status ok";
+      }
+    });
+
+    document.getElementById("fillBtn").addEventListener("click", () => {
+      output.value = LESSONS[current].example;
+      statusEl.textContent = "例句已填入，可以直接复制或改几个字";
+      statusEl.className = "status ok";
+    });
+
+    document.getElementById("clearBtn").addEventListener("click", () => {
+      output.value = "";
+      statusEl.textContent = "";
+    });
+  </script>
+</body>
+</html>

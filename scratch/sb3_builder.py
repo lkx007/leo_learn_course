@@ -38,6 +38,18 @@ PLANE_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80">
   <polygon points="40,5 70,70 40,55 10,70" fill="#38bdf8" stroke="#0284c7" stroke-width="2"/>
 </svg>"""
 
+BIG_FISH_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60">
+  <ellipse cx="45" cy="30" rx="38" ry="22" fill="#2563eb" stroke="#1d4ed8" stroke-width="2"/>
+  <polygon points="78,30 95,20 95,40" fill="#2563eb"/>
+  <circle cx="22" cy="24" r="5" fill="#fff"/><circle cx="22" cy="24" r="2.5" fill="#000"/>
+</svg>"""
+
+SMALL_FISH_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 36">
+  <ellipse cx="28" cy="18" rx="22" ry="12" fill="#f97316" stroke="#ea580c" stroke-width="2"/>
+  <polygon points="48,18 58,12 58,24" fill="#f97316"/>
+  <circle cx="14" cy="15" r="3" fill="#fff"/><circle cx="14" cy="15" r="1.5" fill="#000"/>
+</svg>"""
+
 
 class Script:
     """Build a linked chain of Scratch blocks."""
@@ -290,6 +302,43 @@ class Script:
     def change_x(self, dx: int) -> "Script":
         self._link(self._block("motion_changexby", inputs={"DX": self._lit_num(dx)}))
         return self
+
+    def point_towards(self, target: str = "_mouse_") -> "Script":
+        self._link(self._block("motion_pointtowards", fields={"TOWARDS": [target, None]}))
+        return self
+
+    def move_steps(self, steps: int) -> "Script":
+        self._link(self._block("motion_movesteps", inputs={"STEPS": self._lit_num(steps)}))
+        return self
+
+    def turn_right(self, deg: int) -> "Script":
+        self._link(self._block("motion_turnright", inputs={"DEGREES": self._lit_num(deg)}))
+        return self
+
+    def set_size(self, pct: int) -> "Script":
+        self._link(self._block("looks_setsizeto", inputs={"SIZE": self._lit_num(pct)}))
+        return self
+
+    def change_size(self, delta: int) -> "Script":
+        self._link(self._block("looks_changesizeby", inputs={"CHANGE": self._lit_num(delta)}))
+        return self
+
+    def if_touching(self, target: str, then: Script) -> "Script":
+        cond = self.touching(target)
+        sub_id = then.head
+        self.blocks.update(then.blocks)
+        bid = self._block("control_if", inputs={
+            "CONDITION": [2, cond],
+            "SUBSTACK": self._substack(sub_id),
+        })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
+        return self
+
+    def go_random_xy(self, xlo: int, xhi: int, ylo: int, yhi: int) -> "Script":
+        self.random_var("随机x", xlo, xhi)
+        self.random_var("随机y", ylo, yhi)
+        return self.go_xy_vars("随机x", "随机y")
 
     def set_random_x(self, lo: int, hi: int, y: int) -> "Script":
         rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
