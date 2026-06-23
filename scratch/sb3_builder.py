@@ -143,6 +143,14 @@ class Script:
         ))
         return self
 
+    def change_var_by_var(self, target: str, source_var: str) -> "Script":
+        self._link(self._block(
+            "data_changevariableby",
+            inputs={"VALUE": self._var_input(source_var)},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
     def say_join(self, a: str, b_var: str, secs: float = 2) -> "Script":
         jid = self._block("operator_join", inputs={
             "STRING1": self._lit_str(a),
@@ -330,6 +338,76 @@ class Script:
     def pen_up(self) -> "Script":
         self.b.use_extension("pen")
         self._link(self._block("pen_penUp"))
+        return self
+
+    def go_xy_vars(self, x_var: str, y_var: str) -> "Script":
+        xv = self._block("data_variable", fields={"VARIABLE": self._var_field(x_var)})
+        yv = self._block("data_variable", fields={"VARIABLE": self._var_field(y_var)})
+        self._link(self._block("motion_gotoxy", inputs={"X": [2, xv], "Y": [2, yv]}))
+        return self
+
+    def set_grid_x(self) -> "Script":
+        """x坐标 = -120 + 当前列 × 30"""
+        col = self._block("data_variable", fields={"VARIABLE": self._var_field("当前列")})
+        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": [2, col]})
+        add = self._block("operator_add", inputs={"NUM1": self._lit_num(-120), "NUM2": [2, mul]})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": [2, add]},
+            fields={"VARIABLE": self._var_field("x坐标")},
+        ))
+        return self
+
+    def set_grid_y(self) -> "Script":
+        """y坐标 = 100 - 当前行 × 30"""
+        row = self._block("data_variable", fields={"VARIABLE": self._var_field("当前行")})
+        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": [2, row]})
+        sub = self._block("operator_sub", inputs={"NUM1": self._lit_num(100), "NUM2": [2, mul]})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": [2, sub]},
+            fields={"VARIABLE": self._var_field("y坐标")},
+        ))
+        return self
+
+    def say_var_multiply(self, var_a: str, var_b: str, secs: float = 1.5) -> "Script":
+        va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
+        vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
+        mul = self._block("operator_multiply", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
+        j1 = self._block("operator_join", inputs={"STRING1": self._lit_str(""), "STRING2": [2, va]})
+        j2 = self._block("operator_join", inputs={"STRING1": [2, j1], "STRING2": self._lit_str(" × ")})
+        j3 = self._block("operator_join", inputs={"STRING1": [2, j2], "STRING2": [2, vb]})
+        j4 = self._block("operator_join", inputs={"STRING1": [2, j3], "STRING2": self._lit_str(" = ")})
+        j5 = self._block("operator_join", inputs={"STRING1": [2, j4], "STRING2": [2, mul]})
+        self._link(self._block(
+            "looks_sayforsecs",
+            inputs={"MESSAGE": [2, j5], "SECS": self._lit_num(secs)},
+        ))
+        return self
+
+    def if_answer_eq_product(self, var_a: str, var_b: str, then: Script, else_: Script | None = None) -> "Script":
+        va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
+        vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
+        prod = self._block("operator_multiply", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
+        eq = self._block("operator_equals", inputs={"OPERAND1": self._answer(), "OPERAND2": [2, prod]})
+        sub_id = then.head
+        self.blocks.update(then.blocks)
+        if else_:
+            sub2_id = else_.head
+            self.blocks.update(else_.blocks)
+            bid = self._block("control_if_else", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id),
+                "SUBSTACK2": self._substack(sub2_id),
+            })
+            self.blocks[sub2_id]["parent"] = bid
+        else:
+            bid = self._block("control_if", inputs={
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id),
+            })
+        self.blocks[sub_id]["parent"] = bid
+        self._link(bid)
         return self
 
     def hide(self) -> "Script":

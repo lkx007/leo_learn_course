@@ -123,6 +123,8 @@ def collect_groups():
             return (0, 0, name)
         if name == "Scratch课程评审.md":
             return (1, 0, name)
+        if name.startswith("Scratch乘法"):
+            return (2, 100 + first_number(name), name)
         if name.startswith("Scratch进阶"):
             return (3, first_number(name), name)
         return (2, first_number(name), name)
@@ -208,6 +210,10 @@ def build_python_lessons_json():
 
 
 def sb3_name_for_md(md_filename):
+    m = re.match(r"Scratch乘法第(\d+)课_(.+)\.md", md_filename)
+    if m:
+        title = m.group(2).split("（")[0].split("(")[0].strip()
+        return f"M{int(m.group(1)):02d}_{title}_参考答案.sb3"
     m = re.match(r"第(\d+)课_(.+)_Scratch\.md", md_filename)
     if m:
         return f"S{int(m.group(1)):02d}_{m.group(2)}_参考答案.sb3"

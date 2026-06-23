@@ -24,7 +24,11 @@ DOCS_OUT = ROOT / "docs" / "scratch_answers"
 MANIFEST = OUT / "manifest.json"
 
 
-def sb3_name_for_md(md_filename: str) -> str | None:
+def sb3_name_for_md(md_filename):
+    m = re.match(r"Scratch乘法第(\d+)课_(.+)\.md", md_filename)
+    if m:
+        title = m.group(2).split("（")[0].split("(")[0].strip()
+        return f"M{int(m.group(1)):02d}_{title}_参考答案.sb3"
     m = re.match(r"第(\d+)课_(.+)_Scratch\.md", md_filename)
     if m:
         return f"S{int(m.group(1)):02d}_{m.group(2)}_参考答案.sb3"
@@ -199,8 +203,43 @@ def adv_03_candy(b: SB3Builder):
 
 
 def adv_04_multiply(b: SB3Builder):
-    body = Script(b, "Sprite1").say("3 x 3 = 9", 0.5)
-    b.script("Sprite1").flag().say("九九乘法表：用 重复执行 练！", 2).repeat(3, body)
+    for v in ("数字", "次数", "总和", "行数", "列数"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.say("乘法 = 重复加法！", 2).set_var("数字", 3).set_var("次数", 5).set_var("总和", 0)
+    body = Script(b, "Sprite1").change_var_by_var("总和", "数字").say_join("加了一次：", "总和", 0.4)
+    s.repeat(5, body)
+    s.say_var_multiply("数字", "次数", 2).say("和点点阵行×列是一回事！", 2)
+
+
+def mult_01_dot_grid(b: SB3Builder):
+    b.add_sprite("Dot", DOT_SVG)
+    for v in ("行数", "列数", "当前行", "当前列", "x坐标", "y坐标", "总数"):
+        b.ensure_var("Dot", v)
+    cell = Script(b, "Dot").set_grid_x().set_grid_y().go_xy_vars("x坐标", "y坐标").create_clone("Dot")
+    cell.change_var("总数", 1).change_var("当前列", 1)
+    row = Script(b, "Dot").set_var("当前列", 1).repeat(4, cell).change_var("当前行", 1)
+    s = b.script("Dot").flag().hide()
+    s.say("3 行 × 4 列 = ？个点", 2)
+    s.set_var("行数", 3).set_var("列数", 4).set_var("总数", 0).set_var("当前行", 1)
+    s.repeat(3, row)
+    s.say("数完了！", 1).say_var_multiply("行数", "列数", 2)
+    b.script("Dot").clone_start().show()
+
+
+def mult_02_times_table(b: SB3Builder):
+    for v in ("被乘数", "乘数", "a", "b"):
+        b.ensure_var("Sprite1", v)
+    inner = Script(b, "Sprite1").say_var_multiply("被乘数", "乘数", 0.7).change_var("乘数", 1)
+    table = Script(b, "Sprite1").set_var("乘数", 1).repeat(9, inner)
+    s = b.script("Sprite1").flag().say("背 7 的乘法口诀！", 2)
+    s.set_var("被乘数", 7).repeat(9, table)
+    s.say("按空格键：随机口算！", 1)
+    quiz = b.script("Sprite1").key_flag_script("space")
+    quiz.random_var("a", 1, 9).random_var("b", 1, 9).ask("a×b = ？（看变量）")
+    quiz.if_answer_eq_product("a", "b",
+                             Script(b, "Sprite1").say("答对啦！🎉", 1),
+                             Script(b, "Sprite1").say("再想想！", 1))
 
 
 def adv_05_plane(b: SB3Builder):
@@ -258,6 +297,8 @@ LESSONS = [
     ("A01_蜗牛爬井_参考答案.sb3", adv_01_snail),
     ("A02_聪明小买手_参考答案.sb3", adv_02_buyer),
     ("A03_公平分糖果_参考答案.sb3", adv_03_candy),
+    ("M01_几行几列点点阵_参考答案.sb3", mult_01_dot_grid),
+    ("M02_九九乘法表_参考答案.sb3", mult_02_times_table),
     ("A04_乘法魔方_参考答案.sb3", adv_04_multiply),
     ("A05_飞机大战①起飞与开火_参考答案.sb3", adv_05_plane),
     ("A06_飞机大战②敌机来袭_参考答案.sb3", adv_06_plane2),
