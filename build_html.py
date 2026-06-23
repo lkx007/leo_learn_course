@@ -13,6 +13,7 @@
 
 import argparse
 import html
+import json
 import os
 import re
 import shutil
@@ -153,6 +154,57 @@ def collect_groups():
     ]
 
 
+def webify_python(source: str) -> tuple[str, bool]:
+    """Prepare lesson code for browser (Pyodide). Returns (code, web_ready)."""
+    web_ready = "turtle" not in source.lower() and "pygame" not in source.lower()
+
+    # Drop speak() definition — runtime shim provides speak()
+    source = re.sub(
+        r"def speak\([^)]*\):.*?(?=\n(?:def |class |# -|\w|\Z))",
+        "",
+        source,
+        flags=re.DOTALL,
+    )
+    # Drop standalone os.system say calls
+    source = re.sub(r"^\s*os\.system\(.*?\)\s*$", "", source, flags=re.MULTILINE)
+
+    preamble = "# 网页实验室 · speak() 会打印文字（无语音）\n"
+    return preamble + source.strip() + "\n", web_ready
+
+
+def lesson_title_from_source(source: str, filename: str) -> tuple[int, str]:
+    m = re.search(r"#\s*第(\d+)课\s*[-–—]?\s*(.*)", source)
+    if m:
+        return int(m.group(1)), m.group(2).strip() or filename
+    return first_number(filename), re.sub(r"^lesson_|\.py$", "", filename)
+
+
+def build_python_lessons_json():
+    course_dir = os.path.join(ROOT, "course")
+    items = []
+    for name in sorted(os.listdir(course_dir)):
+        if not re.match(r"lesson_\d+\.py$", name):
+            continue
+        path = os.path.join(course_dir, name)
+        raw = read(path)
+        num, title = lesson_title_from_source(raw, name)
+        web_code, web_ready = webify_python(raw)
+        items.append({
+            "id": num,
+            "file": name,
+            "title": title,
+            "webReady": web_ready,
+            "code": raw,
+            "webCode": web_code,
+        })
+    items.sort(key=lambda x: x["id"])
+    data = {"defaultId": items[0]["id"] if items else 2, "lessons": items}
+    out = os.path.join(DOCS_DIR, "python-lessons.json")
+    with open(out, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+    return len(items)
+
+
 def build_course_html(*, online: bool = False):
     groups = collect_groups()
     nav_parts = []
@@ -178,6 +230,12 @@ def build_course_html(*, online: bool = False):
             else:
                 title = name
                 body = "<pre><code class=\"language-python\">%s</code></pre>" % html.escape(raw)
+                if online and name.startswith("lesson_") and re.match(r"lesson_(\d+)\.py", name):
+                    num = int(re.search(r"(\d+)", name).group(1))
+                    body += (
+                        '<p class="run-web-wrap"><a class="run-web" href="python.html?lesson=%d">'
+                        "▶ 在浏览器里运行这节课</a></p>" % num
+                    )
             anchor = slugify(name)
             if not first_anchor:
                 first_anchor = anchor
@@ -282,6 +340,7 @@ def build_pages():
     os.makedirs(DOCS_DIR, exist_ok=True)
     course_html, total, group_meta = build_course_html(online=True)
     landing_html = build_landing_html(group_meta, total)
+    n_py = build_python_lessons_json()
 
     with open(os.path.join(DOCS_DIR, "course.html"), "w", encoding="utf-8") as f:
         f.write(course_html)
@@ -290,7 +349,7 @@ def build_pages():
     with open(os.path.join(DOCS_DIR, ".nojekyll"), "w", encoding="utf-8") as f:
         f.write("")
     copy_assets()
-    return total
+    return total, n_py
 
 
 CSS = """
@@ -348,6 +407,10 @@ a:hover{text-decoration:underline}
 .doc hr{border:none;border-top:1px dashed var(--line);margin:1.6em 0}
 .doc img{max-width:100%;border:1px solid var(--line);border-radius:12px;box-shadow:0 2px 10px rgba(16,24,40,.08);margin:.6em 0;background:#fff}
 .back-top{display:inline-block;margin-top:14px;font-size:12.5px;color:var(--muted)}
+.run-web-wrap{margin:12px 0 0}
+.run-web{display:inline-block;background:linear-gradient(135deg,#059669,#10b981);color:#fff !important;
+  padding:10px 18px;border-radius:10px;font-weight:700;text-decoration:none;font-size:14px}
+.run-web:hover{opacity:.92;text-decoration:none}
 .menu-btn{display:none}
 @media (max-width:880px){
   .wrap{display:block}
@@ -494,6 +557,7 @@ LANDING_PAGE = """<!DOCTYPE html>
     <h2>快捷入口</h2>
     <div class="hero-btns">
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
+      <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
       <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
     </div>
   </section>
@@ -523,12 +587,13 @@ def main():
     print("✅ 已生成：%s（共 %d 篇课程）" % (LOCAL_OUTPUT, total))
 
     if args.pages:
-        build_pages()
+        total, n_py = build_pages()
         print("✅ 已生成 GitHub Pages 站点：%s/" % DOCS_DIR)
         print("   首页：docs/index.html")
         print("   课程：docs/course.html")
         print("   第一课：docs/day1.html")
         print("   指法：docs/typing.html")
+        print("   Python 实验室：docs/python.html（%d 课）" % n_py)
 
 
 if __name__ == "__main__":

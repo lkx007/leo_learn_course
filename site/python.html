@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python 实验室 · 小鱼编程</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a; --panel: #1e293b; --ink: #f8fafc; --muted: #94a3b8;
+      --brand: #2563eb; --ok: #10b981; --err: #ef4444; --line: #334155;
+      --editor: #0c1222;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; color: var(--ink);
+      font-family: "PingFang SC", "Microsoft YaHei", ui-monospace, Menlo, monospace;
+      background: var(--bg);
+    }
+    header {
+      padding: 14px 16px; border-bottom: 1px solid var(--line);
+      display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+      background: var(--panel);
+    }
+    header h1 { margin: 0; font-size: 1.15rem; font-family: inherit; flex: 1; min-width: 180px; }
+    header a { color: #93c5fd; font-size: 0.85rem; text-decoration: none; }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; width: 100%; }
+    select {
+      flex: 1; min-width: 200px; padding: 8px 10px; border-radius: 8px;
+      border: 1px solid var(--line); background: var(--bg); color: var(--ink);
+      font-size: 0.9rem;
+    }
+    .btn {
+      padding: 8px 16px; border: none; border-radius: 8px; font-weight: 700;
+      cursor: pointer; font-size: 0.9rem;
+    }
+    .btn-run { background: var(--ok); color: #fff; }
+    .btn-run:disabled { opacity: 0.5; cursor: wait; }
+    .btn-reset { background: #475569; color: #fff; }
+    .btn-clear { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+    .layout {
+      display: grid; grid-template-columns: 1fr 1fr; min-height: calc(100vh - 120px);
+    }
+    @media (max-width: 800px) { .layout { grid-template-columns: 1fr; } }
+    .pane { display: flex; flex-direction: column; border-right: 1px solid var(--line); }
+    .pane-head {
+      padding: 8px 12px; font-size: 0.8rem; color: var(--muted);
+      background: #111827; border-bottom: 1px solid var(--line);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    #editor {
+      flex: 1; min-height: 280px; padding: 14px; margin: 0; border: none; resize: none;
+      background: var(--editor); color: #e2e8f0; font-family: ui-monospace, Menlo, Consolas, monospace;
+      font-size: 14px; line-height: 1.55; tab-size: 4;
+    }
+    #editor:focus { outline: 2px solid var(--brand); outline-offset: -2px; }
+    #output {
+      flex: 1; min-height: 280px; padding: 14px; margin: 0; overflow: auto;
+      background: #0c1222; color: #cbd5e1; font-size: 14px; line-height: 1.55;
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .out-err { color: #fca5a5; }
+    .out-sys { color: var(--muted); font-style: italic; }
+    .banner {
+      padding: 10px 16px; background: #422006; color: #fde68a; font-size: 0.85rem;
+      border-bottom: 1px solid #78350f;
+    }
+    .banner.hidden { display: none; }
+    .input-row {
+      display: flex; gap: 8px; padding: 10px 12px; background: var(--panel);
+      border-top: 1px solid var(--line);
+    }
+    .input-row.hidden { display: none; }
+    .input-row input {
+      flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--brand);
+      background: var(--bg); color: var(--ink); font-family: inherit;
+    }
+    .status {
+      padding: 6px 16px; font-size: 0.8rem; color: var(--muted);
+      border-top: 1px solid var(--line); background: #111827;
+    }
+    .status.ready { color: var(--ok); }
+    .badge {
+      font-size: 0.7rem; padding: 2px 8px; border-radius: 999px;
+      background: #065f46; color: #6ee7b7;
+    }
+    .badge.warn { background: #78350f; color: #fde68a; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>🐍 Python 实验室</h1>
+    <a href="index.html">← 首页</a>
+    <a href="course.html">📖 课程</a>
+    <div class="toolbar">
+      <select id="lessonSelect"><option value="">加载中…</option></select>
+      <button class="btn btn-run" id="runBtn" disabled>▶ 运行</button>
+      <button class="btn btn-reset" id="resetBtn" disabled>↺ 还原</button>
+      <button class="btn btn-clear" id="clearBtn">清空输出</button>
+    </div>
+  </header>
+
+  <div class="banner hidden" id="banner"></div>
+
+  <div class="layout">
+    <div class="pane">
+      <div class="pane-head"><span>代码编辑器</span><span id="lessonBadge"></span></div>
+      <textarea id="editor" spellcheck="false" placeholder="# 选一节课，或直接写代码…"></textarea>
+    </div>
+    <div class="pane" style="border-right:none">
+      <div class="pane-head"><span>运行结果</span></div>
+      <pre id="output"></pre>
+      <div class="input-row hidden" id="inputRow">
+        <input id="stdinInput" placeholder="程序等待输入，在这里打字后按回车…">
+        <button class="btn btn-run" id="stdinBtn">发送</button>
+      </div>
+    </div>
+  </div>
+  <div class="status" id="status">⏳ 正在加载 Python 运行环境（首次约 10MB，请稍候）…</div>
+
+  <script>
+    const PYODIDE_URL = "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/";
+    let pyodide = null, lessons = [], currentLesson = null, running = false;
+    let stdinResolver = null;
+
+    const el = id => document.getElementById(id);
+    const editor = el("editor"), output = el("output");
+
+    function appendOut(text, cls = "") {
+      const span = document.createElement("span");
+      if (cls) span.className = cls;
+      span.textContent = text;
+      output.appendChild(span);
+      output.scrollTop = output.scrollHeight;
+    }
+
+    function clearOutput() {
+      output.textContent = "";
+    }
+
+    function setStatus(msg, ready = false) {
+      el("status").textContent = msg;
+      el("status").classList.toggle("ready", ready);
+    }
+
+    function showBanner(msg, warn = false) {
+      const b = el("banner");
+      b.textContent = msg;
+      b.classList.toggle("hidden", !msg);
+      b.style.background = warn ? "#422006" : "#1e3a5f";
+    }
+
+    function showInput(show) {
+      el("inputRow").classList.toggle("hidden", !show);
+      if (show) el("stdinInput").focus();
+    }
+
+    function submitStdin() {
+      const v = el("stdinInput").value;
+      el("stdinInput").value = "";
+      showInput(false);
+      if (stdinResolver) {
+        const r = stdinResolver;
+        stdinResolver = null;
+        r(v + "\n");
+      }
+    }
+
+    el("stdinBtn").onclick = submitStdin;
+    el("stdinInput").onkeydown = e => { if (e.key === "Enter") submitStdin(); };
+    el("clearBtn").onclick = clearOutput;
+
+    async function initPyodide() {
+      pyodide = await loadPyodide({ indexURL: PYODIDE_URL });
+      pyodide.setStdout({ batched: msg => appendOut(msg) });
+      pyodide.setStderr({ batched: msg => appendOut(msg, "out-err") });
+      pyodide.setStdin({
+        stdin: () => new Promise(resolve => {
+          stdinResolver = resolve;
+          appendOut("\n⌨️ 等待输入…\n", "out-sys");
+          showInput(true);
+        }),
+      });
+      await pyodide.runPythonAsync(`
+import sys, time, random, math
+
+def speak(text):
+    print(text)
+
+class _WebOs:
+    @staticmethod
+    def system(cmd):
+        pass  # 浏览器里没有 Mac 语音
+
+import os
+os.system = _WebOs.system
+
+_orig_sleep = time.sleep
+def sleep(sec):
+    _orig_sleep(min(float(sec), 1.5))  # 网页版最多睡 1.5 秒，避免等太久
+time.sleep = sleep
+`);
+      setStatus("✅ Python 已就绪 · 基于 Pyodide · 可直接运行课程代码", true);
+      el("runBtn").disabled = false;
+      el("resetBtn").disabled = false;
+    }
+
+    async function loadLessons() {
+      const res = await fetch("python-lessons.json");
+      const data = await res.json();
+      lessons = data.lessons || [];
+      const sel = el("lessonSelect");
+      sel.innerHTML = '<option value="">— 选择课程 —</option>' +
+        '<option value="__custom__">📝 空白编辑器</option>' +
+        lessons.map(l =>
+          `<option value="${l.id}">第${String(l.id).padStart(2,"0")}课 · ${l.title}${l.webReady ? "" : " 🐢"}</option>`
+        ).join("");
+
+      const params = new URLSearchParams(location.search);
+      const q = params.get("lesson");
+      if (q) {
+        sel.value = q;
+        loadLesson(Number(q));
+      } else if (data.defaultId) {
+        sel.value = data.defaultId;
+        loadLesson(data.defaultId);
+      }
+    }
+
+    function loadLesson(id) {
+      if (id === "__custom__" || !id) {
+        currentLesson = null;
+        editor.value = "# 在这里写 Python 代码\nprint('Hello, 小鱼!')\n";
+        el("lessonBadge").innerHTML = "";
+        showBanner("");
+        return;
+      }
+      const L = lessons.find(x => x.id === id);
+      if (!L) return;
+      currentLesson = L;
+      editor.value = L.webCode || L.code;
+      el("lessonBadge").innerHTML = L.webReady
+        ? '<span class="badge">网页可运行</span>'
+        : '<span class="badge warn">含 turtle · 仅编辑预览</span>';
+      showBanner(
+        L.webReady
+          ? "💡 网页版：speak() 会变成 print，语音已关闭，time.sleep 最多 1.5 秒。支持 input() 输入。"
+          : "⚠️ 本课用了 turtle 图形，浏览器里无法显示画布。可改代码练手，完整效果请在 Mac 终端运行 lesson_" + L.id + ".py",
+        !L.webReady
+      );
+    }
+
+    el("lessonSelect").onchange = () => {
+      const v = el("lessonSelect").value;
+      if (v === "__custom__") loadLesson("__custom__");
+      else if (v) loadLesson(Number(v));
+    };
+
+    el("resetBtn").onclick = () => {
+      if (currentLesson) loadLesson(currentLesson.id);
+      else editor.value = "";
+    };
+
+    el("runBtn").onclick = async () => {
+      if (!pyodide || running) return;
+      running = true;
+      el("runBtn").disabled = true;
+      clearOutput();
+      appendOut("▶ 运行中…\n\n", "out-sys");
+      try {
+        await pyodide.runPythonAsync(editor.value);
+        appendOut("\n\n✅ 运行结束", "out-sys");
+      } catch (e) {
+        appendOut("\n\n❌ " + e.message, "out-err");
+      } finally {
+        running = false;
+        el("runBtn").disabled = false;
+        showInput(false);
+      }
+    };
+
+    (async () => {
+      try {
+        await loadLessons();
+        await initPyodide();
+      } catch (e) {
+        setStatus("❌ 加载失败: " + e.message);
+        appendOut("加载失败:\n" + e.message, "out-err");
+      }
+    })();
+  </script>
+</body>
+</html>

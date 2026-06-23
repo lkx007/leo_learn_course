@@ -20,6 +20,9 @@
 **公网在线**：部署到 GitHub Pages 后访问  
 👉 **https://lkx007.github.io/leo_learn_course/**
 
+**Python 实验室**：浏览器里直接写代码、运行、调试（基于 Pyodide）  
+👉 **https://lkx007.github.io/leo_learn_course/python.html**
+
 重新生成网页：
 
 ```bash
