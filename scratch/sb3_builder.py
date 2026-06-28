@@ -606,6 +606,61 @@ class Script:
         ))
         return self
 
+    def _var_block(self, name: str) -> str:
+        return self._block("data_variable", fields={"VARIABLE": self._var_field(name)})
+
+    def set_var_sum2(self, target: str, var_a: str, var_b: str) -> "Script":
+        va = self._var_block(var_a)
+        vb = self._var_block(var_b)
+        add = self._block("operator_add", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": ["2", add]},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
+    def set_var_sub2(self, target: str, var_a: str, var_b: str) -> "Script":
+        va = self._var_block(var_a)
+        vb = self._var_block(var_b)
+        sub = self._block("operator_sub", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": ["2", sub]},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
+    def set_var_sum3(self, target: str, var_a: str, num_b: int, num_c: int) -> "Script":
+        va = self._var_block(var_a)
+        add1 = self._block("operator_add", inputs={"NUM1": ["2", va], "NUM2": self._lit_num(num_b)})
+        add2 = self._block("operator_add", inputs={"NUM1": ["2", add1], "NUM2": self._lit_num(num_c)})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": ["2", add2]},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
+    def set_var_from_var(self, target: str, source: str) -> "Script":
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": self._var_input(source)},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
+    def set_var_divide_by_num(self, target: str, source_var: str, divisor: int) -> "Script":
+        va = self._var_block(source_var)
+        div = self._block("operator_divide", inputs={"NUM1": ["2", va], "NUM2": self._lit_num(divisor)})
+        floor = self._block("operator_mathop", inputs={"NUM": ["2", div]}, fields={"OPERATOR": ["floor", None]})
+        self._link(self._block(
+            "data_setvariableto",
+            inputs={"VALUE": ["2", floor]},
+            fields={"VARIABLE": self._var_field(target)},
+        ))
+        return self
+
     def define_block(self, name: str, body: Script) -> tuple[str, str]:
         proto = _bid()
         self.blocks[proto] = {

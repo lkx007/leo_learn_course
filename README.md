@@ -51,7 +51,8 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 3. **AI 训练师课**（创）：学会跟真 AI 聊天、用提示词/技能/工具/MCP，把点子变成软件。→ `AI训练师课程/AI训练师课程大纲.md`
    - **进阶 4 课**：模型 · Harness · OpenClaw（基础毕业后）
    - **实战项目**：🐟 [大鱼吃小鱼](AI训练师课程/AI训练师项目大纲_大鱼吃小鱼.md) — 语音指挥 AI + Scratch 分步做游戏（G01–G04 参考答案 sb3）
-   - **语音指挥台**（Chrome）：[voice-ai.html](https://lkx007.github.io/leo_learn_course/voice-ai.html) — 按住说话，复制粘贴给 Cursor
+   - **语音指挥台**（Chrome）：[voice-ai.html](https://lkx007.github.io/leo_learn_course/voice-ai.html) — 🐟项目 / 🧑‍🚀基础 / 🎛️进阶 / 🧮奥数 四模式
+   - **Scratch 奥数 6 课**：排队·倒推·年龄·间隔·移多补少 → `course/Scratch课程大纲.md`
 
 > 想先了解整体情况？请看 `课程分析报告.md`。
 > 想要现成的学习计划？请看 `暑假教学日程表.md`（8 周，三条线交替）。

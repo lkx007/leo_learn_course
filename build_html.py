@@ -91,7 +91,7 @@ def collect_groups():
     course_dir = os.path.join(ROOT, "course")
     ai_dir = os.path.join(ROOT, "AI训练师课程")
 
-    overview_order = ["README.md", "课程分析报告.md", "暑假教学日程表.md", "需求.md"]
+    overview_order = ["README.md", "课程分析报告.md", "暑假教学日程表.md", "秋季进阶日程表.md", "需求.md"]
     overview_files = [
         os.path.join(ROOT, f) for f in overview_order if os.path.exists(os.path.join(ROOT, f))
     ]
@@ -104,6 +104,9 @@ def collect_groups():
             scratch_files.append(full)
         else:
             py_course_files.append(full)
+    sx_dir = os.path.join(course_dir, "scratch_exercises")
+    if os.path.isdir(sx_dir):
+        scratch_files.extend(os.path.join(sx_dir, f) for f in list_md(sx_dir))
 
     def py_course_key(path):
         name = os.path.basename(path)
@@ -123,6 +126,16 @@ def collect_groups():
             return (0, 0, name)
         if name == "Scratch课程评审.md":
             return (1, 0, name)
+        if "家长指南" in name:
+            return (1, 1, name)
+        if "课后练习索引" in name:
+            return (1, 2, name)
+        if "毕业测验" in name:
+            return (1, 3, name)
+        if name.startswith("O") and name[1:3].isdigit():
+            return (4, first_number(name), name)
+        if name.startswith("Scratch奥数"):
+            return (2, 50 + first_number(name), name)
         if name.startswith("Scratch乘法"):
             return (2, 100 + first_number(name), name)
         if name.startswith("Scratch进阶"):
@@ -133,17 +146,28 @@ def collect_groups():
     scratch_files.sort(key=scratch_key)
 
     ai_files = [os.path.join(ai_dir, f) for f in list_md(ai_dir)]
+    ex_dir = os.path.join(ai_dir, "exercises")
+    if os.path.isdir(ex_dir):
+        ai_files.extend(os.path.join(ex_dir, f) for f in list_md(ex_dir))
 
     def ai_key(path):
         name = os.path.basename(path)
         if name.startswith("AI训练师课程大纲"):
             return (0, 0, name)
+        if name.startswith("课后练习"):
+            return (0, 1, name)
         if name.startswith("AI训练师项目大纲"):
             return (3, 0, name)
+        if name.startswith("项目练习"):
+            return (3, 1, name)
+        if name.startswith("G") and name[1:3].isdigit():
+            return (4, 50 + first_number(name), name)
         if name.startswith("AI训练师项目"):
             return (4, first_number(name), name)
         if name.startswith("AI训练师进阶"):
             return (2, first_number(name), name)
+        if name.startswith("T") and name[1:3].isdigit():
+            return (1, 500 + first_number(name), name)
         return (1, first_number(name), name)
 
     ai_files.sort(key=ai_key)

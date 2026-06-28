@@ -243,6 +243,78 @@ def adv_03_candy(b: SB3Builder):
     b.script("Sprite1").flag().ask("有多少颗糖？").ask("分给几个人？").say("用 除法 和 余数 算每人几颗！", 3)
 
 
+def olymp_01_queue(b: SB3Builder):
+    for v in ("前面名次", "后面名次", "总人数"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.set_var("前面名次", 4).set_var("后面名次", 6)
+    s.set_var_sum2("总人数", "前面名次", "后面名次")
+    s.change_var("总人数", -1)
+    s.say_join("一共 ", "总人数", 2)
+    s.say("4+6-1=9，小鱼被数了两次所以要减1！", 3)
+
+
+def olymp_02_backtrack(b: SB3Builder):
+    for v in ("现在", "给妈妈", "给爸爸", "原来"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.set_var("现在", 5).set_var("给妈妈", 3).set_var("给爸爸", 2)
+    s.say("从结果倒着推回去：先加回来！", 2)
+    s.set_var_sum3("原来", "现在", 2, 3)
+    s.say_join("原来有 ", "原来", 2)
+    s.say("5+2+3=10 颗糖 🍬", 2)
+
+
+def olymp_03_age(b: SB3Builder):
+    for v in ("小红年龄", "年龄差", "小明年龄"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.set_var("小红年龄", 5).set_var("年龄差", 2)
+    s.set_var_sum2("小明年龄", "小红年龄", "年龄差")
+    s.say_join("小明今年 ", "小明年龄", 2)
+    s.say("5+2=7，大几岁就加几！🎂", 2)
+
+
+def olymp_04_saw(b: SB3Builder):
+    for v in ("段数", "锯次数"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.set_var("段数", 5)
+    s.set_var_from_var("锯次数", "段数")
+    s.change_var("锯次数", -1)
+    s.say_join("锯成 ", "段数", 1)
+    s.say_join("段，要锯 ", "锯次数", 2)
+    s.say("段数-1=锯次数！🪚", 2)
+
+
+def olymp_05_balance(b: SB3Builder):
+    for v in ("小鱼", "小华", "总数", "平均", "移出"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.set_var("小鱼", 10).set_var("小华", 6)
+    s.set_var_sum2("总数", "小鱼", "小华")
+    s.set_var_divide_by_num("平均", "总数", 2)
+    s.set_var_sub2("移出", "小鱼", "平均")
+    s.say_join("每人应该 ", "平均", 2)
+    s.say_join("小鱼要给出去 ", "移出", 2)
+    s.say("移多补少：先加再除2！⚖️", 2)
+
+
+def olymp_06_grad(b: SB3Builder):
+    for v in ("前面", "后面", "总人数", "段数", "锯次数"):
+        b.ensure_var("Sprite1", v)
+    s = b.script("Sprite1").flag()
+    s.say("奥数毕业快问快答！5 种武器", 2)
+    s.set_var("前面", 4).set_var("后面", 6)
+    s.set_var_sum2("总人数", "前面", "后面").change_var("总人数", -1)
+    s.say_join("①排队：共 ", "总人数", 1.5)
+    s.set_var("段数", 5)
+    s.set_var_from_var("锯次数", "段数").change_var("锯次数", -1)
+    s.say_join("②间隔：5段锯 ", "锯次数", 1.5)
+    s.say("③倒推④年龄⑤移多补少：见各课 sb3！", 2)
+    s.say("🎓 奥数小毕业快乐！", 2)
+
+
 def adv_04_multiply(b: SB3Builder):
     for v in ("数字", "次数", "总和", "行数", "列数"):
         b.ensure_var("Sprite1", v)
@@ -428,6 +500,12 @@ LESSONS = [
     ("A05_飞机大战①起飞与开火_参考答案.sb3", adv_05_plane),
     ("A06_飞机大战②敌机来袭_参考答案.sb3", adv_06_plane2),
     ("A07_坦克大战_参考答案.sb3", adv_07_tank),
+    ("O01_排队报数_参考答案.sb3", olymp_01_queue),
+    ("O02_倒推法_参考答案.sb3", olymp_02_backtrack),
+    ("O03_年龄差_参考答案.sb3", olymp_03_age),
+    ("O04_锯木头间隔_参考答案.sb3", olymp_04_saw),
+    ("O05_移多补少_参考答案.sb3", olymp_05_balance),
+    ("O06_奥数小毕业_参考答案.sb3", olymp_06_grad),
     ("G01_大鱼吃小鱼①游起来_参考答案.sb3", game_fish_01),
     ("G02_大鱼吃小鱼②小鱼群_参考答案.sb3", game_fish_02),
     ("G03_大鱼吃小鱼③吃掉变大_参考答案.sb3", game_fish_03),

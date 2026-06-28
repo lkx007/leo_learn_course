@@ -30,6 +30,18 @@
     .steps {
       display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
     }
+    .tracks {
+      display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px;
+    }
+    .tracks button {
+      flex: 1; min-width: 100px; padding: 10px 8px; border-radius: 12px;
+      border: 2px solid #475569; background: #1e293b; color: var(--ink);
+      cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    }
+    .tracks button.active {
+      border-color: var(--fish);
+      background: #431407; color: #fed7aa;
+    }
     .steps button {
       flex: 1; min-width: 72px; padding: 8px 6px; border-radius: 10px;
       border: 1px solid #475569; background: #1e293b; color: var(--ink);
@@ -95,7 +107,7 @@
   <div class="wrap">
     <header>
       <h1>🎤 语音指挥 AI</h1>
-      <p>大鱼吃小鱼项目 · 说话代替打字 · 复制粘贴给 Cursor</p>
+      <p id="headerDesc">说话代替打字 · 复制粘贴给 Cursor</p>
       <a href="index.html">← 返回首页</a> · <a href="course.html#doc-AI训练师项目大纲_大鱼吃小鱼-md">📖 项目课</a>
     </header>
 
@@ -112,6 +124,7 @@
         <span>④ 粘贴给 AI</span>
       </div>
 
+      <div class="tracks" id="tracks"></div>
       <div class="steps" id="steps"></div>
 
       <p class="lesson-title" id="lessonTitle"></p>
@@ -140,63 +153,70 @@
   </div>
 
   <script>
-    const LESSONS = [
+    const TRACKS = [
       {
-        id: "practice",
-        label: "练习关",
-        title: "🌟 练习关：跟 AI 打招呼",
-        desc: "先练 3 句，熟悉按住说话 → 复制 → 粘贴",
-        example: "你好，我是小鱼，我要做一个大鱼吃小鱼游戏。\n\n我是 Scratch 老师，请用简单积木语言，告诉我怎么让一条鱼动起来。"
+        id: "fish",
+        label: "🐟 大鱼吃小鱼",
+        desc: "项目课 · 分步做游戏",
+        lessons: [
+          { id: "practice", label: "练习关", title: "🌟 练习关：跟 AI 打招呼", desc: "先练 3 句，熟悉按住说话 → 复制 → 粘贴", example: "你好，我是小鱼，我要做一个大鱼吃小鱼游戏。\n\n我是 Scratch 老师，请用简单积木语言，告诉我怎么让一条鱼动起来。" },
+          { id: "01", label: "第01关", title: "📋 第 01 关：设计游戏规则", desc: "让 AI 帮你整理游戏设计说明书", example: "【角】你是儿童 Scratch 游戏设计师，帮 7 岁小朋友整理想法。\n【清】我要做 Scratch 游戏「大鱼吃小鱼」。\n【步】请帮我写一份设计说明书，包含：\n1. 角色有哪些（名字、颜色、大小）\n2. 玩家怎么控制\n3. 吃到鱼会发生什么\n4. 怎么算赢、怎么算输\n5. 分 4 步开发计划\n【例】方向键移动大鱼，碰到小鱼就变大。\n请用简单中文，每条一行。" },
+          { id: "02", label: "第02关", title: "🐋 第 02 关：大鱼游起来", desc: "方向键控制 BigFish 移动", example: "【角】你是 Scratch 3 老师，教 7 岁孩子。\n【清】Scratch 桌面版，角色 BigFish 蓝色大鱼。\n【步】用「当绿旗 + 重复执行 + 如果按下方向键」写出让大鱼上下左右移动的中文积木步骤，每次 10 步，开始在屏幕中间。\n【例】类似飞机大战，但要四个方向。\n只要游起来，不要其他功能。" },
+          { id: "03", label: "第03关", title: "🐠 第 03 关：小鱼群游动", desc: "克隆 SmallFish，满屏游", example: "【角】Scratch 3 老师，BigFish 已会方向键移动。\n【清】加 SmallFish 橙色小鱼，比 BigFish 小。\n【步】请说明：\n1. SmallFish 绿旗隐藏\n2. 绿旗克隆 8 次\n3. 克隆体：显示、随机位置、重复「面向鼠标指针，移动 4 步」\n【例】像飞机大战克隆子弹，但小鱼不删除。\n用 Scratch 中文积木名。" },
+          { id: "04", label: "第04关", title: "😋 第 04 关：吃掉变大得分", desc: "碰撞、变量、删除克隆体", example: "【角】Scratch 3 老师。\n【清】BigFish 方向键移动，SmallFish 是克隆体。\n【步】\n1. BigFish 变量「得分」，绿旗为 0，绿旗大小 60\n2. BigFish 循环里：碰到 SmallFish → 得分+1，大小+5\n3. SmallFish 克隆体：碰到 BigFish → 删除此克隆体\n【例】经典大鱼吃小鱼越吃越大。\n分两个角色写步骤。" },
+          { id: "05", label: "第05关", title: "🔊 第 05 关：音效与结束", desc: "吃音效、鲨鱼、Game Over", example: "【角】Scratch 3 老师。\n【清】大鱼吃小鱼已有得分和克隆小鱼。\n【步】\n1. 吃到 SmallFish 播放 Pop 声音\n2. 加 Shark 大鲨鱼在上方巡逻，碰到边缘反弹\n3. BigFish 碰到 Shark：说「游戏结束！得分：」加得分变量，停止全部\n【例】简单就好，7 岁能懂。" },
+          { id: "06", label: "第06关", title: "🎓 第 06 关：毕业创意", desc: "加你自己的创意 + 演示词", example: "【角】Scratch 游戏教练。\n【清】我的大鱼吃小鱼基本完成了。\n【步】我想加这个创意：（在这里说出你的想法）\n请告诉我改哪个角色、加哪些积木，一步一步来。\n再帮我写 30 秒演示台词给爸爸妈妈听。" }
+        ]
       },
       {
-        id: "01",
-        label: "第01关",
-        title: "📋 第 01 关：设计游戏规则",
-        desc: "让 AI 帮你整理游戏设计说明书",
-        example: "【角】你是儿童 Scratch 游戏设计师，帮 7 岁小朋友整理想法。\n【清】我要做 Scratch 游戏「大鱼吃小鱼」。\n【步】请帮我写一份设计说明书，包含：\n1. 角色有哪些（名字、颜色、大小）\n2. 玩家怎么控制\n3. 吃到鱼会发生什么\n4. 怎么算赢、怎么算输\n5. 分 4 步开发计划\n【例】方向键移动大鱼，碰到小鱼就变大。\n请用简单中文，每条一行。"
+        id: "basic",
+        label: "🧑‍🚀 AI 基础",
+        desc: "训练师 8 课 · 清例角步",
+        lessons: [
+          { id: "b01", label: "第01课", title: "🤖 认识 AI 朋友", desc: "具体自我介绍", example: "你好，我是 7 岁的小朋友小鱼，刚开始学编程。\n请用简单的话告诉我，你能帮我做哪 3 件事？\n每一点用一句话，适合小朋友听。" },
+          { id: "b02", label: "第02课", title: "💬 提示词入门", desc: "把模糊变清楚", example: "【清】请用 3 句话，给 7 岁小朋友解释什么是「变量」。\n不要用难词。\n每句不超过 15 个字。" },
+          { id: "b03", label: "第03课", title: "🧪 魔法配方", desc: "清·例·角·步", example: "【角】你是一位幼儿园老师。\n【清】用简单好懂的话，分 3 点讲霸王龙最厉害的地方。\n【例】每一点举一个小例子。\n【步】请分 1、2、3 点回答。" },
+          { id: "b04", label: "第04课", title: "🎭 给 AI 角色", desc: "Scratch 小教练 Skill", example: "【角】你是「Scratch 小教练」，专门教 7 岁孩子拖积木。\n说话要短、要有 emoji、一次只教一步。\n【清】我想让小猫说 Hello，请告诉我第一步拖哪块积木。" },
+          { id: "b05", label: "第05课", title: "🛠️ 装上工具", desc: "让 Agent 算大数", example: "【角】你是数学助手。\n【清】请算出 1234 × 5678 的准确结果，只给数字。\n【步】先列竖式或分步计算，再给出最终答案。" },
+          { id: "b06", label: "第06课", title: "🔌 MCP 插座", desc: "连接真实世界", example: "【角】你是 AI 小老师，给 7 岁孩子讲课。\n【清】用「插座和插头」的比喻，解释 MCP 是什么。\n【步】分 3 步：① 是什么 ② 举例 ③ 为什么有用。\n不要超过 100 字。" },
+          { id: "b07", label: "第07课", title: "🏗️ 点子变软件", desc: "描述即开发", example: "【角】你是 Python 老师，帮 7 岁孩子做小程序。\n【清】我要做一个「随机口算题」小程序，1 到 9 的加法，答对说太棒了。\n【步】请写出完整可运行的 Python 代码，代码里要有中文注释。\n【例】类似猜数字游戏。" },
+          { id: "b08", label: "第08课", title: "🎓 毕业项目", desc: "训练师说明书", example: "【角】你是 AI 训练师教练，帮小鱼完成毕业项目。\n【清】我想做：（说出你的点子）\n【步】先帮我填项目蓝图：要交付什么、分几步、需要 Agent 吗？\n再写第一版提示词。" }
+        ]
       },
       {
-        id: "02",
-        label: "第02关",
-        title: "🐋 第 02 关：大鱼游起来",
-        desc: "方向键控制 BigFish 移动",
-        example: "【角】你是 Scratch 3 老师，教 7 岁孩子。\n【清】Scratch 桌面版，角色 BigFish 蓝色大鱼。\n【步】用「当绿旗 + 重复执行 + 如果按下方向键」写出让大鱼上下左右移动的中文积木步骤，每次 10 步，开始在屏幕中间。\n【例】类似飞机大战，但要四个方向。\n只要游起来，不要其他功能。"
+        id: "adv",
+        label: "🎛️ AI 进阶",
+        desc: "模型 · Harness · 总台",
+        lessons: [
+          { id: "a01", label: "进阶01", title: "🧠 选哪个大脑", desc: "快 vs 聪明", example: "【清】请用一句话，给 7 岁小朋友讲什么是乘法。\n请只给答案，不要解释过程。\n（换不同 App/模型各问一次，比较快慢和好坏）" },
+          { id: "a02", label: "进阶02", title: "🦾 大脑+司机", desc: "聊天 vs Agent", example: "【角】你是 Cursor Agent 教练。\n【清】我要在 Scratch 项目里加「得分变量」。\n【步】请说明：这件事用「聊天」够不够？为什么要用 Agent？\n用小朋友能懂的话。" },
+          { id: "a03", label: "进阶03", title: "🎛️ 总台派任务", desc: "多 AI 协作", example: "【角】你是项目总指挥。\n【清】我要做「九九表海报」：一个 AI 写口诀，一个 AI 排版成网页。\n【步】请帮我写派任务表：角色①负责什么、角色②负责什么、谁先谁后。" },
+          { id: "a04", label: "进阶04", title: "🏆 架构师毕业", desc: "AI 团队交付", example: "【角】你是小小 AI 架构师教练。\n【清】我的毕业项目要做：（说出项目名）\n【步】请帮我填蓝图：大脑选什么、用聊天还是 Agent、AI 团队至少 2 人分工。\n再写第一版「清·例·角·步」训练师说明书。" }
+        ]
       },
       {
-        id: "03",
-        label: "第03关",
-        title: "🐠 第 03 关：小鱼群游动",
-        desc: "克隆 SmallFish，满屏游",
-        example: "【角】Scratch 3 老师，BigFish 已会方向键移动。\n【清】加 SmallFish 橙色小鱼，比 BigFish 小。\n【步】请说明：\n1. SmallFish 绿旗隐藏\n2. 绿旗克隆 8 次\n3. 克隆体：显示、随机位置、重复「面向鼠标指针，移动 4 步」\n【例】像飞机大战克隆子弹，但小鱼不删除。\n用 Scratch 中文积木名。"
-      },
-      {
-        id: "04",
-        label: "第04关",
-        title: "😋 第 04 关：吃掉变大得分",
-        desc: "碰撞、变量、删除克隆体",
-        example: "【角】Scratch 3 老师。\n【清】BigFish 方向键移动，SmallFish 是克隆体。\n【步】\n1. BigFish 变量「得分」，绿旗为 0，绿旗大小 60\n2. BigFish 循环里：碰到 SmallFish → 得分+1，大小+5\n3. SmallFish 克隆体：碰到 BigFish → 删除此克隆体\n【例】经典大鱼吃小鱼越吃越大。\n分两个角色写步骤。"
-      },
-      {
-        id: "05",
-        label: "第05关",
-        title: "🔊 第 05 关：音效与结束",
-        desc: "吃音效、鲨鱼、Game Over",
-        example: "【角】Scratch 3 老师。\n【清】大鱼吃小鱼已有得分和克隆小鱼。\n【步】\n1. 吃到 SmallFish 播放 Pop 声音\n2. 加 Shark 大鲨鱼在上方巡逻，碰到边缘反弹\n3. BigFish 碰到 Shark：说「游戏结束！得分：」加得分变量，停止全部\n【例】简单就好，7 岁能懂。"
-      },
-      {
-        id: "06",
-        label: "第06关",
-        title: "🎓 第 06 关：毕业创意",
-        desc: "加你自己的创意 + 演示词",
-        example: "【角】Scratch 游戏教练。\n【清】我的大鱼吃小鱼基本完成了。\n【步】我想加这个创意：（在这里说出你的想法，比如无敌星、换紫色皮肤、得分 20 通关）\n请告诉我改哪个角色、加哪些积木，一步一步来。\n再帮我写 30 秒演示台词给爸爸妈妈听。"
+        id: "olymp",
+        label: "🧮 奥数",
+        desc: "Scratch 奥数 6 课 · 出题/讲思路",
+        lessons: [
+          { id: "o01", label: "排队", title: "👫 排队报数", desc: "前+后−1", example: "【角】你是一年级奥数老师。\n【清】请出一道排队题：前面几人、后面几人，问全班共几人。\n【步】给题目、答案、口诀一句。\n【例】前面4后面6，共9人，因为4+6-1。" },
+          { id: "o02", label: "倒推", title: "🔙 倒推法", desc: "从结果加回去", example: "【角】一年级奥数老师。\n【清】出一道倒推题：最后剩几颗糖，送出去几颗，问原来几颗。\n【步】题目+分步倒推+答案。\n用 7 岁能懂的话。" },
+          { id: "o03", label: "年龄", title: "🎂 年龄差", desc: "大几岁就加几", example: "【角】一年级奥数老师。\n【清】出一道年龄题：小的几岁，大几岁，求大的几岁。\n【步】题目+算式+答案。" },
+          { id: "o04", label: "间隔", title: "🪚 锯木头", desc: "段数−1", example: "【角】一年级奥数老师。\n【清】出一道间隔题：锯成几段要锯几刀，或锯几刀得几段。\n【步】题目+画图提示+答案。" },
+          { id: "o05", label: "移多", title: "⚖️ 移多补少", desc: "先加再除2", example: "【角】一年级奥数老师。\n【清】出一道移多补少题：两人数量不同，要给几颗才一样多。\n【步】题目+三步解法+答案。" },
+          { id: "o06", label: "毕业", title: "🎓 奥数综合", desc: "5 种各一题", example: "【角】一年级奥数老师。\n【清】请出 5 道题，分别考：排队、倒推、年龄、间隔、移多补少。\n【步】每题一行题目+答案+口诀。\n给 7 岁孩子练习。" }
+        ]
       }
     ];
 
-    let current = 0;
+    let trackIdx = 0;
+    let lessonIdx = 0;
     let recognition = null;
     let recording = false;
 
+    const tracksEl = document.getElementById("tracks");
     const stepsEl = document.getElementById("steps");
+    const headerDesc = document.getElementById("headerDesc");
     const lessonTitle = document.getElementById("lessonTitle");
     const lessonDesc = document.getElementById("lessonDesc");
     const exampleEl = document.getElementById("example");
@@ -206,9 +226,44 @@
     const unsupported = document.getElementById("unsupported");
     const main = document.getElementById("main");
 
+    function currentLessons() {
+      return TRACKS[trackIdx].lessons;
+    }
+
+    function renderTracks() {
+      tracksEl.innerHTML = "";
+      TRACKS.forEach((T, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = T.label;
+        btn.type = "button";
+        btn.classList.toggle("active", i === trackIdx);
+        btn.addEventListener("click", () => {
+          trackIdx = i;
+          lessonIdx = 0;
+          renderTracks();
+          renderSteps();
+          renderLesson(0);
+        });
+        tracksEl.appendChild(btn);
+      });
+      headerDesc.textContent = TRACKS[trackIdx].desc + " · 复制粘贴给 Cursor";
+    }
+
+    function renderSteps() {
+      stepsEl.innerHTML = "";
+      currentLessons().forEach((L, i) => {
+        const btn = document.createElement("button");
+        btn.textContent = L.label;
+        btn.type = "button";
+        btn.classList.toggle("active", i === lessonIdx);
+        btn.addEventListener("click", () => renderLesson(i));
+        stepsEl.appendChild(btn);
+      });
+    }
+
     function renderLesson(idx) {
-      current = idx;
-      const L = LESSONS[idx];
+      lessonIdx = idx;
+      const L = currentLessons()[idx];
       document.querySelectorAll(".steps button").forEach((b, i) => {
         b.classList.toggle("active", i === idx);
       });
@@ -217,13 +272,8 @@
       exampleEl.textContent = L.example;
     }
 
-    LESSONS.forEach((L, i) => {
-      const btn = document.createElement("button");
-      btn.textContent = L.label;
-      btn.type = "button";
-      btn.addEventListener("click", () => renderLesson(i));
-      stepsEl.appendChild(btn);
-    });
+    renderTracks();
+    renderSteps();
     renderLesson(0);
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -303,7 +353,7 @@
     });
 
     document.getElementById("fillBtn").addEventListener("click", () => {
-      output.value = LESSONS[current].example;
+      output.value = currentLessons()[lessonIdx].example;
       statusEl.textContent = "例句已填入，可以直接复制或改几个字";
       statusEl.className = "status ok";
     });
