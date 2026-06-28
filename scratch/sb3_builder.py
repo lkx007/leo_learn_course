@@ -60,6 +60,50 @@ SHARK_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70">
   <path d="M30 48 L55 42 L80 48" fill="none" stroke="#334155" stroke-width="3"/>
 </svg>"""
 
+# Snail-well lesson: 1 meter on stage = 12 Scratch y-units; 0 m sits at y = -150
+WELL_METER_PX = 12
+WELL_BOTTOM_Y = -150
+
+
+def _scratch_y_to_svg_y(scratch_y: float) -> float:
+    return 180 - scratch_y
+
+
+def well_backdrop_svg(*, depth_m: int = 10, meter_px: int = WELL_METER_PX, bottom_y: int = WELL_BOTTOM_Y) -> str:
+    """Stage backdrop: well shaft + vertical ruler (0 … depth_m meters)."""
+    top_y = bottom_y + depth_m * meter_px
+    svg_top = _scratch_y_to_svg_y(top_y)
+    svg_bottom = _scratch_y_to_svg_y(bottom_y)
+    shaft_h = svg_bottom - svg_top
+    wall_l = 188
+    wall_r = 292
+    ruler_x = 305
+    parts = [
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">',
+        '<rect width="480" height="360" fill="#87CEEB"/>',
+        f'<rect y="{svg_top - 8}" width="480" height="{360 - svg_top + 8}" fill="#66BB6A"/>',
+        f'<rect x="{wall_l}" y="{svg_top}" width="{wall_r - wall_l}" height="{shaft_h}" fill="#37474F" opacity="0.25"/>',
+        f'<rect x="{wall_l}" y="{svg_top}" width="10" height="{shaft_h}" fill="#5D4037" rx="2"/>',
+        f'<rect x="{wall_r - 10}" y="{svg_top}" width="10" height="{shaft_h}" fill="#5D4037" rx="2"/>',
+        f'<line x1="{ruler_x}" y1="{svg_top}" x2="{ruler_x}" y2="{svg_bottom}" stroke="#1565C0" stroke-width="3"/>',
+        f'<text x="{ruler_x + 8}" y="{svg_top - 6}" font-size="13" fill="#0D47A1" font-family="Arial,sans-serif">井口</text>',
+    ]
+    for m in range(depth_m + 1):
+        sy = bottom_y + m * meter_px
+        svg_y = _scratch_y_to_svg_y(sy)
+        parts.append(
+            f'<line x1="{ruler_x - 14}" y1="{svg_y}" x2="{ruler_x + 14}" y2="{svg_y}" stroke="#1565C0" stroke-width="2"/>'
+        )
+        label = "0米" if m == 0 else (f"{m}米" if m < depth_m else f"{m}米✓")
+        parts.append(
+            f'<text x="{ruler_x + 18}" y="{svg_y + 4}" font-size="12" fill="#0D47A1" font-family="Arial,sans-serif">{label}</text>'
+        )
+    parts.append(
+        f'<text x="175" y="{svg_top - 10}" font-size="14" fill="#4E342E" font-family="Arial,sans-serif" font-weight="bold">🐌 蜗牛爬井（看刻度尺）</text>'
+    )
+    parts.append("</svg>")
+    return "\n".join(parts)
+
 
 class Script:
     """Build a linked chain of Scratch blocks."""
@@ -105,13 +149,11 @@ class Script:
         return bid
 
     def _lit_str(self, text: str) -> list:
-        # Scratch Desktop 3.x expects flat literals: ["1", "hello"]
-        return ["1", str(text)]
+        return [1, [10, str(text)]]
 
     def _lit_num(self, num: float | int) -> list:
-        if float(num).is_integer():
-            return ["1", int(num)]
-        return ["1", float(num)]
+        n = str(int(num)) if float(num).is_integer() else str(num)
+        return [1, [4, n]]
 
     def _absorb_body(self, body: "Script") -> str | None:
         """Merge a sub-script into this sprite; clear erroneous topLevel flags."""
@@ -127,26 +169,26 @@ class Script:
         return sub_id
 
     def _substack(self, bid: str) -> list:
-        return ["2", bid]
+        return [2, bid]
 
     def _var_field(self, name: str) -> list:
         vid = self.b.ensure_var(self.sprite_name, name)
-        return [vid, name]
+        return [name, vid]
 
     def _var_input(self, name: str) -> list:
         rid = self._block("data_variable", fields={"VARIABLE": self._var_field(name)})
-        return ["2", rid]
+        return [2, rid]
 
     def _list_field(self, name: str) -> list:
         lid = self.b.ensure_list(self.sprite_name, name)
-        return [lid, name]
+        return [name, lid]
 
     def _answer(self) -> list:
         rid = self._block("sensing_answer")
-        return ["2", rid]
+        return [2, rid]
 
     def _ref(self, block_id: str) -> list:
-        return ["2", block_id]
+        return [2, block_id]
 
     def flag(self) -> "Script":
         self._link(self._block("event_whenflagclicked"))
@@ -200,18 +242,18 @@ class Script:
         })
         self._link(self._block(
             "looks_sayforsecs",
-            inputs={"MESSAGE": ["2", jid], "SECS": self._lit_num(secs)},
+            inputs={"MESSAGE": [2, jid], "SECS": self._lit_num(secs)},
         ))
         return self
 
     def say_expr(self, text: str, expr_block: str, secs: float = 2) -> "Script":
         jid = self._block("operator_join", inputs={
             "STRING1": self._lit_str(text),
-            "STRING2": ["2", expr_block],
+            "STRING2": [2, expr_block],
         })
         self._link(self._block(
             "looks_sayforsecs",
-            inputs={"MESSAGE": ["2", jid], "SECS": self._lit_num(secs)},
+            inputs={"MESSAGE": [2, jid], "SECS": self._lit_num(secs)},
         ))
         return self
 
@@ -222,7 +264,7 @@ class Script:
             return self.say_expr(prefix, mid, secs)
         self._link(self._block(
             "looks_sayforsecs",
-            inputs={"MESSAGE": ["2", mid], "SECS": self._lit_num(secs)},
+            inputs={"MESSAGE": [2, mid], "SECS": self._lit_num(secs)},
         ))
         return self
 
@@ -230,7 +272,7 @@ class Script:
         ops = {"+": "operator_add", "-": "operator_sub", "*": "operator_multiply", "/": "operator_divide"}
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
-        mid = self._block(ops[op], inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
+        mid = self._block(ops[op], inputs={"NUM1": [2, va], "NUM2": [2, vb]})
         return self.say_expr(prefix, mid, secs)
 
     def if_eq_answer(self, value: str, then: Script, else_: Script | None = None) -> "Script":
@@ -242,16 +284,16 @@ class Script:
         if else_:
             sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
-                "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
-                "SUBSTACK2": self._substack(sub2_id) if sub2_id else ["2", None],
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+                "SUBSTACK2": self._substack(sub2_id) if sub2_id else [2, None],
             })
             if sub2_id:
                 self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
-                "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
             })
         if sub_id:
             self.blocks[sub_id]["parent"] = bid
@@ -261,23 +303,23 @@ class Script:
     def if_var_eq(self, var: str, value: str | int, then: Script, else_: Script | None = None) -> "Script":
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var)})
         eq = self._block("operator_equals", inputs={
-            "OPERAND1": ["2", va],
+            "OPERAND1": [2, va],
             "OPERAND2": self._lit_num(value) if isinstance(value, int) else self._lit_str(value),
         })
         sub_id = self._absorb_body(then)
         if else_:
             sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
-                "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
-                "SUBSTACK2": self._substack(sub2_id) if sub2_id else ["2", None],
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+                "SUBSTACK2": self._substack(sub2_id) if sub2_id else [2, None],
             })
             if sub2_id:
                 self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
-                "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
+                "CONDITION": [2, eq],
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
             })
         if sub_id:
             self.blocks[sub_id]["parent"] = bid
@@ -353,7 +395,7 @@ class Script:
         cond = self.touching(target)
         sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
-            "CONDITION": ["2", cond],
+            "CONDITION": [2, cond],
             "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
         if sub_id:
@@ -380,14 +422,14 @@ class Script:
 
     def set_random_x(self, lo: int, hi: int, y: int) -> "Script":
         rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
-        self._link(self._block("motion_gotoxy", inputs={"X": ["2", rnd], "Y": self._lit_num(y)}))
+        self._link(self._block("motion_gotoxy", inputs={"X": [2, rnd], "Y": self._lit_num(y)}))
         return self
 
     def random_var(self, name: str, lo: int, hi: int) -> "Script":
         rnd = self._block("operator_random", inputs={"FROM": self._lit_num(lo), "TO": self._lit_num(hi)})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", rnd]},
+            inputs={"VALUE": [2, rnd]},
             fields={"VARIABLE": self._var_field(name)},
         ))
         return self
@@ -430,17 +472,17 @@ class Script:
     def go_xy_vars(self, x_var: str, y_var: str) -> "Script":
         xv = self._block("data_variable", fields={"VARIABLE": self._var_field(x_var)})
         yv = self._block("data_variable", fields={"VARIABLE": self._var_field(y_var)})
-        self._link(self._block("motion_gotoxy", inputs={"X": ["2", xv], "Y": ["2", yv]}))
+        self._link(self._block("motion_gotoxy", inputs={"X": [2, xv], "Y": [2, yv]}))
         return self
 
     def set_grid_x(self) -> "Script":
         """x坐标 = -120 + 当前列 × 30"""
         col = self._block("data_variable", fields={"VARIABLE": self._var_field("当前列")})
-        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": ["2", col]})
-        add = self._block("operator_add", inputs={"NUM1": self._lit_num(-120), "NUM2": ["2", mul]})
+        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": [2, col]})
+        add = self._block("operator_add", inputs={"NUM1": self._lit_num(-120), "NUM2": [2, mul]})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", add]},
+            inputs={"VALUE": [2, add]},
             fields={"VARIABLE": self._var_field("x坐标")},
         ))
         return self
@@ -448,11 +490,11 @@ class Script:
     def set_grid_y(self) -> "Script":
         """y坐标 = 100 - 当前行 × 30"""
         row = self._block("data_variable", fields={"VARIABLE": self._var_field("当前行")})
-        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": ["2", row]})
-        sub = self._block("operator_sub", inputs={"NUM1": self._lit_num(100), "NUM2": ["2", mul]})
+        mul = self._block("operator_multiply", inputs={"NUM1": self._lit_num(30), "NUM2": [2, row]})
+        sub = self._block("operator_sub", inputs={"NUM1": self._lit_num(100), "NUM2": [2, mul]})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", sub]},
+            inputs={"VALUE": [2, sub]},
             fields={"VARIABLE": self._var_field("y坐标")},
         ))
         return self
@@ -460,28 +502,28 @@ class Script:
     def say_var_multiply(self, var_a: str, var_b: str, secs: float = 1.5) -> "Script":
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
-        mul = self._block("operator_multiply", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
-        j1 = self._block("operator_join", inputs={"STRING1": self._lit_str(""), "STRING2": ["2", va]})
-        j2 = self._block("operator_join", inputs={"STRING1": ["2", j1], "STRING2": self._lit_str(" × ")})
-        j3 = self._block("operator_join", inputs={"STRING1": ["2", j2], "STRING2": ["2", vb]})
-        j4 = self._block("operator_join", inputs={"STRING1": ["2", j3], "STRING2": self._lit_str(" = ")})
-        j5 = self._block("operator_join", inputs={"STRING1": ["2", j4], "STRING2": ["2", mul]})
+        mul = self._block("operator_multiply", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
+        j1 = self._block("operator_join", inputs={"STRING1": self._lit_str(""), "STRING2": [2, va]})
+        j2 = self._block("operator_join", inputs={"STRING1": [2, j1], "STRING2": self._lit_str(" × ")})
+        j3 = self._block("operator_join", inputs={"STRING1": [2, j2], "STRING2": [2, vb]})
+        j4 = self._block("operator_join", inputs={"STRING1": [2, j3], "STRING2": self._lit_str(" = ")})
+        j5 = self._block("operator_join", inputs={"STRING1": [2, j4], "STRING2": [2, mul]})
         self._link(self._block(
             "looks_sayforsecs",
-            inputs={"MESSAGE": ["2", j5], "SECS": self._lit_num(secs)},
+            inputs={"MESSAGE": [2, j5], "SECS": self._lit_num(secs)},
         ))
         return self
 
     def if_answer_eq_product(self, var_a: str, var_b: str, then: Script, else_: Script | None = None) -> "Script":
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
-        prod = self._block("operator_multiply", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
-        eq = self._block("operator_equals", inputs={"OPERAND1": self._answer(), "OPERAND2": ["2", prod]})
+        prod = self._block("operator_multiply", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
+        eq = self._block("operator_equals", inputs={"OPERAND1": self._answer(), "OPERAND2": [2, prod]})
         sub_id = self._absorb_body(then)
         if else_:
             sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
-                "CONDITION": ["2", eq],
+                "CONDITION": [2, eq],
                 "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
                 "SUBSTACK2": self._substack(sub2_id) if sub2_id else [2, None],
             })
@@ -489,7 +531,7 @@ class Script:
                 self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
-                "CONDITION": ["2", eq],
+                "CONDITION": [2, eq],
                 "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
             })
         if sub_id:
@@ -530,7 +572,7 @@ class Script:
         cond = self.key_pressed(key)
         sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
-            "CONDITION": ["2", cond],
+            "CONDITION": [2, cond],
             "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
         if sub_id:
@@ -545,7 +587,7 @@ class Script:
         cond = self.touching(target)
         sub_id = self._absorb_body(body)
         bid = self._block("control_repeat_until", inputs={
-            "CONDITION": ["2", cond],
+            "CONDITION": [2, cond],
             "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
         if sub_id:
@@ -556,13 +598,13 @@ class Script:
     def _var_ge(self, var_a: str, var_b: str) -> str:
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
-        return self._block("operator_ge", inputs={"OPERAND1": ["2", va], "OPERAND2": ["2", vb]})
+        return self._block("operator_ge", inputs={"OPERAND1": [2, va], "OPERAND2": [2, vb]})
 
     def repeat_until_var_ge(self, var_a: str, var_b: str, body: Script) -> "Script":
         cond = self._var_ge(var_a, var_b)
         sub_id = self._absorb_body(body)
         bid = self._block("control_repeat_until", inputs={
-            "CONDITION": ["2", cond],
+            "CONDITION": [2, cond],
             "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
         if sub_id:
@@ -574,7 +616,7 @@ class Script:
         cond = self._var_ge(var_a, var_b)
         sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
-            "CONDITION": ["2", cond],
+            "CONDITION": [2, cond],
             "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
         if sub_id:
@@ -589,9 +631,9 @@ class Script:
     def set_y_from_var_scaled(self, var_name: str, scale: int, offset: int) -> "Script":
         """y = var * scale + offset"""
         vv = self._block("data_variable", fields={"VARIABLE": self._var_field(var_name)})
-        mul = self._block("operator_multiply", inputs={"NUM1": ["2", vv], "NUM2": self._lit_num(scale)})
-        yv = self._block("operator_add", inputs={"NUM1": ["2", mul], "NUM2": self._lit_num(offset)})
-        self._link(self._block("motion_sety", inputs={"Y": ["2", yv]}))
+        mul = self._block("operator_multiply", inputs={"NUM1": [2, vv], "NUM2": self._lit_num(scale)})
+        yv = self._block("operator_add", inputs={"NUM1": [2, mul], "NUM2": self._lit_num(offset)})
+        self._link(self._block("motion_sety", inputs={"Y": [2, yv]}))
         return self
 
     def say_join_vars(self, prefix: str, var_name: str, suffix: str, secs: float = 1) -> "Script":
@@ -599,10 +641,10 @@ class Script:
             "STRING1": self._lit_str(prefix),
             "STRING2": self._var_input(var_name),
         })
-        j2 = self._block("operator_join", inputs={"STRING1": ["2", j1], "STRING2": self._lit_str(suffix)})
+        j2 = self._block("operator_join", inputs={"STRING1": [2, j1], "STRING2": self._lit_str(suffix)})
         self._link(self._block(
             "looks_sayforsecs",
-            inputs={"MESSAGE": ["2", j2], "SECS": self._lit_num(secs)},
+            inputs={"MESSAGE": [2, j2], "SECS": self._lit_num(secs)},
         ))
         return self
 
@@ -612,10 +654,10 @@ class Script:
     def set_var_sum2(self, target: str, var_a: str, var_b: str) -> "Script":
         va = self._var_block(var_a)
         vb = self._var_block(var_b)
-        add = self._block("operator_add", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
+        add = self._block("operator_add", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", add]},
+            inputs={"VALUE": [2, add]},
             fields={"VARIABLE": self._var_field(target)},
         ))
         return self
@@ -623,21 +665,21 @@ class Script:
     def set_var_sub2(self, target: str, var_a: str, var_b: str) -> "Script":
         va = self._var_block(var_a)
         vb = self._var_block(var_b)
-        sub = self._block("operator_sub", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
+        sub = self._block("operator_sub", inputs={"NUM1": [2, va], "NUM2": [2, vb]})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", sub]},
+            inputs={"VALUE": [2, sub]},
             fields={"VARIABLE": self._var_field(target)},
         ))
         return self
 
     def set_var_sum3(self, target: str, var_a: str, num_b: int, num_c: int) -> "Script":
         va = self._var_block(var_a)
-        add1 = self._block("operator_add", inputs={"NUM1": ["2", va], "NUM2": self._lit_num(num_b)})
-        add2 = self._block("operator_add", inputs={"NUM1": ["2", add1], "NUM2": self._lit_num(num_c)})
+        add1 = self._block("operator_add", inputs={"NUM1": [2, va], "NUM2": self._lit_num(num_b)})
+        add2 = self._block("operator_add", inputs={"NUM1": [2, add1], "NUM2": self._lit_num(num_c)})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", add2]},
+            inputs={"VALUE": [2, add2]},
             fields={"VARIABLE": self._var_field(target)},
         ))
         return self
@@ -652,11 +694,11 @@ class Script:
 
     def set_var_divide_by_num(self, target: str, source_var: str, divisor: int) -> "Script":
         va = self._var_block(source_var)
-        div = self._block("operator_divide", inputs={"NUM1": ["2", va], "NUM2": self._lit_num(divisor)})
-        floor = self._block("operator_mathop", inputs={"NUM": ["2", div]}, fields={"OPERATOR": ["floor", None]})
+        div = self._block("operator_divide", inputs={"NUM1": [2, va], "NUM2": self._lit_num(divisor)})
+        floor = self._block("operator_mathop", inputs={"NUM": [2, div]}, fields={"OPERATOR": ["floor", None]})
         self._link(self._block(
             "data_setvariableto",
-            inputs={"VALUE": ["2", floor]},
+            inputs={"VALUE": [2, floor]},
             fields={"VARIABLE": self._var_field(target)},
         ))
         return self
@@ -817,6 +859,10 @@ class SB3Builder:
 
     def remove_sprite(self, name: str) -> None:
         self.sprites.pop(name, None)
+
+    def set_backdrop(self, svg: str, name: str = "well") -> None:
+        self.stage["costumes"] = [self._costume(name, svg, is_stage=True)]
+        self.stage["currentCostume"] = 0
 
     def _pop_wav_bytes(self) -> tuple[bytes, int, int]:
         import io

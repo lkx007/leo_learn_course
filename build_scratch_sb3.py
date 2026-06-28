@@ -25,6 +25,9 @@ from scratch.sb3_builder import (
     Script,
     SHARK_SVG,
     SMALL_FISH_SVG,
+    WELL_BOTTOM_Y,
+    WELL_METER_PX,
+    well_backdrop_svg,
 )
 
 ROOT = Path(__file__).parent
@@ -203,7 +206,8 @@ def lesson_24(b: SB3Builder):
 
 
 def adv_01_snail(b: SB3Builder):
-    """蜗牛爬井：完整循环 + 变量监视器 + 小猫上下移动模拟爬行"""
+    """蜗牛爬井：带刻度井背景 + 小猫沿标尺上下爬"""
+    b.set_backdrop(well_backdrop_svg(depth_m=10))
     for v in ("高度", "天数", "井深"):
         b.ensure_var("Sprite1", v)
 
@@ -212,7 +216,7 @@ def adv_01_snail(b: SB3Builder):
     loop.say_join_vars("第 ", "天数", " 天", 0.8)
     loop.change_var("高度", 3)
     loop.say_join_vars("白天爬到 ", "高度", " 米", 0.8)
-    loop.set_y_from_var_scaled("高度", 12, -150)
+    loop.set_y_from_var_scaled("高度", WELL_METER_PX, WELL_BOTTOM_Y)
     loop.if_var_ge(
         "高度",
         "井深",
@@ -222,12 +226,12 @@ def adv_01_snail(b: SB3Builder):
     )
     loop.change_var("高度", -2)
     loop.say_join_vars("晚上滑到 ", "高度", " 米", 0.8)
-    loop.set_y_from_var_scaled("高度", 12, -150)
+    loop.set_y_from_var_scaled("高度", WELL_METER_PX, WELL_BOTTOM_Y)
 
     s = b.script("Sprite1").flag()
     s.set_var("井深", 10).set_var("高度", 0).set_var("天数", 0)
-    s.go_xy(0, -150).set_y_from_var_scaled("高度", 12, -150)
-    s.say("小蜗牛在井底！点绿旗，看小猫跟着高度往上爬", 2)
+    s.go_xy(0, WELL_BOTTOM_Y).set_y_from_var_scaled("高度", WELL_METER_PX, WELL_BOTTOM_Y)
+    s.say("看右边刻度尺！小猫爬几米，就对准第几米", 2)
     s.repeat_until_var_ge("高度", "井深", loop)
     s.say_join_vars("一共用了 ", "天数", " 天", 2)
 

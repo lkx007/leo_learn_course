@@ -4862,9 +4862,33 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
    - <code>井深</code>（井有多深，这道题是 10）</p>
 </li>
 <li>
-<p>想先看最终效果？<strong>文件 → 从电脑中上传</strong>，打开 <code>course/scratch_answers/A01_蜗牛爬井_参考答案.sb3</code>，点 <strong>绿旗</strong> 看小猫一边爬一边说话。</p>
+<p>想先看最终效果？<strong>文件 → 从电脑中上传</strong>，打开 <code>course/scratch_answers/A01_蜗牛爬井_参考答案.sb3</code>，点 <strong>绿旗</strong>——舞台上有 <strong>带刻度的井</strong>，小猫会沿着刻度一格一格往上爬。</p>
 </li>
 </ol>
+<hr>
+<h2>3.5 画一口带刻度的井 🕳️📏</h2>
+<p>光有数字不够直观。最好舞台上有 <strong>竖直的刻度尺</strong>，小猫爬到第几米，就停在那条横线旁边——一眼就能看懂！</p>
+<h3>办法 A：用参考答案（最快）</h3>
+<p>上传 <code>A01_蜗牛爬井_参考答案.sb3</code>，背景里已经画好：<br>
+- 左右两道 <strong>井壁</strong>（棕色竖条）<br>
+- 右边一根 <strong>蓝色刻度尺</strong>，从 <strong>0米（井底）</strong> 到 <strong>10米（井口）</strong><br>
+- 每一格正好对应 1 米</p>
+<h3>办法 B：自己画背景（推荐动手试）</h3>
+<ol>
+<li>点左下角 <strong>舞台</strong>（不是小猫）→ <strong>背景</strong> 标签 → <strong>绘制造</strong> 一个新背景。</li>
+<li>用 <strong>直线工具</strong> 画：<br>
+   - 两道 <strong>竖线</strong> 当井壁（中间留空给小猫爬）<br>
+   - 靠右再画一根 <strong>竖线</strong> 当刻度尺</li>
+<li>用 <strong>文本工具</strong> 从下到上标：<code>0米</code>、<code>1米</code>、<code>2米</code> … <code>10米</code></li>
+<li><strong>重要</strong>：相邻两格之间的 <strong>竖直距离要一样</strong>！我们后面用 <code>× 12</code> 移动小猫，就是为了让小猫每次跳 <strong>正好一格</strong>。</li>
+</ol>
+<blockquote>
+<p>📐 <strong>刻度和小猫位置要对齐</strong>：<br>
+- 0 米 → 小猫在 <code>y: -150</code>（井底）<br>
+- 10 米 → 小猫在 <code>y: -30</code>（井口）<br>
+- 公式：<code>y = (高度) × 12 - 150</code>（每 1 米 = 往上 12 步）</p>
+</blockquote>
+<p>画好后，小猫站在井中间 <code>x: 0</code>，爬的时候对着右边的刻度看，是不是清楚多了？</p>
 <hr>
 <h2>4. 第一步：只做「第 1 天」——先不要循环！ 🧱</h2>
 <blockquote>
@@ -4879,7 +4903,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 说 [小蜗牛在井底，准备开爬！] 2 秒
 </code></pre>
 <blockquote>
-<p><code>y: -150</code> 是舞台 <strong>最下面</strong>，代表井底。小猫站在这里，就像刚掉进井里。</p>
+<p><code>y: -150</code> 是舞台 <strong>最下面</strong>，对准刻度尺的 <strong>0米</strong>。小猫站在这里，就像刚掉进井里。</p>
 </blockquote>
 <h3>4.2 第 1 天：白天爬 → 晚上滑</h3>
 <p>接着往下搭（还 <strong>不要</strong> 用「重复执行」）：</p>
@@ -4905,8 +4929,8 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <pre><code>将 y 坐标 设为 ( (高度) × 12 - 150 )
 </code></pre>
 <blockquote>
-<p>📐 <strong>怎么理解</strong>：<code>高度</code> 每增加 1，小猫就往上挪一点（× 12）；<code>- 150</code> 让 0 米时小猫在井底。<br>
-每次改完 <code>高度</code>，就 <strong>再执行一次</strong> 上面这行积木，小猫就会跟着跳！</p>
+<p>📐 <strong>怎么理解</strong>：<code>高度</code> 每增加 1，小猫就往上挪 <strong>一格刻度</strong>（× 12）；<code>- 150</code> 让 0 米时小猫对准 <strong>0米</strong> 那条线。<br>
+每次改完 <code>高度</code>，就 <strong>再执行一次</strong> 上面这行积木，小猫就会跳到对应的刻度上！</p>
 </blockquote>
 <h3>完整「第 1 天」应该是这样：</h3>
 <pre><code>将 天数 增加 1
@@ -4920,7 +4944,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 说 连接 [晚上滑到 ] 和 (高度) 1 秒
 将 y 坐标 设为 ( (高度) × 12 - 150 )    ← 晚上滑完，小猫往下滑一点！
 </code></pre>
-<p>再点绿旗——这次小猫会 <strong>真的在井里上下动</strong>，直观多了！🎉</p>
+<p>再点绿旗——这次小猫会 <strong>沿着刻度尺一格一格地跳</strong>，爬到了第几米，一眼就看出来！🎉</p>
 <hr>
 <h2>6. 第三步：复制粘贴，手动做第 2 天、第 3 天 📋</h2>
 <p>把上面「第 1 天」那一整段 <strong>复制两份</strong>，接在后面，就得到第 2 天、第 3 天。</p>
@@ -4959,7 +4983,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </blockquote>
 <hr>
 <h2>8. 揭晓答案 🎯</h2>
-<p>运行绿旗，盯着小猫和变量一起数……<br>
+<p>运行绿旗，盯着 <strong>刻度尺 + 小猫 + 变量</strong> 一起数……<br>
 答案是 <strong>8 天</strong>！🐱🎉</p>
 <table>
 <thead>
@@ -5006,6 +5030,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <h2>9. 排错小贴士 🛠️</h2>
 <ul>
 <li><strong>小猫不动？</strong> 检查每次改 <code>高度</code> 后面，有没有接 <code>将 y 坐标 设为 …</code>。</li>
+<li><strong>小猫和刻度对不上？</strong> 检查公式是不是 <code>(高度) × 12 - 150</code>，背景刻度间距是否均匀。</li>
 <li><strong>小猫一直不停？</strong> 检查「重复执行 <strong>直到</strong> <code>高度 ≥ 井深</code>」有没有写对。</li>
 <li><strong>答案变成 10 天？</strong> 多半是忘了白天爬完 <strong>立刻检查并停止</strong>。</li>
 <li><strong>变量看不懂？</strong> 记得勾选显示 <code>高度</code>、<code>天数</code>、<code>井深</code>，边跑边看。</li>
@@ -5018,7 +5043,7 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>换个题：白天爬 5 米、晚上滑 4 米，井深 15 米，几天出来？</li>
 </ol>
 <p><strong>你从「一天的动作」走到「循环」，还让小猫真的爬了一遍——太厉害啦！</strong> 🐱🏆</p>
-<p>📥 参考答案：<code>A01_蜗牛爬井_参考答案.sb3</code>（完整循环 + 小猫上下爬，自动算出 8 天）</p>
+<p>📥 参考答案：<code>A01_蜗牛爬井_参考答案.sb3</code>（带刻度井背景 + 完整循环，自动算出 8 天）</p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第02课_聪明小买手-md" class="doc">
