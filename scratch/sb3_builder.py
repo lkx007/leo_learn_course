@@ -15,6 +15,9 @@ def _bid() -> str:
     return uuid.uuid4().hex[:20]
 
 
+TEMPLATE_SB3 = Path(__file__).resolve().parent.parent / "course" / "scratch_lesson_01.sb3"
+
+
 # Simple orange cat SVG (opens fine in Scratch Desktop)
 CAT_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <circle cx="50" cy="52" r="38" fill="#FFAB19" stroke="#CC8B17" stroke-width="2"/>
@@ -66,6 +69,7 @@ class Script:
         self.sprite_name = sprite_name
         self.sprite = builder.sprites[sprite_name]
         self.blocks: dict[str, Any] = self.sprite["blocks"]
+        self._owned: set[str] = set()
         self.head: str | None = None
         self.tail: str | None = None
         self.y = 50
@@ -97,14 +101,30 @@ class Script:
         }
         if mutation:
             self.blocks[bid]["mutation"] = mutation
+        self._owned.add(bid)
         return bid
 
     def _lit_str(self, text: str) -> list:
-        return ["1", [10, str(text)]]
+        # Scratch Desktop 3.x expects flat literals: ["1", "hello"]
+        return ["1", str(text)]
 
     def _lit_num(self, num: float | int) -> list:
-        n = str(int(num)) if float(num).is_integer() else str(num)
-        return ["1", [4, n]]
+        if float(num).is_integer():
+            return ["1", int(num)]
+        return ["1", float(num)]
+
+    def _absorb_body(self, body: "Script") -> str | None:
+        """Merge a sub-script into this sprite; clear erroneous topLevel flags."""
+        sub_id = body.head
+        if not sub_id:
+            return None
+        self._owned.update(body._owned)
+        for bid in body._owned:
+            blk = self.blocks[bid]
+            blk["topLevel"] = False
+            blk.pop("x", None)
+            blk.pop("y", None)
+        return sub_id
 
     def _substack(self, bid: str) -> list:
         return ["2", bid]
@@ -218,30 +238,24 @@ class Script:
             "OPERAND1": self._answer(),
             "OPERAND2": self._lit_str(value),
         })
-        sub = then.blocks
-        then_tail = then.tail
-        sub_id = then.head
+        sub_id = self._absorb_body(then)
         if else_:
-            sub2 = else_.blocks
-            sub2_id = else_.head
+            sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
                 "CONDITION": ["2", eq],
                 "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
                 "SUBSTACK2": self._substack(sub2_id) if sub2_id else ["2", None],
             })
+            if sub2_id:
+                self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
                 "CONDITION": ["2", eq],
                 "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
             })
-        self.blocks.update(sub)
-        if else_:
-            self.blocks.update(sub2)
-        self._link(bid)
         if sub_id:
             self.blocks[sub_id]["parent"] = bid
-        if else_ and sub2_id:
-            self.blocks[sub2_id]["parent"] = bid
+        self._link(bid)
         return self
 
     def if_var_eq(self, var: str, value: str | int, then: Script, else_: Script | None = None) -> "Script":
@@ -250,23 +264,23 @@ class Script:
             "OPERAND1": ["2", va],
             "OPERAND2": self._lit_num(value) if isinstance(value, int) else self._lit_str(value),
         })
-        sub_id = then.head
-        self.blocks.update(then.blocks)
+        sub_id = self._absorb_body(then)
         if else_:
-            sub2_id = else_.head
-            self.blocks.update(else_.blocks)
+            sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
                 "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id),
-                "SUBSTACK2": self._substack(sub2_id),
+                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
+                "SUBSTACK2": self._substack(sub2_id) if sub2_id else ["2", None],
             })
-            self.blocks[sub2_id]["parent"] = bid
+            if sub2_id:
+                self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
                 "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id),
+                "SUBSTACK": self._substack(sub_id) if sub_id else ["2", None],
             })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -275,21 +289,23 @@ class Script:
         return self
 
     def repeat(self, times: int, body: Script) -> "Script":
-        sub_id = body.head
-        self.blocks.update(body.blocks)
+        sub_id = self._absorb_body(body)
         bid = self._block("control_repeat", inputs={
             "TIMES": self._lit_num(times),
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
     def forever(self, body: Script) -> "Script":
-        sub_id = body.head
-        self.blocks.update(body.blocks)
-        bid = self._block("control_forever", inputs={"SUBSTACK": self._substack(sub_id)})
-        self.blocks[sub_id]["parent"] = bid
+        sub_id = self._absorb_body(body)
+        bid = self._block("control_forever", inputs={
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+        })
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -335,13 +351,13 @@ class Script:
 
     def if_touching(self, target: str, then: Script) -> "Script":
         cond = self.touching(target)
-        sub_id = then.head
-        self.blocks.update(then.blocks)
+        sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
             "CONDITION": ["2", cond],
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -461,23 +477,23 @@ class Script:
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
         prod = self._block("operator_multiply", inputs={"NUM1": ["2", va], "NUM2": ["2", vb]})
         eq = self._block("operator_equals", inputs={"OPERAND1": self._answer(), "OPERAND2": ["2", prod]})
-        sub_id = then.head
-        self.blocks.update(then.blocks)
+        sub_id = self._absorb_body(then)
         if else_:
-            sub2_id = else_.head
-            self.blocks.update(else_.blocks)
+            sub2_id = self._absorb_body(else_)
             bid = self._block("control_if_else", inputs={
                 "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id),
-                "SUBSTACK2": self._substack(sub2_id),
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
+                "SUBSTACK2": self._substack(sub2_id) if sub2_id else [2, None],
             })
-            self.blocks[sub2_id]["parent"] = bid
+            if sub2_id:
+                self.blocks[sub2_id]["parent"] = bid
         else:
             bid = self._block("control_if", inputs={
                 "CONDITION": ["2", eq],
-                "SUBSTACK": self._substack(sub_id),
+                "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
             })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -512,13 +528,13 @@ class Script:
 
     def if_key(self, key: str, then: Script) -> "Script":
         cond = self.key_pressed(key)
-        sub_id = then.head
-        self.blocks.update(then.blocks)
+        sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
             "CONDITION": ["2", cond],
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -527,13 +543,13 @@ class Script:
 
     def repeat_until_touch(self, target: str, body: Script) -> "Script":
         cond = self.touching(target)
-        sub_id = body.head
-        self.blocks.update(body.blocks)
+        sub_id = self._absorb_body(body)
         bid = self._block("control_repeat_until", inputs={
             "CONDITION": ["2", cond],
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -544,25 +560,25 @@ class Script:
 
     def repeat_until_var_ge(self, var_a: str, var_b: str, body: Script) -> "Script":
         cond = self._var_ge(var_a, var_b)
-        sub_id = body.head
-        self.blocks.update(body.blocks)
+        sub_id = self._absorb_body(body)
         bid = self._block("control_repeat_until", inputs={
             "CONDITION": ["2", cond],
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
     def if_var_ge(self, var_a: str, var_b: str, then: Script) -> "Script":
         cond = self._var_ge(var_a, var_b)
-        sub_id = then.head
-        self.blocks.update(then.blocks)
+        sub_id = self._absorb_body(then)
         bid = self._block("control_if", inputs={
             "CONDITION": ["2", cond],
-            "SUBSTACK": self._substack(sub_id),
+            "SUBSTACK": self._substack(sub_id) if sub_id else [2, None],
         })
-        self.blocks[sub_id]["parent"] = bid
+        if sub_id:
+            self.blocks[sub_id]["parent"] = bid
         self._link(bid)
         return self
 
@@ -610,8 +626,7 @@ class Script:
             },
         }
         def_id = _bid()
-        sub_id = body.head
-        self.blocks.update(body.blocks)
+        sub_id = self._absorb_body(body)
         self.blocks[def_id] = {
             "opcode": "procedures_definition",
             "next": sub_id,
@@ -623,7 +638,8 @@ class Script:
             "x": 50,
             "y": self.y,
         }
-        self.blocks[sub_id]["parent"] = def_id
+        if sub_id:
+            self.blocks[sub_id]["parent"] = def_id
         call_id = _bid()
         self.blocks[call_id] = {
             "opcode": "procedures_call",
@@ -651,11 +667,26 @@ class Script:
 class SB3Builder:
     def __init__(self):
         self.extensions: set[str] = set()
-        self.assets: dict[str, str] = {}
+        self.assets: dict[str, bytes | str] = {}
+        self._template_assets: dict[str, bytes] = {}
+        self._tpl_stage: dict | None = None
+        self._tpl_sprite: dict | None = None
+        self._load_template()
         self.stage = self._empty_target(is_stage=True, name="Stage")
         self.sprites: dict[str, dict] = {"Stage": self.stage}
         self._var_ids: dict[tuple[str, str], str] = {}
         self._list_ids: dict[tuple[str, str], str] = {}
+
+    def _load_template(self) -> None:
+        if not TEMPLATE_SB3.exists():
+            return
+        with zipfile.ZipFile(TEMPLATE_SB3) as zf:
+            tpl = json.loads(zf.read("project.json"))
+            self._tpl_stage = tpl["targets"][0]
+            self._tpl_sprite = tpl["targets"][1]
+            for name in zf.namelist():
+                if name != "project.json":
+                    self._template_assets[name] = zf.read(name)
 
     def use_extension(self, name: str):
         self.extensions.add(name)
@@ -682,19 +713,28 @@ class SB3Builder:
         self.assets[fname] = svg
         return {
             "name": name,
-            "bitmapResolution": 1,
             "dataFormat": "svg",
             "assetId": aid,
             "md5ext": fname,
-            "rotationCenterX": 240 if is_stage else 50,
+            "rotationCenterX": 240 if is_stage else 48,
             "rotationCenterY": 180 if is_stage else 50,
         }
 
     def _empty_target(self, *, is_stage: bool, name: str, svg: str = CAT_SVG) -> dict:
-        BACKDROP = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">
-  <rect width="480" height="360" fill="#4fc3f7"/>
-  <rect y="280" width="480" height="80" fill="#66bb6a"/>
-</svg>"""
+        if is_stage and self._tpl_stage:
+            t = {k: v for k, v in self._tpl_stage.items() if k not in ("blocks", "comments", "variables", "lists")}
+            t["variables"] = {}
+            t["lists"] = {}
+            t["blocks"] = {}
+            t["comments"] = {}
+            return t
+        if not is_stage and name == "Sprite1" and self._tpl_sprite:
+            t = {k: v for k, v in self._tpl_sprite.items() if k not in ("blocks", "comments", "variables", "lists")}
+            t["variables"] = {}
+            t["lists"] = {}
+            t["blocks"] = {}
+            t["comments"] = {}
+            return t
         return {
             "isStage": is_stage,
             "name": name,
@@ -704,22 +744,19 @@ class SB3Builder:
             "blocks": {},
             "comments": {},
             "currentCostume": 0,
-            "costumes": [self._costume("backdrop1", BACKDROP, is_stage=True)] if is_stage else [self._costume("costume1", svg)],
+            "costumes": [self._costume("costume1", svg)],
             "sounds": [],
             "volume": 100,
-            "visible": not is_stage,
             "x": 0,
             "y": 0,
             "size": 100,
             "direction": 90,
             "draggable": False,
             "rotationStyle": "all around",
-            "layerOrder": 0 if is_stage else len(self.sprites),
         }
 
     def add_sprite(self, name: str, svg: str = CAT_SVG) -> dict:
         sp = self._empty_target(is_stage=False, name=name, svg=svg)
-        sp["layerOrder"] = len(self.sprites)
         self.sprites[name] = sp
         return sp
 
@@ -808,9 +845,12 @@ class SB3Builder:
             "targets": list(self.sprites.values()),
             "monitors": self._build_monitors(),
             "extensions": sorted(self.extensions),
-            "meta": {"semver": "3.0.0", "vm": "11.5.0", "agent": "leo_learn_course sb3_builder"},
+            "meta": {"semver": "3.0.0", "vm": "1.0.0", "agent": "leo_learn_course sb3_builder"},
         }
+        all_assets: dict[str, bytes | str] = dict(self._template_assets)
+        all_assets.update(self.assets)
         with zipfile.ZipFile(path, "w", zipfile.ZIP_DEFLATED) as zf:
             zf.writestr("project.json", json.dumps(project, ensure_ascii=False))
-            for fname, content in self.assets.items():
-                zf.writestr(fname, content)
+            for fname, content in all_assets.items():
+                data = content.encode("utf-8") if isinstance(content, str) else content
+                zf.writestr(fname, data)

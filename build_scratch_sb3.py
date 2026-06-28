@@ -203,33 +203,31 @@ def lesson_24(b: SB3Builder):
 
 
 def adv_01_snail(b: SB3Builder):
-    """蜗牛爬井：完整循环 + 变量监视器 + 蜗牛上下移动"""
-    b.remove_sprite("Sprite1")
-    b.add_sprite("蜗牛")
+    """蜗牛爬井：完整循环 + 变量监视器 + 小猫上下移动（Sprite1=蜗牛）"""
     for v in ("高度", "天数", "井深"):
-        b.ensure_var("蜗牛", v)
+        b.ensure_var("Sprite1", v)
 
-    loop = Script(b, "蜗牛")
+    loop = Script(b, "Sprite1")
     loop.change_var("天数", 1)
     loop.say_join_vars("第 ", "天数", " 天", 0.8)
     loop.change_var("高度", 3)
-    loop.say_join_vars("☀️ 白天爬到 ", "高度", " 米", 0.8)
+    loop.say_join_vars("白天爬到 ", "高度", " 米", 0.8)
     loop.set_y_from_var_scaled("高度", 12, -150)
     loop.if_var_ge(
         "高度",
         "井深",
-        Script(b, "蜗牛")
-        .say_join_vars("🎉 爬出来啦！一共 ", "天数", " 天", 2.5)
+        Script(b, "Sprite1")
+        .say_join_vars("爬出来啦！一共 ", "天数", " 天", 2.5)
         .stop_this_script(),
     )
     loop.change_var("高度", -2)
-    loop.say_join_vars("🌙 晚上滑到 ", "高度", " 米", 0.8)
+    loop.say_join_vars("晚上滑到 ", "高度", " 米", 0.8)
     loop.set_y_from_var_scaled("高度", 12, -150)
 
-    s = b.script("蜗牛").flag()
+    s = b.script("Sprite1").flag()
     s.set_var("井深", 10).set_var("高度", 0).set_var("天数", 0)
     s.go_xy(0, -150).set_y_from_var_scaled("高度", 12, -150)
-    s.say("🐌 蜗牛爬井！点绿旗，看变量和说话气泡", 2)
+    s.say("蜗牛爬井！点绿旗，看变量和说话", 2)
     s.repeat_until_var_ge("高度", "井深", loop)
     s.say_join_vars("一共用了 ", "天数", " 天", 2)
 
