@@ -4043,9 +4043,10 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <ol>
 <li>让小猫 <strong>询问</strong>「前面几人？」「后面几人？」，自动算总人数。</li>
 <li>用 <strong>列表</strong> 画出 1～9 号同学的名字（进阶）。</li>
-<li>让 AI 帮你出 <strong>3 道新排队题</strong>（语音指挥台 · AI 训练师模式）。</li>
+<li>让 AI 帮你出 <strong>3 道新排队题</strong>（语音指挥台 · 🧮奥数模式）。</li>
 </ol>
-<p>📥 参考答案：<code>O01_排队报数_参考答案.sb3</code></p>
+<p>📥 参考答案：<code>O01_排队报数_参考答案.sb3</code><br>
+📋 课后练习：<code>scratch_exercises/O01_排队报数.md</code></p>
 <p><strong>你用 Scratch 解了一道奥数排队题！</strong> 👫🏆</p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
@@ -4108,7 +4109,8 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 <li>画 <strong>倒推箭头图</strong> 在纸上，再对照 Scratch 变量。</li>
 <li>用语音指挥 AI：「帮我出 3 道倒推法应用题，给一年级小朋友。」</li>
 </ol>
-<p>📥 参考答案：<code>O02_倒推法_参考答案.sb3</code></p>
+<p>📥 参考答案：<code>O02_倒推法_参考答案.sb3</code><br>
+📋 课后练习：<code>scratch_exercises/O02_倒推法.md</code></p>
 <p><strong>你学会了奥数里的倒推法！</strong> 🔙🏆</p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
@@ -4842,54 +4844,123 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 - ☀️ <strong>白天</strong>往上爬 <strong>3 米</strong><br>
 - 🌙 <strong>晚上</strong>睡着了，往下滑 <strong>2 米</strong></p>
 <p><strong>问题来了：小蜗牛要几天才能爬出井口呢？</strong> 🤔</p>
-<p>这是一道很有名的数学题！今天我们让 <strong>Scratch 帮我们一边爬一边数</strong>，看看答案对不对！</p>
+<p>今天我们不急着算答案，先让 <strong>Scratch 里的小猫</strong> 把「爬一天」的动作演出来，再慢慢改成循环。这样一看就懂！</p>
 <hr>
 <h2>2. 先用脑子想一想 🧠</h2>
 <p>很多人会说："一天上 3 米、下 2 米，净爬 1 米，10 米要 10 天！"<br>
 <strong>但这是错的！</strong> 因为最后一天爬出去后，它就不会再往下滑啦！</p>
-<p>别急，我们让 Scratch 来 <strong>真的爬一遍</strong>，答案自己就出来了。👇</p>
+<p>别急，我们让 Scratch <strong>真的爬一遍</strong>，答案自己就出来了。👇</p>
 <hr>
 <h2>3. 准备工作 🎨</h2>
 <ol>
 <li>打开 Mac 上的 <strong>Scratch 桌面应用</strong> 🐱（不熟悉看《Scratch桌面版使用指南》）。</li>
-<li>删掉小猫，添加一个 <strong>蜗牛角色</strong>（找不到就用别的小动物代替）。</li>
-<li>新建 3 个变量：<br>
-   - <code>高度</code>（蜗牛现在在第几米）<br>
+<li><strong>保留默认的小猫</strong>，不用换角色——小猫就是我们的「蜗牛演员」，会在井里上下爬。</li>
+<li>
+<p>新建 3 个变量（勾选「适用于所有角色」），并 <strong>勾选显示</strong> 在舞台左侧：<br>
+   - <code>高度</code>（现在在第几米，0 = 井底）<br>
    - <code>天数</code>（已经过了几天）<br>
-   - <code>井深</code>（井有多深）</li>
+   - <code>井深</code>（井有多深，这道题是 10）</p>
+</li>
+<li>
+<p>想先看最终效果？<strong>文件 → 从电脑中上传</strong>，打开 <code>course/scratch_answers/A01_蜗牛爬井_参考答案.sb3</code>，点 <strong>绿旗</strong> 看小猫一边爬一边说话。</p>
+</li>
 </ol>
 <hr>
-<h2>4. 动手搭积木 🧱</h2>
+<h2>4. 第一步：只做「第 1 天」——先不要循环！ 🧱</h2>
+<blockquote>
+<p>💡 <strong>今天的新规矩</strong>：先搭 <strong>一天</strong> 的动作，跑通了再加第二天、第三天……最后才改成循环。一步一步来，就不难了！</p>
+</blockquote>
+<h3>4.1 开局：站在井底</h3>
 <pre><code>当绿旗被点击
 将 井深 设为 10
 将 高度 设为 0
 将 天数 设为 0
+移到 x: 0  y: -150
+说 [小蜗牛在井底，准备开爬！] 2 秒
+</code></pre>
+<blockquote>
+<p><code>y: -150</code> 是舞台 <strong>最下面</strong>，代表井底。小猫站在这里，就像刚掉进井里。</p>
+</blockquote>
+<h3>4.2 第 1 天：白天爬 → 晚上滑</h3>
+<p>接着往下搭（还 <strong>不要</strong> 用「重复执行」）：</p>
+<pre><code>将 天数 增加 1
+说 连接 [第 ] 和 (天数) 1 秒
 
-重复执行 直到 &lt;高度 ≥ 井深&gt;
+☀️ 白天往上爬 3 米
+将 高度 增加 3
+说 连接 [白天爬到 ] 和 (高度) 1 秒
+
+🌙 晚上往下滑 2 米
+将 高度 增加 -2
+说 连接 [晚上滑到 ] 和 (高度) 1 秒
+</code></pre>
+<p>点 <strong>绿旗</strong> 试一次！你应该看到：<br>
+- 变量 <code>天数</code> 变成 <strong>1</strong><br>
+- <code>高度</code> 先变 <strong>3</strong>，再变 <strong>1</strong><br>
+- 小猫在说话</p>
+<p><strong>第 1 天搭好了！</strong> 但小猫还 <strong>没动</strong>——下一步让它真的爬。</p>
+<hr>
+<h2>5. 第二步：让小猫跟着「高度」一起动 🐱⬆️</h2>
+<p>光改变量，眼睛看不出来爬了多少。我们把 <strong>高度</strong> 和小猫的 <strong>y 坐标</strong> 连起来：</p>
+<pre><code>将 y 坐标 设为 ( (高度) × 12 - 150 )
+</code></pre>
+<blockquote>
+<p>📐 <strong>怎么理解</strong>：<code>高度</code> 每增加 1，小猫就往上挪一点（× 12）；<code>- 150</code> 让 0 米时小猫在井底。<br>
+每次改完 <code>高度</code>，就 <strong>再执行一次</strong> 上面这行积木，小猫就会跟着跳！</p>
+</blockquote>
+<h3>完整「第 1 天」应该是这样：</h3>
+<pre><code>将 天数 增加 1
+说 连接 [第 ] 和 (天数) 1 秒
+
+将 高度 增加 3
+说 连接 [白天爬到 ] 和 (高度) 1 秒
+将 y 坐标 设为 ( (高度) × 12 - 150 )    ← 白天爬完，小猫往上跳！
+
+将 高度 增加 -2
+说 连接 [晚上滑到 ] 和 (高度) 1 秒
+将 y 坐标 设为 ( (高度) × 12 - 150 )    ← 晚上滑完，小猫往下滑一点！
+</code></pre>
+<p>再点绿旗——这次小猫会 <strong>真的在井里上下动</strong>，直观多了！🎉</p>
+<hr>
+<h2>6. 第三步：复制粘贴，手动做第 2 天、第 3 天 📋</h2>
+<p>把上面「第 1 天」那一整段 <strong>复制两份</strong>，接在后面，就得到第 2 天、第 3 天。</p>
+<p>点绿旗，看变量：<br>
+- 第 1 天结束：<code>高度</code> = 1<br>
+- 第 2 天结束：<code>高度</code> = 2<br>
+- 第 3 天结束：<code>高度</code> = 3</p>
+<p>你会发现：<strong>每天的动作一模一样</strong>，只是数字在变。积木太长了？该请 <strong>循环</strong> 出场了！</p>
+<hr>
+<h2>7. 第四步：改成「重复执行直到」循环 🔄</h2>
+<ol>
+<li><strong>删掉</strong> 你手动复制的那几段（或新建一个干净的项目重来）。</li>
+<li>保留开局那几行（设变量、移到井底）。</li>
+<li>把「一天的动作」包进循环：</li>
+</ol>
+<pre><code>重复执行 直到 &lt;高度 ≥ 井深&gt;
     将 天数 增加 1
     说 连接 [第 ] 和 (天数) 1 秒
 
-    ☀️ 白天爬 3 米
     将 高度 增加 3
     说 连接 [白天爬到 ] 和 (高度) 1 秒
+    将 y 坐标 设为 ( (高度) × 12 - 150 )
 
     如果 &lt;高度 ≥ 井深&gt; 那么
         说 [🎉 爬出来啦！] 2 秒
         停止 [这个脚本]
 
-    🌙 晚上滑 2 米
     将 高度 增加 -2
     说 连接 [晚上滑到 ] 和 (高度) 1 秒
+    将 y 坐标 设为 ( (高度) × 12 - 150 )
 
 说 连接 [一共用了 ] 和 (天数) 2 秒
 </code></pre>
 <blockquote>
-<p>🔑 <strong>关键秘密</strong>：每天白天爬完，要 <strong>先检查是不是已经出来了</strong>，出来了就马上停止——这样就不会多滑那 2 米！这就是为什么答案不是 10 天。</p>
+<p>🔑 <strong>关键秘密</strong>：白天爬完、小猫往上跳之后，要 <strong>先检查</strong> <code>高度 ≥ 井深</code>。如果已经出井了，就 <strong>立刻停止</strong>——这样就不会多滑那 2 米！这就是为什么答案不是 10 天。</p>
 </blockquote>
 <hr>
-<h2>5. 揭晓答案 🎯</h2>
-<p>运行绿旗，跟着蜗牛一起数……<br>
-答案是 <strong>8 天</strong>！🐌🎉</p>
+<h2>8. 揭晓答案 🎯</h2>
+<p>运行绿旗，盯着小猫和变量一起数……<br>
+答案是 <strong>8 天</strong>！🐱🎉</p>
 <table>
 <thead>
 <tr>
@@ -4932,20 +5003,22 @@ Scratch 里，小猫不仅会说话，还会做数学！</p>
 </tbody>
 </table>
 <hr>
-<h2>6. 排错小贴士 🛠️</h2>
+<h2>9. 排错小贴士 🛠️</h2>
 <ul>
-<li>蜗牛一直不停？检查"重复执行 <strong>直到</strong> <code>高度 ≥ 井深</code>"有没有写对。</li>
-<li>答案变成 10 天？多半是忘了白天爬完 <strong>立刻检查并停止</strong>。</li>
+<li><strong>小猫不动？</strong> 检查每次改 <code>高度</code> 后面，有没有接 <code>将 y 坐标 设为 …</code>。</li>
+<li><strong>小猫一直不停？</strong> 检查「重复执行 <strong>直到</strong> <code>高度 ≥ 井深</code>」有没有写对。</li>
+<li><strong>答案变成 10 天？</strong> 多半是忘了白天爬完 <strong>立刻检查并停止</strong>。</li>
+<li><strong>变量看不懂？</strong> 记得勾选显示 <code>高度</code>、<code>天数</code>、<code>井深</code>，边跑边看。</li>
 </ul>
 <hr>
-<h2>7. 小挑战 🌟</h2>
+<h2>10. 小挑战 🌟</h2>
 <ol>
 <li>把井改深一点：<code>井深</code> 设为 <strong>20</strong>，猜猜要几天？再让 Scratch 验证！</li>
-<li>让蜗牛角色 <strong>真的往上移动</strong>：把 <code>高度</code> 乘以一个数，连到蜗牛的 <code>y 坐标</code>，看它一格格往上爬！</li>
+<li>把 <code>× 12</code> 改成 <code>× 20</code>，小猫爬得更快——观察 <strong>数字</strong> 和 <strong>动作</strong> 是不是还对应？</li>
 <li>换个题：白天爬 5 米、晚上滑 4 米，井深 15 米，几天出来？</li>
 </ol>
-<p><strong>你用编程解决了一道数学难题，太厉害啦！</strong> 🐌🏆</p>
-<p>📥 参考答案：<code>A01_蜗牛爬井_参考答案.sb3</code>（完整循环，自动算出 8 天）</p>
+<p><strong>你从「一天的动作」走到「循环」，还让小猫真的爬了一遍——太厉害啦！</strong> 🐱🏆</p>
+<p>📥 参考答案：<code>A01_蜗牛爬井_参考答案.sb3</code>（完整循环 + 小猫上下爬，自动算出 8 天）</p>
 <a class="back-top" href="#top">↑ 回到顶部</a>
 </article>
 <article id="doc-Scratch进阶第02课_聪明小买手-md" class="doc">

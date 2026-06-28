@@ -203,7 +203,7 @@ def lesson_24(b: SB3Builder):
 
 
 def adv_01_snail(b: SB3Builder):
-    """蜗牛爬井：完整循环 + 变量监视器 + 小猫上下移动（Sprite1=蜗牛）"""
+    """蜗牛爬井：完整循环 + 变量监视器 + 小猫上下移动模拟爬行"""
     for v in ("高度", "天数", "井深"):
         b.ensure_var("Sprite1", v)
 
@@ -227,7 +227,7 @@ def adv_01_snail(b: SB3Builder):
     s = b.script("Sprite1").flag()
     s.set_var("井深", 10).set_var("高度", 0).set_var("天数", 0)
     s.go_xy(0, -150).set_y_from_var_scaled("高度", 12, -150)
-    s.say("蜗牛爬井！点绿旗，看变量和说话", 2)
+    s.say("小蜗牛在井底！点绿旗，看小猫跟着高度往上爬", 2)
     s.repeat_until_var_ge("高度", "井深", loop)
     s.say_join_vars("一共用了 ", "天数", " 天", 2)
 
