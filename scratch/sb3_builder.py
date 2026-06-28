@@ -15,6 +15,10 @@ def _bid() -> str:
     return uuid.uuid4().hex[:20]
 
 
+def _asset_id() -> str:
+    return uuid.uuid4().hex
+
+
 TEMPLATE_SB3 = Path(__file__).resolve().parent.parent / "course" / "scratch_lesson_01.sb3"
 
 
@@ -64,43 +68,83 @@ SHARK_SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70">
 WELL_METER_PX = 12
 WELL_BOTTOM_Y = -150
 
+# 5×7 pixel font for ruler labels (Scratch SVG does not render <text>)
+_GLYPH_ROWS = {
+    "0": ("11111", "10001", "10001", "10001", "10001", "10001", "11111"),
+    "1": ("00100", "01100", "00100", "00100", "00100", "00100", "01110"),
+    "2": ("11111", "00001", "00001", "11111", "10000", "10000", "11111"),
+    "3": ("11111", "00001", "00001", "11111", "00001", "00001", "11111"),
+    "4": ("10001", "10001", "10001", "11111", "00001", "00001", "00001"),
+    "5": ("11111", "10000", "10000", "11111", "00001", "00001", "11111"),
+    "6": ("11111", "10000", "10000", "11111", "10001", "10001", "11111"),
+    "7": ("11111", "00001", "00001", "00010", "00100", "01000", "01000"),
+    "8": ("11111", "10001", "10001", "11111", "10001", "10001", "11111"),
+    "9": ("11111", "10001", "10001", "11111", "00001", "00001", "11111"),
+}
+
 
 def _scratch_y_to_svg_y(scratch_y: float) -> float:
     return 180 - scratch_y
 
 
+def _svg_glyph(parts: list[str], text: str, x: float, y: float, *, px: float = 2.2, fill: str = "#0D47A1") -> None:
+    """Draw digits using small rects (Scratch-compatible, no <text>)."""
+    cursor = x
+    for ch in text:
+        rows = _GLYPH_ROWS.get(ch)
+        if not rows:
+            cursor += px * 6
+            continue
+        for row_i, row in enumerate(rows):
+            for col_i, bit in enumerate(row):
+                if bit == "1":
+                    parts.append(
+                        f'<rect x="{cursor + col_i * px}" y="{y + row_i * px}" '
+                        f'width="{px - 0.2}" height="{px - 0.2}" fill="{fill}"/>'
+                    )
+        cursor += px * 6
+
+
 def well_backdrop_svg(*, depth_m: int = 10, meter_px: int = WELL_METER_PX, bottom_y: int = WELL_BOTTOM_Y) -> str:
-    """Stage backdrop: well shaft + vertical ruler (0 … depth_m meters)."""
+    """Stage backdrop: well shaft + vertical ruler (0 … depth_m meters), shapes only."""
     top_y = bottom_y + depth_m * meter_px
     svg_top = _scratch_y_to_svg_y(top_y)
     svg_bottom = _scratch_y_to_svg_y(bottom_y)
     shaft_h = svg_bottom - svg_top
-    wall_l = 188
-    wall_r = 292
-    ruler_x = 305
+    wall_l = 168
+    wall_r = 312
+    ruler_x = 368
+    panel_l = 338
+    panel_r = 472
     parts = [
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 360">',
         '<rect width="480" height="360" fill="#87CEEB"/>',
         f'<rect y="{svg_top - 8}" width="480" height="{360 - svg_top + 8}" fill="#66BB6A"/>',
-        f'<rect x="{wall_l}" y="{svg_top}" width="{wall_r - wall_l}" height="{shaft_h}" fill="#37474F" opacity="0.25"/>',
-        f'<rect x="{wall_l}" y="{svg_top}" width="10" height="{shaft_h}" fill="#5D4037" rx="2"/>',
-        f'<rect x="{wall_r - 10}" y="{svg_top}" width="10" height="{shaft_h}" fill="#5D4037" rx="2"/>',
-        f'<line x1="{ruler_x}" y1="{svg_top}" x2="{ruler_x}" y2="{svg_bottom}" stroke="#1565C0" stroke-width="3"/>',
-        f'<text x="{ruler_x + 8}" y="{svg_top - 6}" font-size="13" fill="#0D47A1" font-family="Arial,sans-serif">井口</text>',
+        # ruler panel (high contrast)
+        f'<rect x="{panel_l}" y="{svg_top - 14}" width="{panel_r - panel_l}" height="{shaft_h + 28}" '
+        f'fill="#FFFDE7" stroke="#F9A825" stroke-width="3" rx="4"/>',
+        f'<rect x="{wall_l}" y="{svg_top}" width="{wall_r - wall_l}" height="{shaft_h}" fill="#455A64" opacity="0.18"/>',
+        f'<rect x="{wall_l}" y="{svg_top}" width="14" height="{shaft_h}" fill="#6D4C41" rx="2"/>',
+        f'<rect x="{wall_r - 14}" y="{svg_top}" width="14" height="{shaft_h}" fill="#6D4C41" rx="2"/>',
+        f'<line x1="{ruler_x}" y1="{svg_top - 4}" x2="{ruler_x}" y2="{svg_bottom + 4}" stroke="#D32F2F" stroke-width="6"/>',
+        f'<rect x="{panel_l + 6}" y="{svg_top - 12}" width="{panel_r - panel_l - 12}" height="10" fill="#F9A825" rx="2"/>',
     ]
+    _svg_glyph(parts, "m", panel_l + 14, svg_top - 11, px=1.8, fill="#FFFFFF")
     for m in range(depth_m + 1):
         sy = bottom_y + m * meter_px
         svg_y = _scratch_y_to_svg_y(sy)
+        tick_w = 22 if m % 5 == 0 else 16
+        stroke_w = 4 if m % 5 == 0 else 2.5
         parts.append(
-            f'<line x1="{ruler_x - 14}" y1="{svg_y}" x2="{ruler_x + 14}" y2="{svg_y}" stroke="#1565C0" stroke-width="2"/>'
+            f'<line x1="{ruler_x - tick_w}" y1="{svg_y}" x2="{ruler_x + tick_w}" y2="{svg_y}" '
+            f'stroke="#1565C0" stroke-width="{stroke_w}"/>'
         )
-        label = "0米" if m == 0 else (f"{m}米" if m < depth_m else f"{m}米✓")
-        parts.append(
-            f'<text x="{ruler_x + 18}" y="{svg_y + 4}" font-size="12" fill="#0D47A1" font-family="Arial,sans-serif">{label}</text>'
-        )
-    parts.append(
-        f'<text x="175" y="{svg_top - 10}" font-size="14" fill="#4E342E" font-family="Arial,sans-serif" font-weight="bold">🐌 蜗牛爬井（看刻度尺）</text>'
-    )
+        label = str(m)
+        _svg_glyph(parts, label, ruler_x + 26, svg_y - 7, px=2.4, fill="#0D47A1" if m < depth_m else "#2E7D32")
+        if m == depth_m:
+            parts.append(
+                f'<polygon points="{ruler_x + 58},{svg_y - 8} {ruler_x + 70},{svg_y} {ruler_x + 58},{svg_y + 8}" fill="#2E7D32"/>'
+            )
     parts.append("</svg>")
     return "\n".join(parts)
 
@@ -598,7 +642,9 @@ class Script:
     def _var_ge(self, var_a: str, var_b: str) -> str:
         va = self._block("data_variable", fields={"VARIABLE": self._var_field(var_a)})
         vb = self._block("data_variable", fields={"VARIABLE": self._var_field(var_b)})
-        return self._block("operator_ge", inputs={"OPERAND1": [2, va], "OPERAND2": [2, vb]})
+        gt = self._block("operator_gt", inputs={"OPERAND1": [2, va], "OPERAND2": [2, vb]})
+        eq = self._block("operator_equals", inputs={"OPERAND1": [2, va], "OPERAND2": [2, vb]})
+        return self._block("operator_or", inputs={"OPERAND1": [2, gt], "OPERAND2": [2, eq]})
 
     def repeat_until_var_ge(self, var_a: str, var_b: str, body: Script) -> "Script":
         cond = self._var_ge(var_a, var_b)
@@ -805,7 +851,7 @@ class SB3Builder:
         return self._list_ids[key]
 
     def _costume(self, name: str, svg: str, *, is_stage: bool = False) -> dict:
-        aid = _bid()
+        aid = _asset_id()
         fname = f"{aid}.svg"
         self.assets[fname] = svg
         return {
@@ -824,6 +870,7 @@ class SB3Builder:
             t["lists"] = {}
             t["blocks"] = {}
             t["comments"] = {}
+            t["sounds"] = []
             return t
         if not is_stage and name == "Sprite1" and self._tpl_sprite:
             t = {k: v for k, v in self._tpl_sprite.items() if k not in ("blocks", "comments", "variables", "lists")}
@@ -831,6 +878,7 @@ class SB3Builder:
             t["lists"] = {}
             t["blocks"] = {}
             t["comments"] = {}
+            t["sounds"] = []
             return t
         return {
             "isStage": is_stage,
@@ -844,6 +892,8 @@ class SB3Builder:
             "costumes": [self._costume("costume1", svg)],
             "sounds": [],
             "volume": 100,
+            "visible": False if is_stage else True,
+            "layerOrder": 0 if is_stage else 1,
             "x": 0,
             "y": 0,
             "size": 100,
@@ -863,6 +913,13 @@ class SB3Builder:
     def set_backdrop(self, svg: str, name: str = "well") -> None:
         self.stage["costumes"] = [self._costume(name, svg, is_stage=True)]
         self.stage["currentCostume"] = 0
+
+    def set_sprite_costume(self, sprite: str, svg: str, name: str = "小猫") -> None:
+        c = self._costume(name, svg)
+        c["rotationCenterX"] = 50
+        c["rotationCenterY"] = 50
+        self.sprites[sprite]["costumes"] = [c]
+        self.sprites[sprite]["currentCostume"] = 0
 
     def _pop_wav_bytes(self) -> tuple[bytes, int, int]:
         import io
@@ -897,7 +954,7 @@ class SB3Builder:
             wav, sample_rate, sample_count = self._pop_wav_bytes()
         elif sample_count is None:
             sample_count = max(0, (len(wav) - 44) // 2)
-        aid = _bid()
+        aid = _asset_id()
         fname = f"{aid}.wav"
         self.assets[fname] = wav
         sp["sounds"].append({
@@ -925,7 +982,7 @@ class SB3Builder:
                 "id": vid,
                 "mode": "default",
                 "opcode": "data_variable",
-                "params": [var_name],
+                "params": {"VARIABLE": var_name},
                 "spriteName": None if sprite_name == "Stage" else sprite_name,
                 "value": value,
                 "width": 0,
@@ -940,13 +997,32 @@ class SB3Builder:
             y += 30
         return monitors
 
+    def _finalize_targets(self) -> list[dict]:
+        targets = list(self.sprites.values())
+        layer = 0
+        for t in targets:
+            if t.get("isStage"):
+                t["layerOrder"] = 0
+                t["visible"] = False
+            else:
+                layer += 1
+                t["layerOrder"] = layer
+                t["visible"] = True
+            # Drop legacy SB2 sound entries copied from old templates.
+            sounds = []
+            for snd in t.get("sounds") or []:
+                if isinstance(snd, dict) and snd.get("md5ext") and snd.get("assetId"):
+                    sounds.append(snd)
+            t["sounds"] = sounds
+        return targets
+
     def save(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
         project = {
-            "targets": list(self.sprites.values()),
+            "targets": self._finalize_targets(),
             "monitors": self._build_monitors(),
             "extensions": sorted(self.extensions),
-            "meta": {"semver": "3.0.0", "vm": "1.0.0", "agent": "leo_learn_course sb3_builder"},
+            "meta": {"semver": "3.0.0", "vm": "5.0.0", "agent": "leo_learn_course sb3_builder"},
         }
         all_assets: dict[str, bytes | str] = dict(self._template_assets)
         all_assets.update(self.assets)

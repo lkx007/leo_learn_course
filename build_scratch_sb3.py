@@ -19,6 +19,7 @@ from pathlib import Path
 from scratch.sb3_builder import (
     APPLE_SVG,
     BIG_FISH_SVG,
+    CAT_SVG,
     DOT_SVG,
     PLANE_SVG,
     SB3Builder,
@@ -208,6 +209,7 @@ def lesson_24(b: SB3Builder):
 def adv_01_snail(b: SB3Builder):
     """蜗牛爬井：带刻度井背景 + 小猫沿标尺上下爬"""
     b.set_backdrop(well_backdrop_svg(depth_m=10))
+    b.set_sprite_costume("Sprite1", CAT_SVG, name="小猫")
     for v in ("高度", "天数", "井深"):
         b.ensure_var("Sprite1", v)
 
@@ -229,9 +231,10 @@ def adv_01_snail(b: SB3Builder):
     loop.set_y_from_var_scaled("高度", WELL_METER_PX, WELL_BOTTOM_Y)
 
     s = b.script("Sprite1").flag()
+    s.set_size(55)
     s.set_var("井深", 10).set_var("高度", 0).set_var("天数", 0)
     s.go_xy(0, WELL_BOTTOM_Y).set_y_from_var_scaled("高度", WELL_METER_PX, WELL_BOTTOM_Y)
-    s.say("看右边刻度尺！小猫爬几米，就对准第几米", 2)
+    s.say("看右边黄色刻度尺！小猫爬几米，就对准第几米", 2)
     s.repeat_until_var_ge("高度", "井深", loop)
     s.say_join_vars("一共用了 ", "天数", " 天", 2)
 
