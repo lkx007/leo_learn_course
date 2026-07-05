@@ -38,9 +38,16 @@ python3 course/lesson_12.py
 python3 course/typing_game.py
 ```
 
+### 玩 90 坦克大战
+```bash
+python3 -m venv .venv
+.venv/bin/pip install pygame
+.venv/bin/python course/tank_battle.py
+```
+
 ## 🛠️ 技术栈
 - **语言**：Python 3
-- **图形**：Standard `turtle` library
+- **图形**：Standard `turtle` library（课程练习）、`pygame`（坦克大战）
 - **系统交互**：`os`, `sys`, `time`, `random`, `tty`, `termios`
 - **语音引擎**：macOS `say` command
 
