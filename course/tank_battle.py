@@ -1,6 +1,6 @@
 # 90坦克大战 🎮
 # 经典红白机坦克游戏的 Python 复刻版
-# 操作：方向键移动，空格发射，R 重新开始
+# 操作：方向键或 WASD 移动，空格发射，R 重新开始
 
 import os
 import random
@@ -27,39 +27,77 @@ WIDTH = COLS * TILE
 HEIGHT = ROWS * TILE + HUD
 FPS = 60
 
-# NES 坦克大战配色
+# 方向
+UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
+DIR_DELTA = {
+    UP: (0, -1),
+    DOWN: (0, 1),
+    LEFT: (-1, 0),
+    RIGHT: (1, 0),
+}
+
+MOVE_KEY_CODES = {
+    pygame.K_UP,
+    pygame.K_DOWN,
+    pygame.K_LEFT,
+    pygame.K_RIGHT,
+    pygame.K_w,
+    pygame.K_a,
+    pygame.K_s,
+    pygame.K_d,
+}
+
+
+def get_move_keys_down(keys_down):
+    """方向键与 WASD 任意一组按下即可（或关系）"""
+    if pygame.K_UP in keys_down or pygame.K_w in keys_down:
+        return UP
+    if pygame.K_DOWN in keys_down or pygame.K_s in keys_down:
+        return DOWN
+    if pygame.K_LEFT in keys_down or pygame.K_a in keys_down:
+        return LEFT
+    if pygame.K_RIGHT in keys_down or pygame.K_d in keys_down:
+        return RIGHT
+    return None
+
+
+# NES 坦克大战配色（贴近原版 Battle City）
 PAL = {
-    "O": (192, 112, 0),
-    "o": (128, 64, 0),
-    "S": (188, 188, 188),
-    "s": (116, 116, 116),
-    "G": (0, 148, 0),
-    "g": (0, 88, 0),
-    "B": (0, 88, 248),
-    "b": (0, 48, 168),
-    "Y": (252, 216, 0),
-    "y": (172, 144, 0),
-    "R": (248, 56, 0),
-    "r": (168, 40, 0),
-    "E": (180, 180, 180),
-    "e": (116, 116, 116),
-    "L": (0, 168, 0),
-    "l": (0, 104, 0),
+    "O": (216, 96, 0),
+    "o": (136, 56, 0),
+    "S": (192, 192, 192),
+    "s": (112, 112, 112),
     "W": (252, 252, 252),
+    "G": (0, 184, 0),
+    "g": (0, 112, 0),
+    "V": (32, 88, 216),
+    "v": (248, 248, 248),
+    "Y": (248, 216, 0),
+    "y": (184, 152, 0),
+    "R": (248, 88, 0),
+    "r": (168, 56, 0),
+    "E": (216, 216, 216),
+    "e": (136, 136, 136),
+    "L": (0, 168, 72),
+    "l": (0, 104, 48),
     "K": (0, 0, 0),
-    "A": (248, 216, 144),
-    "a": (184, 112, 0),
+    "A": (192, 192, 192),
+    "a": (112, 112, 112),
     "X": (248, 56, 0),
     "x": (128, 32, 0),
-    "P": (252, 252, 252),  # 炮管/子弹方向
-    "p": (188, 188, 188),
-    "H": (0, 168, 248),    # 道具高亮
-    "M": (248, 216, 0),    # 星星道具
+    "P": (252, 252, 252),
+    "M": (248, 216, 0),
     "m": (168, 136, 0),
-    "F": (248, 56, 0),     # 加命
-    "f": (168, 40, 0),
-    "C": (0, 168, 0),      # 防弹衣
+    "C": (0, 168, 0),
     "c": (0, 104, 0),
+    "F": (248, 88, 0),
+    "f": (168, 56, 0),
+    "H": (248, 216, 0),
+    "h": (168, 136, 0),
+    "1": (248, 216, 0),
+    "2": (248, 88, 0),
+    "3": (216, 216, 216),
+    "4": (0, 168, 72),
 }
 
 C_BG = (0, 0, 0)
@@ -71,13 +109,13 @@ C_TEXT_DIM = (188, 188, 188)
 C_GREEN = (0, 168, 0)
 C_RED = (248, 56, 0)
 
-PLAYER_PAL = {"B": "Y", "T": "y", "W": "W"}
 ENEMY_PALS = [
-    {"B": "R", "T": "r", "W": "W"},
-    {"B": "E", "T": "e", "W": "W"},
-    {"B": "L", "T": "l", "W": "W"},
+    {"Y": "R", "y": "r"},
+    {"Y": "E", "y": "e"},
+    {"Y": "L", "y": "l"},
 ]
 
+# --- 地图块（16x16 经典贴图）---
 SPR_BRICK = (
     "OOOOooooOOOOoooo",
     "OOOOooooOOOOoooo",
@@ -98,174 +136,175 @@ SPR_BRICK = (
 )
 
 SPR_STEEL = (
-    "SSSSSSSSSSSSSSSS",
-    "sSSSSSSSSSSSSSSs",
-    "ssSSSSSSSSSSSSss",
-    "sssSSSSSSSSSSsss",
-    "ssssSSSSSSSSssss",
-    "sssssSSSSSSsssss",
-    "sssssSSSSSSsssss",
-    "ssssSSSSSSSSssss",
-    "sssSSSSSSSSSSsss",
-    "ssSSSSSSSSSSSSss",
-    "sSSSSSSSSSSSSSSs",
-    "SSSSSSSSSSSSSSSS",
-    "sSSSSSSSSSSSSSSs",
-    "ssSSSSSSSSSSSSss",
-    "sssSSSSSSSSSSsss",
-    "ssssSSSSSSSSssss",
+    "WWSSSSSSSSSSSSWW",
+    "WssSSSSSSSSSSssW",
+    "SsWWSSSSSSSSWWsS",
+    "SSssSSSSSSSSssSS",
+    "SSSSWWSSSSWWSSSS",
+    "SSSSssSSSSssSSSS",
+    "SSSSSSWWSSWWSSSS",
+    "SSSSSSssSSssSSSS",
+    "SSSSSSWWSSWWSSSS",
+    "SSSSSSssSSssSSSS",
+    "SSSSWWSSSSWWSSSS",
+    "SSSSssSSSSssSSSS",
+    "SsWWSSSSSSSSWWsS",
+    "SSssSSSSSSSSssSS",
+    "WssSSSSSSSSSSssW",
+    "WWSSSSSSSSSSSSWW",
 )
 
 SPR_GRASS = (
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
-    "gGGggGGggGGggGGg",
-    "GGggGGggGGggGGgg",
+    "...gGGg.........",
+    "..gGGGGg........",
+    ".gGGGGGGg.......",
+    "..gGGGGg........",
+    "....gGGg........",
+    ".....gGGg.......",
+    "....gGGGGg......",
+    "...gGGGGGGg.....",
+    "...gGGGGGGg.....",
+    "....gGGGGg......",
+    ".....gGGg.......",
+    ".......gGGg.....",
+    "......gGGGGg....",
+    ".....gGGGGGGg...",
+    "......gGGGGg....",
+    ".......gGGg.....",
 )
 
 SPR_WATER = (
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
-    "BBBBBBBBBBBBBBBB",
-    "bBbBbBbBbBbBbBbB",
+    "VVVVVVVVVVVVVVVV",
+    "vvvvvvvvvvvvvvvv",
+    "VVVVVVVVVVVVVVVV",
+    "..vvvv....vvvv..",
+    "VVVVVVVVVVVVVVVV",
+    "vvvvvvvvvvvvvvvv",
+    "VVVVVVVVVVVVVVVV",
+    "..vvvv....vvvv..",
+    "VVVVVVVVVVVVVVVV",
+    "vvvvvvvvvvvvvvvv",
+    "VVVVVVVVVVVVVVVV",
+    "..vvvv....vvvv..",
+    "VVVVVVVVVVVVVVVV",
+    "vvvvvvvvvvvvvvvv",
+    "VVVVVVVVVVVVVVVV",
+    "..vvvv....vvvv..",
 )
 
 SPR_EAGLE = (
-    "......aaaa......",
+    ".......aa.......",
+    "......aAAa......",
     ".....aAAAAa.....",
-    "....aAAAAAAa....",
-    "...aAAaAAaAAa...",
+    "....aAaAAaAa....",
+    "...aAAAAAAAAa...",
+    "..aAaAAAAAAaAa..",
     "..aAAAAAAAAAAa..",
-    ".aAAaAAAAaAAaA.",
-    "aAAAAAAAAAAAAAa",
-    ".aAAaAAAAaAAaA.",
+    ".aAaAAaAAaAAaAa.",
+    ".aAAAAAAAAAAAAa.",
     "..aAAAAAAAAAAa..",
-    "...aAAaAAaAAa...",
-    "....aAAAAAAa....",
+    "..aAaAAAAAAaAa..",
+    "...aAAAAAAAAa...",
+    "....aAaAAaAa....",
     ".....aAAAAa.....",
-    "......aaaa......",
-    "................",
-    "................",
-    "................",
+    "......aAAa......",
+    ".......aa.......",
 )
 
 SPR_EAGLE_DEAD = (
-    "......XXXX......",
+    ".......XX.......",
+    "......XxxX......",
     ".....XxxxxX.....",
-    "....XxxxxxXx....",
+    "....XxXxxXxX....",
     "...Xxxxxxxxxx...",
-    "..XxxxxxxxxxXx..",
-    ".XxxxxxxxxxXxxX.",
-    "XxxxxxxxxxxxxxX",
-    ".XxxxxxxxxxXxxX.",
-    "..XxxxxxxxxxXx..",
+    "..XxXxxxxxxXx..",
+    "..XxxxxxxxxxxX..",
+    ".XxXxxXxxXxxXxX.",
+    ".XxxxxxxxxxxxxX.",
+    "..XxxxxxxxxxxX..",
+    "..XxXxxxxxxXx..",
     "...Xxxxxxxxxx...",
-    "....XxxxxxXx....",
+    "....XxXxxXxX....",
     ".....XxxxxX.....",
-    "......XXXX......",
-    "................",
-    "................",
-    "................",
+    "......XxxX......",
+    ".......XX.......",
 )
 
+# --- 坦克（带履带 + 白色炮管，四方向）---
 SPR_TANK_UP = (
     "......PP........",
-    ".....PPPP.......",
     "......PP........",
-    ".....BBBB.......",
-    "....BBBBBB......",
-    "...BBBBBBBB.....",
-    "..BBBBBBBBBB....",
-    ".BBBBBBBBBBBB...",
-    "BBBBBBBBBBBBBB..",
-    "BBBBBBBBBBBBBB..",
-    "BBBBBBBBBBBBBB..",
-    ".BBBBBBBBBBBB...",
-    "..BBBBBBBBBB....",
-    "...BBBBBBBB.....",
-    "....BBBBBB......",
-    ".....BBBB.......",
+    "...yyYYYYyy.....",
+    "..yyYYYYYYyy....",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "..yyYYYYYYyy....",
+    "...yyYYYYyy.....",
+    "...yyYYYYyy.....",
+    "...yyYYYYyy.....",
 )
 
 SPR_TANK_DOWN = (
-    ".....BBBB.......",
-    "....BBBBBB......",
-    "...BBBBBBBB.....",
-    "..BBBBBBBBBB....",
-    ".BBBBBBBBBBBB...",
-    "BBBBBBBBBBBBBB..",
-    "BBBBBBBBBBBBBB..",
-    "BBBBBBBBBBBBBB..",
-    ".BBBBBBBBBBBB...",
-    "..BBBBBBBBBB....",
-    "...BBBBBBBB.....",
-    "....BBBBBB......",
-    ".....BBBB.......",
+    "...yyYYYYyy.....",
+    "...yyYYYYyy.....",
+    "..yyYYYYYYyy....",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "..yyYYYYYYyy....",
+    "...yyYYYYyy.....",
     "......PP........",
-    ".....PPPP.......",
+    "......PP........",
     "......PP........",
 )
 
 SPR_TANK_LEFT = (
     "................",
-    "...PP...........",
-    "..PPPP..........",
-    "...PP...........",
-    "..BBBB..........",
-    ".BBBBBB.........",
-    "BBBBBBBB........",
-    "BBBBBBBBBB......",
-    "BBBBBBBBBB......",
-    "BBBBBBBBBB......",
-    "BBBBBBBB........",
-    ".BBBBBB.........",
-    "..BBBB..........",
-    "...PP...........",
-    "..PPPP..........",
-    "...PP...........",
+    "PP..............",
+    "PP..............",
+    "...yyYYYYyy.....",
+    "..yyYYYYYYyy....",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "..yyYYYYYYyy....",
+    "...yyYYYYyy.....",
+    "................",
 )
 
 SPR_TANK_RIGHT = (
     "................",
-    "...........PP...",
-    "..........PPPP..",
-    "...........PP...",
-    "..........BBBB..",
-    ".........BBBBBB.",
-    "........BBBBBBBB",
-    "......BBBBBBBBBB",
-    "......BBBBBBBBBB",
-    "......BBBBBBBBBB",
-    "........BBBBBBBB",
-    ".........BBBBBB.",
-    "..........BBBB..",
-    "...........PP...",
-    "..........PPPP..",
-    "...........PP...",
+    "..............PP",
+    "..............PP",
+    "...yyYYYYyy.....",
+    "..yyYYYYYYyy....",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    "yyYYYYYYYYYYyy..",
+    ".yyYYYYYYYYyy...",
+    ".yyYYYYYYYYyy...",
+    "..yyYYYYYYyy....",
+    "...yyYYYYyy.....",
+    "................",
 )
 
 TANK_SPRITES = {
@@ -275,14 +314,15 @@ TANK_SPRITES = {
     RIGHT: SPR_TANK_RIGHT,
 }
 
+# --- 道具（原版闪烁奖励）---
 SPR_POWER_STEEL = (
-    "......mm........",
-    ".....MmmM.......",
-    "....MmMmMm......",
-    "...MmM..MmM.....",
-    "....MmMmMm......",
-    ".....MmmM.......",
-    "......mm........",
+    "......hh........",
+    ".....hHHh.......",
+    "....hHmHh.......",
+    "...hHmhHh.......",
+    "....hHmHh.......",
+    ".....hHHh.......",
+    "......hh........",
     "................",
     "................",
     "................",
@@ -297,9 +337,9 @@ SPR_POWER_STEEL = (
 SPR_POWER_ARMOR = (
     ".....cccc.......",
     "....cCCCCc......",
-    "...cCCCCCCc.....",
-    "..cCCC..CCCc....",
-    "...cCCCCCCc.....",
+    "...cCCWWCc......",
+    "..cCCWWCCc......",
+    "...cCCWWCc......",
     "....cCCCCc......",
     ".....cccc.......",
     "................",
@@ -317,12 +357,12 @@ SPR_POWER_LIFE = (
     "................",
     "......ff........",
     ".....FFFF.......",
-    "....FFFFFF......",
-    "...FFFFFFFF.....",
-    "....FFFFFF......",
+    "...yyFFFFyy.....",
+    "..yyFFFFFFyy....",
+    "..yyFFFFFFyy....",
+    "...yyFFFFyy.....",
     ".....FFFF.......",
     "......ff........",
-    "................",
     "................",
     "................",
     "................",
@@ -345,10 +385,8 @@ POWER_WEIGHTS = [0.38, 0.35, 0.27]
 POWER_BLINK_FRAMES = 10
 
 SPR_BULLET = (
-    "....",
-    ".WW.",
-    ".WW.",
-    "....",
+    "..",
+    "WW",
 )
 
 # 地图图块
@@ -358,15 +396,6 @@ STEEL = 2
 WATER = 3
 BASE = 4
 GRASS = 5
-
-# 方向
-UP, DOWN, LEFT, RIGHT = 0, 1, 2, 3
-DIR_DELTA = {
-    UP: (0, -1),
-    DOWN: (0, 1),
-    LEFT: (-1, 0),
-    RIGHT: (1, 0),
-}
 
 # 颜色（逻辑层保留，渲染走像素精灵）
 C_ENEMY_COLORS = [(248, 56, 0), (180, 180, 180), (0, 168, 0)]
@@ -809,19 +838,10 @@ class Tank:
         px, py = screen_to_pixel(self.x, self.y)
         sprite = TANK_SPRITES[self.direction]
         if self.is_player:
-            mapped = map_sprite_chars(sprite, {"B": "Y", "P": "W", "p": "W"})
-            blit_sprite(canvas, mapped, px, py)
-            if self.steel_shot:
-                for ox, oy in ((0, 0), (13, 0), (0, 13), (13, 13)):
-                    if 0 <= px + ox < canvas.get_width() and 0 <= py + oy < canvas.get_height():
-                        canvas.set_at((px + ox, py + oy), PAL["M"])
-            if self.armor > 0:
-                for ox in range(2, 6):
-                    if 0 <= px + ox < canvas.get_width() and 0 <= py + 1 < canvas.get_height():
-                        canvas.set_at((px + ox, py + 1), PAL["C"])
+            blit_sprite(canvas, sprite, px, py)
         else:
             pal = ENEMY_PALS[self.enemy_type % len(ENEMY_PALS)]
-            mapped = map_sprite_chars(sprite, {"B": pal["B"], "P": "W", "p": "W"})
+            mapped = map_sprite_chars(sprite, {"Y": pal["Y"], "y": pal["y"], "P": "P"})
             blit_sprite(canvas, mapped, px, py)
 
 
@@ -839,7 +859,7 @@ def draw_hud(screen, font, lives, score, enemies_left, player, paused):
     if paused:
         text += "  [P暂停]"
     screen.blit(font.render(text, True, C_TEXT), (8, 8))
-    hint = font.render("星=穿甲  绿盔=防弹  红坦=加命  白管=炮口", True, C_TEXT_DIM)
+    hint = font.render("黄坦=你 红/白/绿=敌  白炮管=方向  R换地图", True, C_TEXT_DIM)
     screen.blit(hint, (8, 28))
 
 
@@ -901,17 +921,7 @@ def run_game():
     state = reset_game()
     intro_spoken = False
 
-    keys_held = {UP: False, DOWN: False, LEFT: False, RIGHT: False}
-    key_map = {
-        pygame.K_UP: UP,
-        pygame.K_DOWN: DOWN,
-        pygame.K_LEFT: LEFT,
-        pygame.K_RIGHT: RIGHT,
-        pygame.K_w: UP,
-        pygame.K_s: DOWN,
-        pygame.K_a: LEFT,
-        pygame.K_d: RIGHT,
-    }
+    keys_down = set()
 
     running = True
     while running:
@@ -919,10 +929,10 @@ def run_game():
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.KEYDOWN:
-                if event.key in key_map:
-                    keys_held[key_map[event.key]] = True
+                if event.key in MOVE_KEY_CODES:
+                    keys_down.add(event.key)
                 elif event.key == pygame.K_SPACE:
-                    if not state["game_over"] and state["player"].alive:
+                    if not state["game_over"] and not state["paused"] and state["player"].alive:
                         state["player"].try_shoot(state["bullets"])
                 elif event.key == pygame.K_p:
                     if not state["game_over"]:
@@ -931,8 +941,8 @@ def run_game():
                     state = reset_game()
                     speak("🎮 新地图！保护基地，消灭所有敌军！")
             elif event.type == pygame.KEYUP:
-                if event.key in key_map:
-                    keys_held[key_map[event.key]] = False
+                if event.key in MOVE_KEY_CODES:
+                    keys_down.discard(event.key)
 
         if not intro_spoken:
             speak("90坦克大战开始！击毁敌军会掉落道具，星星可以打铁块！")
@@ -946,9 +956,11 @@ def run_game():
                 player.invincible -= 1
             if player.alive:
                 player.shoot_cooldown = max(0, player.shoot_cooldown - 1)
-                for direction, pressed in keys_held.items():
-                    if pressed:
-                        player.move(state["grid"], direction)
+                direction = get_move_keys_down(keys_down)
+                if direction is not None:
+                    player.move(state["grid"], direction)
+                if pygame.key.get_pressed()[pygame.K_SPACE]:
+                    player.try_shoot(state["bullets"])
 
             for tank in state["tanks"]:
                 if not tank.is_player and tank.alive:
