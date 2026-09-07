@@ -40,15 +40,16 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 
 首次也可手动构建：`python3 build_html.py --pages`，然后把 `docs/` 推上去，Source 选 **Deploy from a branch → main → /docs**。
 
-## 🧭 三条学习线
+## 🧭 四条学习线
 
-本课程现在包含三条互补的学习线，建议交替进行（先玩、再练、后创）：
+本课程现在包含四条线。**本周（9 月 13 日前）请优先走 E2 比赛复习**：
 
-1. **Scratch 图形化课**（玩）：拖拽积木，零打字建立计算思维。→ `course/Scratch课程大纲.md`
+1. **🏆 E2 比赛复习**（赛前）：全国青少年科学探究建模能力大赛 · E2 图形化编程建模（个人赛）。少字、能听、点图画。→ `E2课程/E2课程大纲.md` · 网页课 **[e2.html](https://lkx007.github.io/leo_learn_course/e2.html)**
+2. **Scratch 图形化课**（玩）：拖拽积木，零打字建立计算思维。→ `course/Scratch课程大纲.md`
    - 使用 **Scratch 桌面版（Mac 应用）**，新手先看带图的 `course/Scratch桌面版使用指南.md`。
    - 含 **进阶篇**：用 Scratch 解决现实数学问题（蜗牛爬井、找零、分糖、乘法）+ 做游戏（飞机大战、坦克大战）。评审见 `course/Scratch课程评审.md`。
-2. **Python 编程课**（练）：真正动手写代码，掌握语法。→ `course/课程大纲.md`
-3. **AI 训练师课**（创）：学会跟真 AI 聊天、用提示词/技能/工具/MCP，把点子变成软件。→ `AI训练师课程/AI训练师课程大纲.md`
+3. **Python 编程课**（练）：真正动手写代码，掌握语法。→ `course/课程大纲.md`
+4. **AI 训练师课**（创）：学会跟真 AI 聊天、用提示词/技能/工具/MCP，把点子变成软件。→ `AI训练师课程/AI训练师课程大纲.md`
    - **进阶 4 课**：模型 · Harness · OpenClaw（基础毕业后）
    - **实战项目**：🐟 [大鱼吃小鱼](AI训练师课程/AI训练师项目大纲_大鱼吃小鱼.md) — 语音指挥 AI + Scratch 分步做游戏（G01–G04 参考答案 sb3）
    - **语音指挥台**（Chrome）：[voice-ai.html](https://lkx007.github.io/leo_learn_course/voice-ai.html) — 🐟项目 / 🧑‍🚀基础 / 🎛️进阶 / 🧮奥数 四模式
@@ -56,9 +57,11 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 
 > 想先了解整体情况？请看 `课程分析报告.md`。
 > 想要现成的学习计划？请看 `暑假教学日程表.md`（8 周，三条线交替）。
+> 9 月 13 日 E2 初赛：请看 `E2课程/家长陪练指南.md`。
 
 ## 📁 目录结构
 
+- `E2课程/`：**E2 图形化编程建模赛前复习**（大纲、家长指南、6 课讲稿）+ 网页课 `site/e2.html`
 - `course/`：核心教学资源
   - `lesson_*.py`：可运行的 Python 代码脚本。
   - `*.md`：对应的课程文档，解释编程概念。

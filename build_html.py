@@ -179,8 +179,22 @@ def collect_groups():
     ]
     py_src.sort(key=lambda p: (first_number(os.path.basename(p)), os.path.basename(p)))
 
+    e2_dir = os.path.join(ROOT, "E2课程")
+    e2_files = [os.path.join(e2_dir, f) for f in list_md(e2_dir)]
+
+    def e2_key(path):
+        name = os.path.basename(path)
+        if "大纲" in name:
+            return (0, 0, name)
+        if "家长" in name:
+            return (0, 1, name)
+        return (1, first_number(name), name)
+
+    e2_files.sort(key=e2_key)
+
     return [
         ("📚 开始这里", "总览、分析与学习计划", overview_files, "md", "guide"),
+        ("🏆 E2 比赛复习", "图形化编程建模初赛 · 少字能听能点", e2_files, "md", "e2"),
         ("🐍 Python 课程", "课程大纲与每课讲解", py_course_files, "md", "python"),
         ("🐱 Scratch 课程", "图形化课程 · 基础 + 进阶（数学/游戏）", scratch_files, "md", "scratch"),
         ("🧑‍🚀 AI 训练师课程", "基础 + 进阶 + 🐟大鱼吃小鱼项目 · 语音指挥", ai_files, "md", "ai"),
@@ -296,6 +310,12 @@ def build_course_html(*, online: bool = False):
                 if rel_dir == ".":
                     rel_dir = ""
                 body = fix_relative_links(body, rel_dir)
+                if "E2课程" in path.replace("\\", "/"):
+                    e2_href = "e2.html" if online else "site/e2.html"
+                    body += (
+                        '<p class="run-web-wrap"><a class="run-web" href="%s">'
+                        "▶ 打开小鱼的积木比赛（网页课）</a></p>" % e2_href
+                    )
                 if online:
                     body += sb3_download_link(name)
             else:
@@ -362,6 +382,7 @@ def build_landing_html(group_meta, total_docs):
     cards = []
     card_styles = {
         "guide": ("#0284c7", "📚"),
+        "e2": ("#d97706", "🏆"),
         "python": ("#2563eb", "🐍"),
         "scratch": ("#ea580c", "🐱"),
         "ai": ("#7c3aed", "🤖"),
@@ -388,6 +409,7 @@ def build_landing_html(group_meta, total_docs):
         python_count=next((g["count"] for g in group_meta if g["key"] == "python"), 0),
         scratch_count=next((g["count"] for g in group_meta if g["key"] == "scratch"), 0),
         ai_count=next((g["count"] for g in group_meta if g["key"] == "ai"), 0),
+        e2_count=next((g["count"] for g in group_meta if g["key"] == "e2"), 0),
     )
 
 
@@ -530,6 +552,8 @@ a:hover{text-decoration:underline}
 .path{background:rgba(30,41,59,.8);border:1px solid #334155;border-radius:16px;padding:24px;max-width:640px;margin:0 auto 40px;text-align:center}
 .path p{margin:0;color:var(--muted)}
 .path strong{color:#fde68a}
+.e2-banner{max-width:720px;border-color:#f59e0b;background:rgba(120,53,15,.45)}
+.e2-banner .btn{margin-top:4px}
 .tools-section .hero-btns{margin-top:0}
 footer{text-align:center;padding:32px 16px;color:#64748b;font-size:.85rem;border-top:1px solid #1e293b}
 footer a{color:#64748b}
@@ -570,7 +594,7 @@ COURSE_PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="小鱼编程课程合集：Scratch、Python、AI 训练师">
+<meta name="description" content="小鱼编程课程合集：E2比赛复习、Scratch、Python、AI 训练师">
 <title>课程合集 · 小鱼编程</title>
 <style>{css}</style>
 </head>
@@ -580,7 +604,7 @@ COURSE_PAGE = """<!DOCTYPE html>
   <aside class="sidebar">
     <div class="brand">
       <h1>🐟 小鱼编程课程合集</h1>
-      <p>Scratch · Python · AI 训练师 — 共 {count} 篇</p>
+      <p>E2 比赛 · Scratch · Python · AI — 共 {count} 篇</p>
     </div>
     <div class="search"><input id="q" type="search" placeholder="🔍 搜索课程标题…"></div>
     {nav}
@@ -588,7 +612,7 @@ COURSE_PAGE = """<!DOCTYPE html>
   <main class="content">
     <div class="intro">
       <h2>👋 欢迎来到小鱼的编程世界</h2>
-      <p>这里汇总了三条学习线的全部课程：<b>Scratch（玩）→ Python（练）→ AI 训练师（创）</b>。左侧目录可点击跳转，顶部搜索框可快速查找。</p>
+      <p>这里汇总了课程：<b>🏆 E2 比赛复习</b>（9月13日初赛）· <b>Scratch（玩）</b> · <b>Python（练）</b> · <b>AI 训练师（创）</b>。左侧目录可点击跳转，顶部搜索框可快速查找。</p>
       <div class="stats">{intro_stats}</div>
       {home_link}
     </div>
@@ -606,21 +630,29 @@ LANDING_PAGE = """<!DOCTYPE html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="description" content="小鱼（Leo）的编程课程：Scratch 图形化、Python 编程、AI 训练师">
+<meta name="description" content="小鱼（Leo）的编程课程：E2比赛复习、Scratch 图形化、Python 编程、AI 训练师">
 <title>小鱼编程 · Leo's Coding Courses</title>
 <style>{css}</style>
 </head>
 <body>
   <header class="hero">
     <h1>🐟 小鱼编程课程</h1>
-    <p>为 7 岁孩子设计的编程学习站 · Scratch 玩 · Python 练 · AI 创</p>
+    <p>为 7 岁孩子设计的编程学习站 · E2 比赛复习 · Scratch 玩 · Python 练 · AI 创</p>
     <div class="hero-btns">
-      <a class="btn btn-primary" href="course.html">📖 打开全部课程（{total} 篇）</a>
-      <a class="btn btn-secondary" href="course.html#doc-Scratch桌面版使用指南-md">🐱 Scratch 新手指南</a>
+      <a class="btn btn-primary" href="e2.html">🏆 E2 积木比赛复习</a>
+      <a class="btn btn-secondary" href="course.html">📖 打开全部课程（{total} 篇）</a>
     </div>
   </header>
 
+  <div class="path e2-banner">
+    <p>🏆 小鱼已报名 <strong>E2 图形化编程建模（个人赛）</strong></p>
+    <p>小学低年级初赛 · <strong>9 月 13 日 14:00–15:00</strong> · 选择题 + 判断题</p>
+    <p style="margin-top:14px"><a class="btn btn-primary" href="e2.html">🐟 打开能听能点的复习课</a>
+      <a class="btn btn-secondary" href="course.html#doc-E2课程大纲-md" style="margin-left:8px">家长指南</a></p>
+  </div>
+
   <div class="stats-row">
+    <div class="stat"><strong>{e2_count}</strong><span>E2 比赛课</span></div>
     <div class="stat"><strong>{scratch_count}</strong><span>Scratch 课时</span></div>
     <div class="stat"><strong>{python_count}</strong><span>Python 课时</span></div>
     <div class="stat"><strong>{ai_count}</strong><span>AI 训练师课</span></div>
@@ -628,16 +660,17 @@ LANDING_PAGE = """<!DOCTYPE html>
   </div>
 
   <div class="path">
-    <p>推荐学习路径：<strong>Scratch（玩）</strong> → <strong>Python（练）</strong> → <strong>AI 训练师（创）</strong></p>
+    <p>平时学习：<strong>Scratch（玩）</strong> → <strong>Python（练）</strong> → <strong>AI 训练师（创）</strong></p>
+    <p>本周优先：<strong>E2 赛前复习</strong>（9 月 13 日初赛）</p>
   </div>
 
   <section class="section tools-section">
     <h2>快捷入口</h2>
     <div class="hero-btns">
+      <a class="btn btn-primary" href="e2.html">🏆 E2 复习课</a>
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
       <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
       <a class="btn btn-primary" href="voice-ai.html">🎤 语音指挥 AI</a>
-      <a class="btn btn-primary" href="course.html#doc-AI训练师项目大纲_大鱼吃小鱼-md">🐟 大鱼吃小鱼项目</a>
       <a class="btn btn-secondary" href="typing.html">🖐️ 指法特训</a>
       <a class="btn btn-secondary" href="course.html#doc-Scratch桌面版使用指南-md">🐱 Scratch 指南</a>
     </div>
