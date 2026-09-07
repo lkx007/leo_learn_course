@@ -613,7 +613,7 @@ function bind(){
 
   const quizRoot = view==="examQ" ? EXAM[examI] : (view==="mod" ? STEPS[mid][step] : null);
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
-    wireQuiz(quizRoot, view==="examQ");
+    wireQuiz(quizRoot, view==="examQ" && examMode);
   }
   if(view==="mod" && STEPS[mid][step].type==="order") wireOrder(STEPS[mid][step]);
   if(view==="mod" && STEPS[mid][step].type==="device") wireDevice();
@@ -642,6 +642,7 @@ function wireQuiz(s, isExam){
           speak("对啦。"+ (s.why||""));
           next.disabled=false; next.style.opacity=1;
           picked=i;
+          if(view==="examQ") examScore++;
         }else{
           b.classList.add("bad");
           fb.className="fb bad"; fb.textContent="再想想。"+ (s.why||"");
