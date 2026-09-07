@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<meta name="description" content="小鱼 Leo 的 E2 图形化编程建模赛前复习课：能听、能点、少字多图">
+<title>🐟 小鱼的积木比赛 · E2 复习</title>
+<style>
+:root{
+  --sky:#d7f0ff; --ink:#1e3a5f; --muted:#5b6c86;
+  --card:#fff; --ok:#16a34a; --bad:#dc2626;
+  --star:#f59e0b; --shadow:0 10px 28px rgba(30,80,140,.14);
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;}
+body{
+  font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+  background:linear-gradient(#9ddcff 0%, var(--sky) 38%, #fff7e8 100%);
+  color:var(--ink); line-height:1.45;
+}
+button{font-family:inherit;cursor:pointer}
+#app{max-width:860px;margin:0 auto;padding:16px 14px 120px}
+.topbar{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.topbar a,.ghost{
+  background:#fff;border:0;border-radius:999px;padding:8px 14px;
+  text-decoration:none;color:var(--ink);font-weight:700;box-shadow:var(--shadow)
+}
+.stars{margin-left:auto;font-size:1.15rem;font-weight:800;color:#b45309}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0}
+.sub{color:var(--muted);font-size:1.05rem;margin:0 0 18px}
+.hero{
+  background:var(--card);border-radius:28px;padding:22px 20px 18px;
+  box-shadow:var(--shadow);text-align:center;margin-bottom:16px
+}
+.mascot{font-size:4.2rem;line-height:1;filter:drop-shadow(0 8px 0 rgba(0,0,0,.06))}
+.bubble{
+  display:inline-block;background:#fff;border:3px solid #7dd3fc;
+  border-radius:22px;padding:12px 16px;margin:10px 0 0;font-size:1.2rem;font-weight:700
+}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px}
+.mod{
+  background:var(--card);border:0;border-radius:22px;padding:16px;text-align:left;
+  box-shadow:var(--shadow);min-height:118px;border-top:10px solid var(--c,#38bdf8)
+}
+.mod .ic{font-size:2rem}
+.mod h3{margin:6px 0 4px;font-size:1.25rem}
+.mod p{margin:0;color:var(--muted);font-size:.95rem}
+.mod.done{opacity:.92}
+.badge{display:inline-block;margin-top:8px;font-weight:800;color:#16a34a}
+.row{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:16px}
+.big{
+  border:0;border-radius:18px;padding:16px 22px;font-size:1.2rem;font-weight:800;
+  background:linear-gradient(135deg,#fb923c,#f43f5e);color:#fff;box-shadow:var(--shadow)
+}
+.big.sec{background:linear-gradient(135deg,#38bdf8,#6366f1)}
+.big.ok{background:linear-gradient(135deg,#22c55e,#16a34a)}
+.card{
+  background:var(--card);border-radius:26px;padding:20px 18px 18px;
+  box-shadow:var(--shadow);margin-top:8px
+}
+.prog{height:12px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin:8px 0 14px}
+.prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8);transition:width .3s}
+.emoji{font-size:4rem;text-align:center;line-height:1;margin:4px 0 8px}
+.title{font-size:1.55rem;margin:0 0 8px;text-align:center}
+.lines{font-size:1.28rem;margin:0}
+.lines p{margin:.45em 0}
+.opts{display:grid;gap:12px;margin-top:14px}
+.opt{
+  display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  border:4px solid #e2e8f0;background:#f8fafc;border-radius:18px;padding:12px 14px;
+  font-size:1.22rem;font-weight:800;color:var(--ink)
+}
+.opt .e{font-size:2.2rem;width:52px;text-align:center}
+.opt:active{transform:scale(.98)}
+.opt.good{border-color:#16a34a;background:#dcfce7}
+.opt.bad{border-color:#dc2626;background:#fee2e2}
+.tf{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tf .opt{justify-content:center;min-height:88px;font-size:1.5rem}
+.fb{min-height:2.4em;font-size:1.15rem;font-weight:700;text-align:center;margin:12px 0 4px}
+.fb.good{color:var(--ok)} .fb.bad{color:var(--bad)}
+.palette{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin:12px 0}
+.blk{
+  border:0;border-radius:12px;padding:12px 14px;font-weight:800;color:#0f172a;
+  font-size:1.05rem;min-width:120px;box-shadow:0 4px 0 rgba(0,0,0,.12)
+}
+.stack{min-height:168px;background:#0f172a;border-radius:16px;padding:10px;margin:10px 0}
+.slot{
+  height:46px;border:2px dashed #64748b;border-radius:10px;margin:8px;
+  display:flex;align-items:center;justify-content:center;color:#94a3b8;font-weight:700
+}
+.slot.filled{border-style:solid;color:#0f172a;font-weight:800}
+.checks{display:grid;gap:10px}
+.check{
+  display:flex;align-items:center;gap:12px;background:#f8fafc;border-radius:16px;
+  padding:12px;border:3px solid #e2e8f0
+}
+.check.on{border-color:#16a34a;background:#ecfdf5}
+.check .e{font-size:2rem}
+.tiny{font-size:.9rem;color:var(--muted);text-align:center}
+.parent{background:#fff;border-radius:20px;padding:16px;box-shadow:var(--shadow);font-size:1.02rem}
+.parent h2{margin-top:0}
+.parent a{color:#0369a1}
+.fab{
+  position:fixed;right:16px;bottom:16px;z-index:20;
+  width:68px;height:68px;border-radius:50%;border:0;font-size:1.8rem;
+  background:#0ea5e9;color:#fff;box-shadow:0 8px 20px rgba(14,165,233,.45)
+}
+.fab.home{right:92px;background:#f97316;font-size:1.4rem}
+.clock{
+  width:160px;height:160px;border-radius:50%;margin:8px auto;background:#fff;
+  border:10px solid #0f172a;position:relative
+}
+.clock:before,.clock:after{content:"";position:absolute;background:#0f172a;left:50%;transform-origin:bottom center}
+.clock:before{width:6px;height:42px;top:38px;margin-left:-3px;transform:rotate(60deg);border-radius:4px}
+.clock:after{width:6px;height:28px;top:52px;margin-left:-3px;transform:rotate(-90deg);border-radius:4px}
+.stage{
+  background:linear-gradient(#7dd3fc,#bbf7d0);border:8px solid #1e293b;border-radius:16px;
+  height:140px;display:flex;align-items:flex-end;justify-content:center;font-size:4rem;margin:8px auto 4px
+}
+.areas{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.areas div{background:#f1f5f9;border-radius:14px;padding:10px;text-align:center;font-weight:800}
+.cert{text-align:center;padding:12px}
+.cert .cup{font-size:5rem}
+@media (max-width:520px){
+  .title{font-size:1.32rem}.lines{font-size:1.12rem}
+  .tf{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<button class="fab home" id="btnHome" title="回家">🏠</button>
+<button class="fab" id="btnSpeak" title="再听一遍">🔊</button>
+<script>
+const STORE = "leo-e2-v1";
+const state = load();
+let lastSpeak = "";
+let camStream = null;
+
+function load(){
+  try{ return Object.assign({stars:0, done:{}, examBest:0}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
+  catch(e){ return {stars:0, done:{}, examBest:0}; }
+}
+function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
+function speak(text){
+  lastSpeak = text || lastSpeak;
+  if(!text) text = lastSpeak;
+  if(!text) return;
+  try{
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-CN"; u.rate = 0.92; u.pitch = 1.05;
+    const vs = speechSynthesis.getVoices();
+    const zh = vs.find(v => /zh|Chinese/i.test(v.lang+v.name));
+    if(zh) u.voice = zh;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+speechSynthesis.onvoiceschanged = () => {};
+
+const MODULES = [
+  {id:"m0", ic:"🎒", name:"准备出发", c:"#34d399", color:"准备比赛和检查电脑"},
+  {id:"m1", ic:"🐱", name:"积木王国", c:"#fb923c", color:"舞台、绿旗、积木排队"},
+  {id:"m2", ic:"🧱", name:"什么是模型", c:"#a78bfa", color:"玩具、地球仪、小猫程序"},
+  {id:"m3", ic:"🔍", name:"科学家怎么想", c:"#38bdf8", color:"看、问、猜、试、说"},
+  {id:"m4", ic:"🌈", name:"科学小故事", c:"#f472b6", color:"为什么？听图画"},
+  {id:"m5", ic:"⭐", name:"闯关小测验", c:"#f59e0b", color:"像考试一样点一点"}
+];
+
+const STEPS = {
+m0:[
+  {type:"say", emoji:"🐟", title:"小鱼，你好！", speak:"小鱼你好。我们要去参加积木比赛。名字叫 E 2。只要在电脑上点图画，不用打字。",
+   lines:["我们要去参加积木比赛。","名字叫 E2。","只要点图画，不用打字。"]},
+  {type:"say", emoji:"🗓️", title:"什么时候？", speak:"比赛是九月十三号，下午两点。时钟指着两点。要考六十分钟。",
+   extra:"clock", lines:["9 月 13 日","下午 2 点开始","考 60 分钟"]},
+  {type:"say", emoji:"💻", title:"两样东西", speak:"一台电脑给你答题。一部手机帮老师看着。电脑要有摄像头，像眼睛一样。",
+   lines:["电脑：给你答题","手机：帮老师看着","电脑要有小眼睛（摄像头）"]},
+  {type:"device"},
+  {type:"quiz", speak:"比赛几点开始？请点正确的钟。", prompt:"比赛几点开始？",
+   options:[{e:"🕑", t:"下午 2 点", ok:true},{e:"🕖", t:"早上 7 点", ok:false},{e:"🌙", t:"晚上睡觉", ok:false}],
+   why:"小学低年级是下午两点开始。"},
+  {type:"quiz", speak:"比赛要不要自己打很多字？", prompt:"比赛要打很多字吗？", tf:true,
+   options:[{e:"✍️", t:"要打字", ok:false},{e:"👆", t:"点图画就行", ok:true}],
+   why:"初赛是选择题和判断题，点对的就好。"}
+],
+m1:[
+  {type:"say", emoji:"🎭", title:"舞台", speak:"中间大方块叫舞台。小猫在这里演戏。", extra:"stage",
+   lines:["中间大方块 = 舞台","小猫在这里演戏"]},
+  {type:"say", emoji:"🧰", title:"四个地方", speak:"上面是角色。中间是舞台。下面是积木脚本。左边是积木筐。",
+   extra:"areas", lines:[]},
+  {type:"say", emoji:"🚩", title:"绿旗", speak:"绿旗是开始键。一点绿旗，积木才动。红圆是停止。",
+   lines:["绿旗 = 开始","红圆 = 停止"]},
+  {type:"say", emoji:"🔗", title:"手拉手", speak:"积木要从上往下，手拉手排好。上面先做，下面后做。",
+   lines:["从上往下做","上面先，下面后"]},
+  {type:"say", emoji:"🎨", title:"看颜色", speak:"蓝色积木管走路。紫色积木管说话换装。黄色积木管什么时候开始。橙色积木管再做一遍，还有如果。",
+   extra:"colors", lines:["蓝：走路","紫：说话 / 换装","黄：什么时候开始","橙：再做一遍 / 如果"]},
+  {type:"order", speak:"请给积木排队。先绿旗开始，再向前走，再说你好。",
+   prompt:"给积木排队（从上到下）",
+   items:[{id:"flag", t:"当绿旗被点击", c:"#facc15"},{id:"move", t:"移动 10 步", c:"#38bdf8"},{id:"say", t:"说 你好", c:"#c084fc"}],
+   answer:["flag","move","say"], why:"先开始，再走路，再说你好。"},
+  {type:"quiz", speak:"哪一个是开始键？", prompt:"哪一个是开始？",
+   options:[{e:"🚩", t:"绿旗", ok:true},{e:"🟥", t:"红方块", ok:false},{e:"🔔", t:"铃铛", ok:false}],
+   why:"绿旗一点，故事开始。"},
+  {type:"quiz", speak:"蓝色积木常常干什么？", prompt:"蓝色积木常常干什么？",
+   options:[{e:"🚶", t:"走路、转身", ok:true},{e:"💬", t:"说话", ok:false},{e:"🎵", t:"放音乐", ok:false}],
+   why:"蓝色是运动积木。"}
+],
+m2:[
+  {type:"say", emoji:"🚗", title:"玩具车", speak:"玩具车不是真汽车。它是真汽车的模型。小小的，简单的。",
+   lines:["玩具车 = 真汽车的模型","小小的，简单的"]},
+  {type:"say", emoji:"🌍", title:"地球仪", speak:"地球仪不是真地球。它是地球的模型。可以转，可以看哪里是海。",
+   lines:["地球仪 = 地球的模型"]},
+  {type:"say", emoji:"🗺️", title:"地图", speak:"地图是城市的模型。纸上的路，代表外面的路。",
+   lines:["地图 = 城市的模型"]},
+  {type:"say", emoji:"🐱", title:"小猫程序", speak:"Scratch 里小猫走路，是走路的电脑模型。不是真的小猫出门。",
+   lines:["小猫程序 = 走路的电脑模型"]},
+  {type:"say", emoji:"🔁", title:"为什么用模型？", speak:"真的太大、太危险、太贵。模型可以试了再改，改了再试。",
+   lines:["真的太大、太危险","模型可以试了再改"]},
+  {type:"quiz", speak:"地球仪是真的地球吗？", prompt:"地球仪是真的地球吗？", tf:true,
+   options:[{e:"✅", t:"是真地球", ok:false},{e:"🧱", t:"是模型", ok:true}],
+   why:"地球仪是模型，不是真的星球。"},
+  {type:"quiz", speak:"哪一个是汽车的模型？", prompt:"哪一个是汽车的模型？",
+   options:[{e:"🧸🚗", t:"玩具小车", ok:true},{e:"🚌", t:"马路上的大巴士", ok:false},{e:"🐘", t:"大象", ok:false}],
+   why:"玩具车小小的，用来代表真车。"}
+],
+m3:[
+  {type:"say", emoji:"👀", title:"看一看", speak:"科学家先看。眼睛看见什么，再说话。", lines:["先看，再说话"]},
+  {type:"say", emoji:"❓", title:"问一问", speak:"然后变成一个问题。比如：小苗为什么有的高有的矮？", lines:["把好奇变成问题"]},
+  {type:"say", emoji:"💡", title:"猜一猜", speak:"先猜一个答案。猜不是最后的对。还要试。", lines:["猜一猜，还不是结论"]},
+  {type:"say", emoji:"🧪", title:"试一试", speak:"做实验。公平的实验，只改一个东西。别的都要一样。", lines:["只改一个，别的一样"]},
+  {type:"say", emoji:"📣", title:"说一说", speak:"看完实验，再说结论。结论要跟着看到的走。", lines:["看到什么，就说什么"]},
+  {type:"quiz", speak:"两盆绿豆。要问阳光重不重要。哪边公平？", prompt:"哪边实验公平？",
+   options:[
+     {e:"☀️💧 / 🌑💧", t:"土和水一样，只有阳光不同", ok:true},
+     {e:"☀️💧 / 🌑🚫", t:"一盆有阳光有水，一盆又黑又干", ok:false},
+     {e:"🎲🎲", t:"随便改好几个", ok:false}
+   ], why:"只改阳光，才能知道是不是阳光的功劳。"},
+  {type:"quiz", speak:"科学家第一步常常是什么？", prompt:"第一步常常是？",
+   options:[{e:"👀", t:"看一看", ok:true},{e:"📣", t:"先喊结论", ok:false},{e:"😴", t:"睡觉", ok:false}],
+   why:"先观察，再提问。"}
+],
+m4:[
+  {type:"say", emoji:"🧂", title:"盐宝宝", speak:"盐放进水里，会藏起来看不见，叫做溶解。沙子藏不进去，会沉下去。",
+   lines:["盐会藏进水里","沙子沉到杯底"]},
+  {type:"quiz", speak:"谁会藏进水里看不见？", prompt:"谁会藏进水里？",
+   options:[{e:"🧂", t:"盐 / 糖", ok:true},{e:"🪨", t:"沙子石头", ok:false}], why:"盐能溶解，沙子不能。"},
+  {type:"say", emoji:"🧊", title:"冰醒了", speak:"冰是睡着的水。暖和了就化成水。还是水，只是样子变了。",
+   lines:["冰化了还是水","只是样子变了"]},
+  {type:"quiz", speak:"冰化成水，还是水吗？", prompt:"冰化了，还是水吗？", tf:true,
+   options:[{e:"💧", t:"还是水", ok:true},{e:"🍬", t:"变成糖了", ok:false}], why:"只是固态变成液态。"},
+  {type:"say", emoji:"🧲", title:"磁铁交朋友", speak:"磁铁只喜欢铁朋友。铁钉能吸住。塑料尺、橡皮不喜欢。",
+   lines:["磁铁吸铁","不吸塑料"]},
+  {type:"quiz", speak:"磁铁能吸住塑料尺吗？", prompt:"磁铁能吸塑料尺吗？", tf:true,
+   options:[{e:"🧲📏", t:"能吸住", ok:false},{e:"🙅", t:"吸不住", ok:true}], why:"塑料里没有铁。"},
+  {type:"say", emoji:"💡", title:"灯要走一圈", speak:"电要从电池出发，走过灯，再走回来，路不能断。断了灯就不亮。",
+   lines:["电要走一圈","路断了灯不亮"]},
+  {type:"quiz", speak:"电线断了一截，灯会怎样？", prompt:"电线断了，灯会？",
+   options:[{e:"🌑", t:"不亮", ok:true},{e:"✨", t:"更亮", ok:false}], why:"路断了，电走不了一圈。"},
+  {type:"say", emoji:"🥄", title:"热滑滑梯", speak:"金属勺放进热汤，热会顺着勺子滑到勺柄。木头滑得慢。",
+   lines:["金属传热快","勺柄也会烫"]},
+  {type:"quiz", speak:"金属勺放进热汤，勺柄会怎样？", prompt:"金属勺柄会？",
+   options:[{e:"🔥", t:"慢慢变烫", ok:true},{e:"🧊", t:"变成冰", ok:false}], why:"热会从汤传到勺柄。"},
+  {type:"say", emoji:"🌱", title:"叶子做饭", speak:"植物用阳光、水和空气做饭。没有太阳，小苗又细又弱。",
+   lines:["阳光帮植物做饭","没太阳就长不好"]},
+  {type:"quiz", speak:"小苗怎样长得更好？", prompt:"小苗怎样长得更好？",
+   options:[{e:"☀️", t:"有阳光", ok:true},{e:"🌑", t:"一直关在黑柜子", ok:false}], why:"光合作用需要光。"},
+  {type:"say", emoji:"🪱", title:"湿皮肤", speak:"蚯蚓用湿湿的皮肤呼吸。土太干，它就喘不上气。",
+   lines:["蚯蚓喜欢潮土"]},
+  {type:"quiz", speak:"蚯蚓喜欢待在哪里？", prompt:"蚯蚓喜欢？",
+   options:[{e:"💧🪴", t:"潮湿的土", ok:true},{e:"☀️🏜️", t:"干干的沙", ok:false}], why:"皮肤要湿才能呼吸。"},
+  {type:"say", emoji:"❤️", title:"心跳加油", speak:"跑步时身体要更多气。心脏跳得快，把气送到腿。",
+   lines:["跑一跑，心跳加快"]},
+  {type:"quiz", speak:"跑完步心跳会怎样？", prompt:"跑完步心跳？",
+   options:[{e:"💓", t:"变快", ok:true},{e:"🛑", t:"完全停住", ok:false}], why:"要运送更多氧气。"},
+  {type:"say", emoji:"🌞", title:"夏天更热", speak:"夏天阳光照得更直，地面更烫。冬天斜着照，没那么热。",
+   lines:["夏天阳光更直、更烫"]},
+  {type:"say", emoji:"🌙", title:"月亮借光", speak:"月亮自己不会发光。它借太阳的光。有时看见圆，有时看见月牙。",
+   lines:["月亮借太阳的光"]},
+  {type:"quiz", speak:"月亮自己会发光吗？", prompt:"月亮自己会发光吗？", tf:true,
+   options:[{e:"💡", t:"会自己发光", ok:false},{e:"☀️➡️🌙", t:"是借太阳的光", ok:true}], why:"月亮反射太阳光。"},
+  {type:"say", emoji:"🕐", title:"影子躲起来", speak:"中午太阳在头顶，影子变得最短。早上晚上太阳低，影子很长。",
+   lines:["中午影子最短"]},
+  {type:"quiz", speak:"一天里什么时候影子最短？", prompt:"影子最短是？",
+   options:[{e:"🕛", t:"中午", ok:true},{e:"🌅", t:"刚出太阳", ok:false},{e:"🌇", t:"太阳下山", ok:false}],
+   why:"中午太阳最高。"},
+  {type:"say", emoji:"👟", title:"花花鞋底", speak:"鞋底的花纹抓住地面，不容易滑。磨平了就容易摔。",
+   lines:["花纹 = 抓住地面"]},
+  {type:"quiz", speak:"鞋底花纹有什么用？", prompt:"鞋底花纹？",
+   options:[{e:"🦶", t:"防滑", ok:true},{e:"🎈", t:"让人飞起来", ok:false}], why:"花纹增大摩擦。"},
+  {type:"say", emoji:"🔺", title:"三角形小塔", speak:"三条边拉住，不容易倒。搭塔多用三角形更稳。",
+   lines:["三角形很稳"]},
+  {type:"quiz", speak:"搭高塔，哪种形状更稳？", prompt:"哪种更稳？",
+   options:[{e:"🔺", t:"三角形", ok:true},{e:"〰️", t:"软软的面条形", ok:false}], why:"三角形有稳定性。"},
+  {type:"say", emoji:"🎒", title:"宽带不勒", speak:"书包一样重。宽带把重量摊开，肩膀不那么疼。",
+   lines:["宽带把重量摊开"]},
+  {type:"say", emoji:"🛞", title:"轮子会滚", speak:"拖着走很费劲。装上轮子会滚，就省力。积木小车也应该有轮子才合理。",
+   lines:["滚比拖省力"]},
+  {type:"quiz", speak:"小车怎样更省力？", prompt:"小车怎样更省力？",
+   options:[{e:"🛞", t:"装轮子滚着走", ok:true},{e:"📦", t:"箱子没有轮子拖着走", ok:false}],
+   why:"滚动摩擦更小。"}
+]
+};
+
+const EXAM = [
+  {speak:"绿旗是做什么的？", prompt:"绿旗是做什么的？",
+   options:[{e:"🚩", t:"开始运行积木", ok:true},{e:"🗑️", t:"扔掉积木", ok:false},{e:"🎨", t:"只换颜色", ok:false}],
+   why:"绿旗 = 开始。"},
+  {speak:"积木应该怎样排？", prompt:"积木应该怎样排？",
+   options:[{e:"⬇️", t:"从上往下手拉手", ok:true},{e:"🌪️", t:"随便丢在舞台上", ok:false}],
+   why:"程序从上到下执行。"},
+  {speak:"玩具汽车是真汽车吗？", prompt:"玩具汽车是真汽车吗？", tf:true,
+   options:[{e:"🚌", t:"是真的能开上路", ok:false},{e:"🧱", t:"是模型", ok:true}], why:"模型是简化的替身。"},
+  {speak:"Scratch 小猫走路，是哪一种？", prompt:"小猫走路程序是？",
+   options:[{e:"💻", t:"电脑里的模型", ok:true},{e:"🐱", t:"家里真的猫出门", ok:false}], why:"用程序模拟走路。"},
+  {speak:"对比实验可以一次改好几个条件吗？", prompt:"对比实验能一次改好几个吗？", tf:true,
+   options:[{e:"✅", t:"可以乱改", ok:false},{e:"1️⃣", t:"只能改一个", ok:true}], why:"只改一个才公平。"},
+  {speak:"盐放进水里常常会怎样？", prompt:"盐放进水里？",
+   options:[{e:"👻", t:"藏起来看不见", ok:true},{e:"🧱", t:"变成大砖头", ok:false}], why:"溶解了。"},
+  {speak:"磁铁能吸住橡皮吗？", prompt:"磁铁能吸橡皮吗？", tf:true,
+   options:[{e:"🧲", t:"能", ok:false},{e:"🙅", t:"不能", ok:true}], why:"橡皮没有铁。"},
+  {speak:"电路断了，小灯泡会亮吗？", prompt:"电路断了，灯会亮吗？", tf:true,
+   options:[{e:"💡", t:"会亮", ok:false},{e:"🌑", t:"不亮", ok:true}], why:"电走不了一圈。"},
+  {speak:"植物没有阳光会长得更好吗？", prompt:"没有阳光，植物？",
+   options:[{e:"🌱💪", t:"长得更好", ok:false},{e:"🌱😵", t:"又细又弱", ok:true}], why:"没光就做不了饭。"},
+  {speak:"中午的影子通常怎样？", prompt:"中午影子？",
+   options:[{e:"📏", t:"最短", ok:true},{e:"🦒", t:"最长", ok:false}], why:"太阳最高。"},
+  {speak:"月亮自己会发光吗？", prompt:"月亮自己会发光吗？", tf:true,
+   options:[{e:"✨", t:"会", ok:false},{e:"☀️", t:"不会，是借太阳的光", ok:true}], why:"反射太阳光。"},
+  {speak:"鞋底磨平了容易怎样？", prompt:"鞋底磨平了？",
+   options:[{e:"🧊", t:"容易滑倒", ok:true},{e:"🦸", t:"跑得像飞", ok:false}], why:"摩擦变小。"},
+  {speak:"搭塔时三角形有什么好处？", prompt:"三角形？",
+   options:[{e:"🏛️", t:"更稳不容易倒", ok:true},{e:"🎈", t:"会飞走", ok:false}], why:"三角形稳定。"},
+  {speak:"橙色积木常常表示什么？", prompt:"橙色积木常常是？",
+   options:[{e:"🔁", t:"重复 / 如果", ok:true},{e:"🚶", t:"走路", ok:false}], why:"控制积木是橙色。"}
+];
+
+let view = "home";
+let mid = "m0";
+let step = 0;
+let examMode = false; // practice vs exam
+let examI = 0;
+let examScore = 0;
+let examWrong = [];
+let picked = null;
+let orderSel = [];
+let device = {chrome:false, sound:false, click:false, net:false, cam:false};
+
+function goHome(){
+  stopCam();
+  view = "home"; render();
+}
+document.getElementById("btnHome").onclick = goHome;
+document.getElementById("btnSpeak").onclick = () => speak(lastSpeak);
+
+function stopCam(){
+  if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
+}
+
+function openMod(id){
+  mid = id; step = 0; picked=null; orderSel=[]; view="mod";
+  render();
+}
+
+function markDone(id){
+  if(!state.done[id]){
+    state.done[id] = true;
+    state.stars += 1;
+    save();
+  }
+}
+
+function nextStep(){
+  const arr = STEPS[mid];
+  if(step < arr.length-1){ step++; picked=null; orderSel=[]; render(); }
+  else { markDone(mid); view="doneMod"; render(); }
+}
+
+function htmlHome(){
+  const n = Object.keys(state.done).length;
+  return `
+  <div class="hero">
+    <div class="mascot">🐟</div>
+    <h1>小鱼的积木比赛</h1>
+    <p class="sub">E2 图形化编程建模 · 少字 · 能听 · 点图画</p>
+    <div class="bubble">9 月 13 日 下午 2 点 · 点对的就赢</div>
+    <div class="row">
+      <button class="big" id="goStart">▶ 开始复习</button>
+      <button class="big sec" id="goParent">👨‍👦 给爸爸妈妈</button>
+    </div>
+  </div>
+  <div class="grid">
+    ${MODULES.map(m => `
+      <button class="mod ${state.done[m.id]?"done":""}" data-m="${m.id}" style="--c:${m.c}">
+        <div class="ic">${m.ic}</div>
+        <h3>${m.name}</h3>
+        <p>${m.color}</p>
+        ${state.done[m.id]?'<span class="badge">★ 亮啦</span>':'<span class="badge" style="color:#94a3b8">还没亮</span>'}
+      </button>
+    `).join("")}
+  </div>
+  <p class="tiny" style="margin-top:16px">已经点亮 ${n} / 6 关 · 星星 ${state.stars} 颗
+    ${state.examBest?` · 模拟考最好 ${state.examBest} 分`:""}</p>
+  <p class="tiny"><a href="index.html">← 回小鱼课程首页</a></p>`;
+}
+
+function extraHtml(s){
+  if(s.extra==="clock") return `<div class="clock" aria-hidden="true"></div>`;
+  if(s.extra==="stage") return `<div class="stage">🐱</div>`;
+  if(s.extra==="areas") return `<div class="areas"><div>🐱 角色</div><div>🎭 舞台</div><div>🧩 积木筐</div><div>📜 脚本</div></div>`;
+  if(s.extra==="colors") return `<div class="palette">
+    <span class="blk" style="background:#38bdf8">蓝 走路</span>
+    <span class="blk" style="background:#c084fc">紫 说话</span>
+    <span class="blk" style="background:#facc15">黄 开始</span>
+    <span class="blk" style="background:#fb923c">橙 重复</span>
+  </div>`;
+  return "";
+}
+
+function htmlSay(s){
+  return `<div class="emoji">${s.emoji||"🐟"}</div>
+    <h2 class="title">${s.title}</h2>
+    ${extraHtml(s)}
+    <div class="lines">${(s.lines||[]).map(x=>`<p>${x}</p>`).join("")}</div>
+    <div class="row"><button class="big" id="next">下一页 ▶</button></div>`;
+}
+
+function htmlQuiz(s, lock){
+  const cls = s.tf ? "opts tf" : "opts";
+  return `<h2 class="title">${s.prompt}</h2>
+    <div class="${cls}">
+      ${s.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="e">${o.e}</span><span>${o.t}</span></button>`).join("")}
+    </div>
+    <div class="fb" id="fb"></div>
+    <div class="row"><button class="big" id="next" ${lock?"disabled":""} style="${lock?"opacity:.4":""}">下一页 ▶</button></div>`;
+}
+
+function htmlOrder(s){
+  const slots = [0,1,2].map(i=>{
+    const id = orderSel[i];
+    const it = id ? s.items.find(x=>x.id===id) : null;
+    return `<div class="slot ${it?"filled":""}" style="${it?`background:${it.c}`:""}">${it?it.t:(i+1)+" 放这里"}</div>`;
+  }).join("");
+  const rest = s.items.filter(x=>!orderSel.includes(x.id));
+  return `<h2 class="title">${s.prompt}</h2>
+    <div class="stack">${slots}</div>
+    <div class="palette">${rest.map(it=>`<button class="blk" data-id="${it.id}" style="background:${it.c}">${it.t}</button>`).join("")}
+      ${orderSel.length?`<button class="blk" id="undo" style="background:#e2e8f0">↩ 退回</button>`:""}
+    </div>
+    <div class="fb" id="fb"></div>
+    <div class="row"><button class="big" id="chkOrder">检查排队</button>
+      <button class="big" id="next" disabled style="opacity:.4">下一页 ▶</button></div>`;
+}
+
+function htmlDevice(){
+  const chromeOk = /Chrome/.test(navigator.userAgent) && !/Edg/.test(navigator.userAgent);
+  const items = [
+    {k:"chrome", e:"🌐", t:"谷歌浏览器"},
+    {k:"sound", e:"🔊", t:"喇叭能说话"},
+    {k:"click", e:"🖱️", t:"鼠标能点"},
+    {k:"net", e:"📶", t:"有网络"},
+    {k:"cam", e:"📷", t:"摄像头（可跳过）"}
+  ];
+  const n = items.filter(i=>device[i.k]).length;
+  return `    <h2 class="title">点亮 5 颗检查星</h2>
+    <p class="tiny">家长帮忙点。小鱼看绿灯就好。</p>
+    ${chromeOk?"":"<p class=\"tiny\">家长注意：考试要用谷歌 Chrome，不要用 Safari。</p>"}
+    <div class="checks">
+      ${items.map(i=>`<div class="check ${device[i.k]?"on":""}">
+        <span class="e">${i.e}</span>
+        <div style="flex:1"><b>${i.t}</b><div class="tiny" style="text-align:left">${device[i.k]?"亮啦 ★":"还没亮"}</div></div>
+        <button class="big sec" data-k="${i.k}" style="padding:10px 14px;font-size:1rem">检查</button>
+      </div>`).join("")}
+    </div>
+    <video id="camv" playsinline muted style="display:${device.cam?"block":"none"};width:100%;max-height:160px;border-radius:12px;margin-top:8px;background:#000"></video>
+    <p class="tiny">已点亮 ${n} / 5</p>
+    <div class="row"><button class="big" id="next">下一页 ▶</button></div>`;
+}
+
+function htmlParent(){
+  return `<div class="parent">
+    <h2>给爸爸妈妈</h2>
+    <p>孩子请回上一页玩大按钮。下面是考试信息（来自 <a href="https://simcc.bnu.edu.cn" target="_blank" rel="noopener">simcc.bnu.edu.cn</a> 公开赛项说明与初赛测评指南）。</p>
+    <ul>
+      <li><b>赛项</b>：E2 数智创新编程建模 — 图形化编程建模（个人赛）</li>
+      <li><b>组别</b>：小学低年级 · <b>9 月 13 日 14:00–15:00</b></li>
+      <li><b>题型</b>：选择题、判断题；选择 4 分，判断 2 分</li>
+      <li><b>进入</b>：官网登录 → 个人中心 → 赛事足迹 → 参加测评</li>
+      <li><b>电脑</b>：Win10 / macOS 11+，Chrome ≥109，内存 8G，前置摄像头，约 50Mbps</li>
+      <li><b>监考</b>：另一部手机/平板，微信 ≥8.0.30</li>
+      <li><b>支持</b>：李老师 17675966796 · 010-5880054</li>
+    </ul>
+    <p>陪练说明见课程合集里的「E2 家长陪练指南」。规则以官网最新公告为准。</p>
+    <div class="row">
+      <button class="big sec" id="back">← 回复习课</button>
+      <button class="big" id="reset" style="background:#64748b">清空星星重来</button>
+    </div>
+  </div>`;
+}
+
+function htmlExamHub(){
+  return `<div class="emoji">⭐</div>
+    <h2 class="title">闯关小测验</h2>
+    <p class="lines" style="text-align:center">先练一练。考前再模拟一次。</p>
+    <div class="row">
+      <button class="big ok" id="prac">😊 练一练<br><span style="font-size:.8rem;font-weight:600">选错了可以再选</span></button>
+      <button class="big" id="exam">📝 模拟考<br><span style="font-size:.8rem;font-weight:600">一遍过，看星星</span></button>
+    </div>`;
+}
+
+function htmlExamQ(){
+  const s = EXAM[examI];
+  const pct = Math.round(examI/EXAM.length*100);
+  return `<div class="prog"><i style="width:${pct}%"></i></div>
+    <p class="tiny">第 ${examI+1} / ${EXAM.length} 题</p>
+    ${htmlQuiz(s, true)}`;
+}
+
+function htmlExamEnd(){
+  const pct = Math.round(examScore/EXAM.length*100);
+  if(examMode && pct>state.examBest){ state.examBest=pct; save(); }
+  markDone("m5");
+  const wr = examWrong.map(w=>`<li>${w.prompt} → ${w.why}</li>`).join("");
+  return `<div class="cert">
+    <div class="cup">${pct>=80?"🏆":"🌟"}</div>
+    <h2 class="title">${examMode?"模拟考结束":"练习结束"}</h2>
+    <p class="lines">答对 ${examScore} / ${EXAM.length}　·　大约 ${pct} 分</p>
+    ${wr?`<p><b>再听这些：</b></p><ul style="text-align:left">${wr}</ul>`:"<p>全对！太棒了！</p>"}
+    <div class="row"><button class="big" id="again">再来一次</button>
+      <button class="big sec" id="back">回家</button></div>
+  </div>`;
+}
+
+function currentSpeak(){
+  if(view==="home") return "小鱼你好。点开始复习。也可以先点一个关卡。";
+  if(view==="parent") return "这一页是给爸爸妈妈看的。";
+  if(view==="doneMod") return "这一关亮起来了。你真厉害。";
+  if(view==="examHub") return "先练一练，选错了可以再选。模拟考要一遍过。";
+  if(view==="examQ") return EXAM[examI].speak;
+  if(view==="examEnd") return "测验结束。看看星星。";
+  const s = STEPS[mid][step];
+  return s.speak || s.prompt || "";
+}
+
+function render(skipSpeak){
+  const app = document.getElementById("app");
+  const shown = Object.keys(state.done).length;
+  let body = `<div class="topbar"><span class="stars">⭐ ${state.stars} · ${shown}/6 关</span></div>`;
+
+  if(view==="home") body += htmlHome();
+  else if(view==="parent") body += htmlParent();
+  else if(view==="examHub") body += `<div class="card">${htmlExamHub()}</div>`;
+  else if(view==="examQ") body += `<div class="card">${htmlExamQ()}</div>`;
+  else if(view==="examEnd") body += `<div class="card">${htmlExamEnd()}</div>`;
+  else if(view==="doneMod"){
+    const m = MODULES.find(x=>x.id===mid);
+    body += `<div class="card cert"><div class="cup">⭐</div>
+      <h2 class="title">${m.ic} ${m.name} 亮啦</h2>
+      <p class="lines">小鱼真棒！</p>
+      <div class="row"><button class="big" id="back">回地图</button>
+      <button class="big sec" id="nextMod">下一关 ▶</button></div></div>`;
+  } else {
+    const m = MODULES.find(x=>x.id===mid);
+    const arr = STEPS[mid];
+    const s = arr[step];
+    const pct = Math.round(step/arr.length*100);
+    body += `<div class="card">
+      <p class="tiny">${m.ic} ${m.name} · ${step+1}/${arr.length}</p>
+      <div class="prog"><i style="width:${pct}%"></i></div>
+      ${s.type==="say"?htmlSay(s):""}
+      ${s.type==="quiz"?htmlQuiz(s,true):""}
+      ${s.type==="order"?htmlOrder(s):""}
+      ${s.type==="device"?htmlDevice():""}
+    </div>`;
+  }
+  app.innerHTML = body;
+  bind();
+  const v = document.getElementById("camv");
+  if(v && camStream){ v.srcObject = camStream; v.play().catch(()=>{}); }
+  if(!skipSpeak) speak(currentSpeak());
+}
+
+function bind(){
+  document.getElementById("goStart")?.addEventListener("click", ()=>{
+    const first = MODULES.find(m=>!state.done[m.id]) || MODULES[0];
+    if(first.id==="m5"){ view="examHub"; render(); }
+    else openMod(first.id);
+  });
+  document.getElementById("goParent")?.addEventListener("click", ()=>{ view="parent"; render(); });
+  document.getElementById("back")?.addEventListener("click", goHome);
+  document.getElementById("reset")?.addEventListener("click", ()=>{
+    localStorage.removeItem(STORE);
+    state.stars = 0; state.done = {}; state.examBest = 0;
+    goHome();
+  });
+  document.getElementById("again")?.addEventListener("click", ()=>{ view="examHub"; render(); });
+  document.getElementById("nextMod")?.addEventListener("click", ()=>{
+    const i = MODULES.findIndex(x=>x.id===mid);
+    const n = MODULES[i+1];
+    if(!n) goHome();
+    else if(n.id==="m5"){ view="examHub"; render(); }
+    else openMod(n.id);
+  });
+  document.querySelectorAll("[data-m]").forEach(b=>b.onclick = ()=>{
+    if(b.dataset.m==="m5"){ view="examHub"; render(); }
+    else openMod(b.dataset.m);
+  });
+  document.getElementById("prac")?.addEventListener("click", ()=> startExam(false));
+  document.getElementById("exam")?.addEventListener("click", ()=> startExam(true));
+  document.getElementById("next")?.addEventListener("click", ()=>{
+    if(view==="examQ") examAdvance();
+    else nextStep();
+  });
+
+  const quizRoot = view==="examQ" ? EXAM[examI] : (view==="mod" ? STEPS[mid][step] : null);
+  if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
+    wireQuiz(quizRoot, view==="examQ" && examMode);
+  }
+  if(view==="mod" && STEPS[mid][step].type==="order") wireOrder(STEPS[mid][step]);
+  if(view==="mod" && STEPS[mid][step].type==="device") wireDevice();
+}
+
+function startExam(mode){
+  examMode = mode; examI=0; examScore=0; examWrong=[]; picked=null;
+  view="examQ"; render();
+}
+
+function wireQuiz(s, isExam){
+  document.querySelectorAll(".opt").forEach(b=>{
+    b.onclick = ()=>{
+      if(picked!==null && (!isExam && examMode===false) && document.getElementById("next")?.disabled===false && !isExam){
+        // already answered in practice with next enabled - ignore extra
+      }
+      const i = +b.dataset.i;
+      const o = s.options[i];
+      const fb = document.getElementById("fb");
+      const next = document.getElementById("next");
+      if(!isExam){
+        document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
+        if(o.ok){
+          b.classList.add("good");
+          fb.className="fb good"; fb.textContent="对啦！"+ (s.why||"");
+          speak("对啦。"+ (s.why||""));
+          next.disabled=false; next.style.opacity=1;
+          picked=i;
+          if(view==="examQ") examScore++;
+        }else{
+          b.classList.add("bad");
+          fb.className="fb bad"; fb.textContent="再想想。"+ (s.why||"");
+          speak("再想想。"+ (s.why||""));
+          picked=null;
+        }
+      }else{
+        if(picked!==null) return;
+        picked=i;
+        document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
+        b.classList.add(o.ok?"good":"bad");
+        if(!o.ok){
+          const right = s.options.find(x=>x.ok);
+          [...document.querySelectorAll(".opt")].forEach((x,idx)=>{ if(s.options[idx].ok) x.classList.add("good"); });
+        }
+        fb.className="fb "+(o.ok?"good":"bad");
+        fb.textContent=(o.ok?"对啦！":"这题先记着。")+ (s.why||"");
+        speak((o.ok?"对啦。":"这题先记着。")+ (s.why||""));
+        if(o.ok) examScore++; else examWrong.push(s);
+        next.disabled=false; next.style.opacity=1;
+      }
+    };
+  });
+}
+
+function examAdvance(){
+  if(examI < EXAM.length-1){ examI++; picked=null; view="examQ"; render(); }
+  else { view="examEnd"; render(); }
+}
+
+function wireOrder(s){
+  document.querySelectorAll(".blk[data-id]").forEach(b=>{
+    b.onclick = ()=>{
+      if(orderSel.length>=3) return;
+      orderSel.push(b.dataset.id);
+      render(true);
+    };
+  });
+  document.getElementById("undo")?.addEventListener("click", ()=>{
+    orderSel.pop();
+    render(true);
+  });
+  document.getElementById("chkOrder")?.addEventListener("click", ()=>{
+    const fb = document.getElementById("fb");
+    const next = document.getElementById("next");
+    const ok = s.answer.every((id,i)=>orderSel[i]===id) && orderSel.length===3;
+    if(ok){
+      fb.className="fb good"; fb.textContent="排队成功！"+s.why;
+      speak("排队成功。"+s.why);
+      next.disabled=false; next.style.opacity=1;
+    }else{
+      fb.className="fb bad"; fb.textContent="再排一次。先绿旗，再走路，再说你好。";
+      speak("再排一次。先绿旗，再走路，再说你好。");
+      orderSel=[];
+      render(true);
+    }
+  });
+}
+
+function wireDevice(){
+  device.net = navigator.onLine;
+  document.querySelectorAll("[data-k]").forEach(b=>{
+    b.onclick = async ()=>{
+      const k = b.dataset.k;
+      if(k==="chrome"){
+        device.chrome = true;
+      }else if(k==="sound"){
+        device.sound = true;
+        speak("喇叭好了。小鱼能听见吗？");
+      }else if(k==="click"){
+        device.click = true;
+      }else if(k==="net"){
+        device.net = navigator.onLine;
+      }else if(k==="cam"){
+        try{
+          camStream = await navigator.mediaDevices.getUserMedia({video:true, audio:false});
+          device.cam = true;
+          render(true);
+          return;
+        }catch(e){
+          device.cam = true; // 允许跳过，避免卡住孩子
+        }
+      }
+      render(true);
+    };
+  });
+}
+
+render();
+</script>
+</body>
+</html>
