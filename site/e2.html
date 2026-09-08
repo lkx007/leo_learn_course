@@ -26,7 +26,7 @@ button{font-family:inherit;cursor:pointer}
   text-decoration:none;color:var(--ink);font-weight:700;box-shadow:var(--shadow)
 }
 .stars{margin-left:auto;font-size:1.15rem;font-weight:800;color:#b45309}
-h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0}
+h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0;line-height:1.85}
 .sub{color:var(--muted);font-size:1.05rem;margin:0 0 18px}
 .hero{
   background:var(--card);border-radius:28px;padding:22px 20px 18px;
@@ -121,6 +121,17 @@ h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0}
 .areas div{background:#f1f5f9;border-radius:14px;padding:10px;text-align:center;font-weight:800}
 .cert{text-align:center;padding:12px}
 .cert .cup{font-size:5rem}
+.hanzi{display:block;line-height:1.15}
+ruby{ruby-position:over;ruby-align:center}
+rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.title{line-height:1.85}
+.opt .han{flex:1;font-size:1.12rem;font-weight:800;line-height:1.85;text-align:left}
+.opt .e{flex:0 0 52px}
+.scorebar{background:#fff7ed;border:3px solid #fdba74;border-radius:16px;padding:10px 14px;text-align:center;font-weight:800;margin:8px 0 12px;color:#9a3412}
+.confetti{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.confetti i{position:absolute;top:-20px;font-size:1.6rem;animation:fall 2.8s linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(240deg);opacity:.2}}
+.tier{font-size:1.05rem;color:#475569;margin:.4em 0 1em}
 @media (max-width:520px){
   .title{font-size:1.32rem}.lines{font-size:1.12rem}
   .tf{grid-template-columns:1fr}
@@ -132,31 +143,775 @@ h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0}
 <button class="fab home" id="btnHome" title="回家">🏠</button>
 <button class="fab" id="btnSpeak" title="再听一遍">🔊</button>
 <script>
-const STORE = "leo-e2-v1";
+const STORE = "leo-e2-v2";
 const state = load();
 let lastSpeak = "";
 let camStream = null;
+let speakToken = 0;
+let preferredVoice = null;
 
 function load(){
   try{ return Object.assign({stars:0, done:{}, examBest:0}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
   catch(e){ return {stars:0, done:{}, examBest:0}; }
 }
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
+
+/*PYBEGIN*/
+const PY = {
+  "一": "yī",
+  "三": "sān",
+  "上": "shàng",
+  "下": "xià",
+  "不": "bù",
+  "与": "yǔ",
+  "东": "dōng",
+  "丝": "sī",
+  "丢": "diū",
+  "两": "liǎng",
+  "个": "gè",
+  "中": "zhōng",
+  "为": "wèi",
+  "主": "zhǔ",
+  "么": "me",
+  "乎": "hū",
+  "乐": "lè",
+  "九": "jiǔ",
+  "也": "yě",
+  "习": "xí",
+  "书": "shū",
+  "乱": "luàn",
+  "了": "le",
+  "事": "shì",
+  "二": "èr",
+  "于": "yú",
+  "五": "wǔ",
+  "些": "xiē",
+  "交": "jiāo",
+  "产": "chǎn",
+  "亮": "liàng",
+  "人": "rén",
+  "什": "shén",
+  "从": "cóng",
+  "他": "tā",
+  "代": "dài",
+  "以": "yǐ",
+  "仪": "yí",
+  "们": "men",
+  "件": "jiàn",
+  "会": "huì",
+  "传": "chuán",
+  "低": "dī",
+  "住": "zhù",
+  "体": "tǐ",
+  "作": "zuò",
+  "你": "nǐ",
+  "便": "biàn",
+  "信": "xìn",
+  "倒": "dào",
+  "候": "hòu",
+  "借": "jiè",
+  "做": "zuò",
+  "停": "tíng",
+  "像": "xiàng",
+  "允": "yǔn",
+  "先": "xiān",
+  "光": "guāng",
+  "免": "miǎn",
+  "入": "rù",
+  "全": "quán",
+  "公": "gōng",
+  "六": "liù",
+  "关": "guān",
+  "具": "jù",
+  "养": "yǎng",
+  "内": "nèi",
+  "再": "zài",
+  "冒": "mào",
+  "军": "jūn",
+  "冠": "guān",
+  "冬": "dōng",
+  "冰": "bīng",
+  "冷": "lěng",
+  "冻": "dòng",
+  "准": "zhǔn",
+  "凉": "liáng",
+  "几": "jǐ",
+  "出": "chū",
+  "击": "jī",
+  "分": "fēn",
+  "则": "zé",
+  "刚": "gāng",
+  "创": "chuàng",
+  "初": "chū",
+  "判": "pàn",
+  "别": "bié",
+  "到": "dào",
+  "前": "qián",
+  "力": "lì",
+  "功": "gōng",
+  "加": "jiā",
+  "动": "dòng",
+  "劲": "jìn",
+  "劳": "láo",
+  "勇": "yǒng",
+  "勒": "lēi",
+  "勺": "sháo",
+  "包": "bāo",
+  "化": "huà",
+  "十": "shí",
+  "午": "wǔ",
+  "半": "bàn",
+  "单": "dān",
+  "南": "nán",
+  "占": "zhàn",
+  "卡": "kǎ",
+  "危": "wēi",
+  "卵": "luǎn",
+  "厉": "lì",
+  "压": "yā",
+  "原": "yuán",
+  "去": "qù",
+  "参": "cān",
+  "又": "yòu",
+  "友": "yǒu",
+  "反": "fǎn",
+  "发": "fā",
+  "变": "biàn",
+  "口": "kǒu",
+  "另": "lìng",
+  "只": "zhǐ",
+  "叫": "jiào",
+  "叭": "bā",
+  "可": "kě",
+  "台": "tái",
+  "叶": "yè",
+  "号": "hào",
+  "吃": "chī",
+  "合": "hé",
+  "吉": "jí",
+  "同": "tóng",
+  "名": "míng",
+  "后": "hòu",
+  "向": "xiàng",
+  "吗": "ma",
+  "吧": "ba",
+  "听": "tīng",
+  "吸": "xī",
+  "吹": "chuī",
+  "呀": "ya",
+  "告": "gào",
+  "味": "wèi",
+  "呼": "hū",
+  "和": "hé",
+  "哇": "wa",
+  "响": "xiǎng",
+  "哪": "nǎ",
+  "啦": "la",
+  "喇": "lǎ",
+  "喊": "hǎn",
+  "喘": "chuǎn",
+  "喜": "xǐ",
+  "喝": "hē",
+  "嘴": "zuǐ",
+  "器": "qì",
+  "四": "sì",
+  "回": "huí",
+  "因": "yīn",
+  "团": "tuán",
+  "固": "gù",
+  "国": "guó",
+  "图": "tú",
+  "圆": "yuán",
+  "圈": "quān",
+  "土": "tǔ",
+  "在": "zài",
+  "地": "dì",
+  "块": "kuài",
+  "型": "xíng",
+  "城": "chéng",
+  "塑": "sù",
+  "塔": "tǎ",
+  "增": "zēng",
+  "士": "shì",
+  "声": "shēng",
+  "壶": "hú",
+  "备": "bèi",
+  "复": "fù",
+  "夏": "xià",
+  "外": "wài",
+  "多": "duō",
+  "够": "gòu",
+  "大": "dà",
+  "天": "tiān",
+  "太": "tài",
+  "头": "tóu",
+  "奇": "qí",
+  "奖": "jiǎng",
+  "女": "nǚ",
+  "奶": "nǎi",
+  "好": "hǎo",
+  "如": "rú",
+  "妈": "mā",
+  "始": "shǐ",
+  "子": "zi",
+  "孔": "kǒng",
+  "字": "zì",
+  "存": "cún",
+  "学": "xué",
+  "孩": "hái",
+  "孵": "fū",
+  "它": "tā",
+  "安": "ān",
+  "完": "wán",
+  "官": "guān",
+  "定": "dìng",
+  "宝": "bǎo",
+  "实": "shí",
+  "害": "hài",
+  "家": "jiā",
+  "容": "róng",
+  "宽": "kuān",
+  "察": "chá",
+  "对": "duì",
+  "导": "dǎo",
+  "射": "shè",
+  "小": "xiǎo",
+  "少": "shǎo",
+  "就": "jiù",
+  "尺": "chǐ",
+  "属": "shǔ",
+  "山": "shān",
+  "左": "zuǒ",
+  "己": "jǐ",
+  "已": "yǐ",
+  "巴": "bā",
+  "市": "shì",
+  "师": "shī",
+  "带": "dài",
+  "帮": "bāng",
+  "常": "cháng",
+  "幅": "fú",
+  "干": "gān",
+  "平": "píng",
+  "年": "nián",
+  "并": "bìng",
+  "幼": "yòu",
+  "床": "chuáng",
+  "序": "xù",
+  "应": "yīng",
+  "底": "dǐ",
+  "度": "dù",
+  "建": "jiàn",
+  "开": "kāi",
+  "弦": "xián",
+  "弱": "ruò",
+  "强": "qiáng",
+  "当": "dāng",
+  "录": "lù",
+  "形": "xíng",
+  "影": "yǐng",
+  "往": "wǎng",
+  "待": "dài",
+  "很": "hěn",
+  "得": "de",
+  "微": "wēi",
+  "心": "xīn",
+  "忙": "máng",
+  "快": "kuài",
+  "态": "tài",
+  "怎": "zěn",
+  "怕": "pà",
+  "性": "xìng",
+  "总": "zǒng",
+  "息": "xī",
+  "想": "xiǎng",
+  "意": "yì",
+  "慢": "màn",
+  "懂": "dǒng",
+  "戏": "xì",
+  "成": "chéng",
+  "我": "wǒ",
+  "或": "huò",
+  "截": "jié",
+  "所": "suǒ",
+  "手": "shǒu",
+  "才": "cái",
+  "打": "dǎ",
+  "扔": "rēng",
+  "扣": "kòu",
+  "执": "zhí",
+  "把": "bǎ",
+  "抓": "zhuā",
+  "抖": "dǒu",
+  "拉": "lā",
+  "拌": "bàn",
+  "拖": "tuō",
+  "拟": "nǐ",
+  "择": "zé",
+  "拼": "pīn",
+  "持": "chí",
+  "指": "zhǐ",
+  "按": "àn",
+  "挡": "dǎng",
+  "挤": "jǐ",
+  "振": "zhèn",
+  "捏": "niē",
+  "换": "huàn",
+  "掉": "diào",
+  "排": "pái",
+  "探": "tàn",
+  "接": "jiē",
+  "提": "tí",
+  "搅": "jiǎo",
+  "搬": "bān",
+  "搭": "dā",
+  "摄": "shè",
+  "摊": "tān",
+  "摔": "shuāi",
+  "摩": "mó",
+  "播": "bō",
+  "擦": "cā",
+  "支": "zhī",
+  "改": "gǎi",
+  "放": "fàng",
+  "故": "gù",
+  "敢": "gǎn",
+  "散": "sàn",
+  "数": "shù",
+  "文": "wén",
+  "料": "liào",
+  "斜": "xié",
+  "断": "duàn",
+  "新": "xīn",
+  "方": "fāng",
+  "旁": "páng",
+  "旗": "qí",
+  "日": "rì",
+  "早": "zǎo",
+  "时": "shí",
+  "明": "míng",
+  "易": "yì",
+  "星": "xīng",
+  "是": "shì",
+  "晒": "shài",
+  "晚": "wǎn",
+  "普": "pǔ",
+  "智": "zhì",
+  "暖": "nuǎn",
+  "更": "gèng",
+  "替": "tì",
+  "最": "zuì",
+  "月": "yuè",
+  "有": "yǒu",
+  "朋": "péng",
+  "服": "fú",
+  "朝": "cháo",
+  "木": "mù",
+  "本": "běn",
+  "机": "jī",
+  "李": "lǐ",
+  "束": "shù",
+  "条": "tiáo",
+  "来": "lái",
+  "杯": "bēi",
+  "板": "bǎn",
+  "果": "guǒ",
+  "柄": "bǐng",
+  "柜": "guì",
+  "查": "chá",
+  "标": "biāo",
+  "树": "shù",
+  "样": "yàng",
+  "根": "gēn",
+  "案": "àn",
+  "梯": "tī",
+  "检": "jiǎn",
+  "棒": "bàng",
+  "植": "zhí",
+  "模": "mó",
+  "橙": "chéng",
+  "橡": "xiàng",
+  "次": "cì",
+  "欢": "huān",
+  "歌": "gē",
+  "止": "zhǐ",
+  "正": "zhèng",
+  "步": "bù",
+  "歪": "wāi",
+  "段": "duàn",
+  "每": "měi",
+  "比": "bǐ",
+  "气": "qì",
+  "氧": "yǎng",
+  "水": "shuǐ",
+  "汉": "hàn",
+  "池": "chí",
+  "汤": "tāng",
+  "汽": "qì",
+  "沉": "chén",
+  "沙": "shā",
+  "没": "méi",
+  "油": "yóu",
+  "沿": "yán",
+  "法": "fǎ",
+  "泡": "pào",
+  "泥": "ní",
+  "注": "zhù",
+  "洋": "yáng",
+  "流": "liú",
+  "测": "cè",
+  "浏": "liú",
+  "浮": "fú",
+  "海": "hǎi",
+  "涂": "tú",
+  "液": "yè",
+  "淡": "dàn",
+  "清": "qīng",
+  "温": "wēn",
+  "湿": "shī",
+  "溶": "róng",
+  "滑": "huá",
+  "滚": "gǔn",
+  "满": "mǎn",
+  "滴": "dī",
+  "演": "yǎn",
+  "潮": "cháo",
+  "灭": "miè",
+  "灯": "dēng",
+  "点": "diǎn",
+  "烧": "shāo",
+  "烫": "tàng",
+  "热": "rè",
+  "然": "rán",
+  "照": "zhào",
+  "爬": "pá",
+  "爱": "ài",
+  "爸": "bà",
+  "牌": "pái",
+  "牙": "yá",
+  "物": "wù",
+  "状": "zhuàng",
+  "狗": "gǒu",
+  "猜": "cāi",
+  "猫": "māo",
+  "王": "wáng",
+  "玩": "wán",
+  "球": "qiú",
+  "理": "lǐ",
+  "琴": "qín",
+  "瓢": "piáo",
+  "瓶": "píng",
+  "生": "shēng",
+  "用": "yòng",
+  "电": "diàn",
+  "画": "huà",
+  "疼": "téng",
+  "登": "dēng",
+  "白": "bái",
+  "的": "de",
+  "皮": "pí",
+  "盆": "pén",
+  "盐": "yán",
+  "监": "jiān",
+  "盖": "gài",
+  "直": "zhí",
+  "相": "xiāng",
+  "省": "shěng",
+  "看": "kàn",
+  "真": "zhēn",
+  "眼": "yǎn",
+  "着": "zhe",
+  "睛": "jīng",
+  "睡": "shuì",
+  "知": "zhī",
+  "短": "duǎn",
+  "矮": "ǎi",
+  "石": "shí",
+  "砖": "zhuān",
+  "确": "què",
+  "碎": "suì",
+  "碳": "tàn",
+  "磁": "cí",
+  "磨": "mó",
+  "示": "shì",
+  "离": "lí",
+  "种": "zhǒng",
+  "科": "kē",
+  "积": "jī",
+  "移": "yí",
+  "程": "chéng",
+  "稳": "wěn",
+  "空": "kōng",
+  "竖": "shù",
+  "站": "zhàn",
+  "第": "dì",
+  "等": "děng",
+  "筐": "kuāng",
+  "答": "dá",
+  "简": "jiǎn",
+  "管": "guǎn",
+  "箭": "jiàn",
+  "箱": "xiāng",
+  "糖": "táng",
+  "系": "xì",
+  "紧": "jǐn",
+  "紫": "zǐ",
+  "红": "hóng",
+  "约": "yuē",
+  "级": "jí",
+  "纸": "zhǐ",
+  "纹": "wén",
+  "线": "xiàn",
+  "练": "liàn",
+  "组": "zǔ",
+  "细": "xì",
+  "经": "jīng",
+  "结": "jié",
+  "给": "gěi",
+  "络": "luò",
+  "绝": "jué",
+  "继": "jì",
+  "续": "xù",
+  "绿": "lǜ",
+  "编": "biān",
+  "缘": "yuán",
+  "网": "wǎng",
+  "置": "zhì",
+  "老": "lǎo",
+  "考": "kǎo",
+  "者": "zhě",
+  "肤": "fū",
+  "肩": "jiān",
+  "胎": "tāi",
+  "胖": "pàng",
+  "能": "néng",
+  "脏": "zàng",
+  "脑": "nǎo",
+  "脚": "jiǎo",
+  "腿": "tuǐ",
+  "膀": "bǎng",
+  "自": "zì",
+  "舞": "wǔ",
+  "船": "chuán",
+  "色": "sè",
+  "节": "jié",
+  "花": "huā",
+  "芽": "yá",
+  "苗": "miáo",
+  "蒸": "zhēng",
+  "蓝": "lán",
+  "藏": "cáng",
+  "虫": "chóng",
+  "蚓": "yǐn",
+  "蚕": "cán",
+  "蚜": "yá",
+  "蚯": "qiū",
+  "蛋": "dàn",
+  "蛹": "yǒng",
+  "融": "róng",
+  "行": "xíng",
+  "衣": "yī",
+  "补": "bǔ",
+  "表": "biǎo",
+  "被": "bèi",
+  "裂": "liè",
+  "装": "zhuāng",
+  "西": "xī",
+  "要": "yào",
+  "见": "jiàn",
+  "观": "guān",
+  "规": "guī",
+  "览": "lǎn",
+  "觉": "jué",
+  "角": "jiǎo",
+  "解": "jiě",
+  "让": "ràng",
+  "记": "jì",
+  "许": "xǔ",
+  "论": "lùn",
+  "评": "píng",
+  "试": "shì",
+  "话": "huà",
+  "该": "gāi",
+  "说": "shuō",
+  "请": "qǐng",
+  "课": "kè",
+  "谁": "shuí",
+  "调": "diào",
+  "谷": "gǔ",
+  "豆": "dòu",
+  "象": "xiàng",
+  "贵": "guì",
+  "费": "fèi",
+  "赛": "sài",
+  "赢": "yíng",
+  "走": "zǒu",
+  "起": "qǐ",
+  "超": "chāo",
+  "越": "yuè",
+  "足": "zú",
+  "跑": "pǎo",
+  "距": "jù",
+  "跟": "gēn",
+  "路": "lù",
+  "跳": "tiào",
+  "身": "shēn",
+  "躲": "duǒ",
+  "车": "chē",
+  "转": "zhuǎn",
+  "轮": "lún",
+  "软": "ruǎn",
+  "轻": "qīng",
+  "载": "zài",
+  "边": "biān",
+  "过": "guò",
+  "运": "yùn",
+  "还": "hái",
+  "这": "zhè",
+  "进": "jìn",
+  "远": "yuǎn",
+  "连": "lián",
+  "迹": "jì",
+  "退": "tuì",
+  "送": "sòng",
+  "逃": "táo",
+  "选": "xuǎn",
+  "通": "tōng",
+  "遍": "biàn",
+  "道": "dào",
+  "避": "bì",
+  "那": "nà",
+  "部": "bù",
+  "都": "dōu",
+  "醒": "xǐng",
+  "里": "lǐ",
+  "重": "zhòng",
+  "量": "liàng",
+  "金": "jīn",
+  "钉": "dīng",
+  "钟": "zhōng",
+  "钮": "niǔ",
+  "钻": "zuān",
+  "铁": "tiě",
+  "铃": "líng",
+  "铛": "dāng",
+  "铜": "tóng",
+  "银": "yín",
+  "链": "liàn",
+  "错": "cuò",
+  "键": "jiàn",
+  "长": "cháng",
+  "门": "mén",
+  "闪": "shǎn",
+  "问": "wèn",
+  "闯": "chuǎng",
+  "间": "jiān",
+  "队": "duì",
+  "防": "fáng",
+  "阳": "yáng",
+  "陆": "lù",
+  "降": "jiàng",
+  "险": "xiǎn",
+  "陪": "péi",
+  "随": "suí",
+  "集": "jí",
+  "雨": "yǔ",
+  "雪": "xuě",
+  "雹": "báo",
+  "需": "xū",
+  "面": "miàn",
+  "鞋": "xié",
+  "音": "yīn",
+  "页": "yè",
+  "顶": "dǐng",
+  "项": "xiàng",
+  "顺": "shùn",
+  "颗": "kē",
+  "题": "tí",
+  "颜": "yán",
+  "风": "fēng",
+  "飞": "fēi",
+  "食": "shí",
+  "饭": "fàn",
+  "首": "shǒu",
+  "马": "mǎ",
+  "验": "yàn",
+  "高": "gāo",
+  "魔": "mó",
+  "鱼": "yú",
+  "鸡": "jī",
+  "黄": "huáng",
+  "黑": "hēi",
+  "鼠": "shǔ"
+};
+/*PYEND*/
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
+}
+function rubyize(s){
+  if(!s) return "";
+  let out = "", buf = "";
+  const flush = () => { if(buf){ out += escapeHtml(buf); buf = ""; } };
+  for(const ch of String(s)){
+    if(/[\u4e00-\u9fff]/.test(ch)){
+      flush();
+      const py = PY[ch];
+      out += py ? `<ruby>${ch}<rt>${escapeHtml(py)}</rt></ruby>` : ch;
+    } else buf += ch;
+  }
+  flush();
+  return out;
+}
+function pickVoice(){
+  const vs = speechSynthesis.getVoices() || [];
+  if(!vs.length) return null;
+  const score = v => {
+    const n = (v.name + " " + v.lang).toLowerCase();
+    if(/xiaoxiao|xiaoyi|xiaoyan|xiaoshuang|xiaomeng|yaoyao|huihui|yunxi|yunyang/.test(n)) return 120;
+    if(/tingting|ting-ting|meijia|hanhan/.test(n)) return 110;
+    if(/female|女/.test(n) && /zh/.test(n)) return 90;
+    if(/google/.test(n) && /zh|chinese|中文|普通话/.test(n)) return 80;
+    if(/zh-cn/.test(n)) return 60;
+    if(/zh|chinese|中文/.test(n)) return 50;
+    return 0;
+  };
+  return [...vs].sort((a,b) => score(b) - score(a))[0];
+}
+function speakChunks(text){
+  const sentences = String(text).split(/[。！？!?；;\n]+/).map(s => s.trim()).filter(Boolean);
+  const out = [];
+  sentences.forEach(s => {
+    if(s.length > 16 && /[，,]/.test(s)){
+      s.split(/[，,]/).map(x => x.trim()).filter(Boolean).forEach(x => out.push(x));
+    } else out.push(s);
+  });
+  return out.length ? out : [String(text)];
+}
 function speak(text){
   lastSpeak = text || lastSpeak;
   if(!text) text = lastSpeak;
   if(!text) return;
   try{
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "zh-CN"; u.rate = 0.92; u.pitch = 1.05;
-    const vs = speechSynthesis.getVoices();
-    const zh = vs.find(v => /zh|Chinese/i.test(v.lang+v.name));
-    if(zh) u.voice = zh;
-    speechSynthesis.speak(u);
+    const token = ++speakToken;
+    preferredVoice = pickVoice() || preferredVoice;
+    const parts = speakChunks(text);
+    const sayOne = (i) => {
+      if(token !== speakToken || i >= parts.length) return;
+      const u = new SpeechSynthesisUtterance(parts[i]);
+      u.lang = "zh-CN";
+      u.rate = 0.72;
+      u.pitch = 1.08;
+      u.volume = 1;
+      if(preferredVoice) u.voice = preferredVoice;
+      u.onend = () => setTimeout(() => sayOne(i + 1), 420);
+      speechSynthesis.speak(u);
+    };
+    sayOne(0);
   }catch(e){}
 }
-speechSynthesis.onvoiceschanged = () => {};
+speechSynthesis.onvoiceschanged = () => { preferredVoice = pickVoice(); };
 
 const MODULES = [
   {id:"m0", ic:"🎒", name:"准备出发", c:"#34d399", color:"准备比赛和检查电脑"},
@@ -164,12 +919,14 @@ const MODULES = [
   {id:"m2", ic:"🧱", name:"什么是模型", c:"#a78bfa", color:"玩具、地球仪、小猫程序"},
   {id:"m3", ic:"🔍", name:"科学家怎么想", c:"#38bdf8", color:"看、问、猜、试、说"},
   {id:"m4", ic:"🌈", name:"科学小故事", c:"#f472b6", color:"为什么？听图画"},
-  {id:"m5", ic:"⭐", name:"闯关小测验", c:"#f59e0b", color:"像考试一样点一点"}
+  {id:"m5", ic:"💧", name:"水和空气", c:"#22d3ee", color:"三年级：水、冰、风、蚕宝宝"},
+  {id:"m6", ic:"🔊", name:"声音和光", c:"#818cf8", color:"四五年级：声音、电路、种子"},
+  {id:"m7", ic:"⭐", name:"闯关小测验", c:"#f59e0b", color:"像考试一样点文字"}
 ];
 
 const STEPS = {
 m0:[
-  {type:"say", emoji:"🐟", title:"小鱼，你好！", speak:"小鱼你好。我们要去参加积木比赛。名字叫 E 2。只要在电脑上点图画，不用打字。",
+  {type:"say", emoji:"🐟", title:"小鱼，你好！", speak:"小鱼你好呀。我们要去参加积木比赛。名字叫 E 2。只要在电脑上点图画，不用打字。",
    lines:["我们要去参加积木比赛。","名字叫 E2。","只要点图画，不用打字。"]},
   {type:"say", emoji:"🗓️", title:"什么时候？", speak:"比赛是九月十三号，下午两点。时钟指着两点。要考六十分钟。",
    extra:"clock", lines:["9 月 13 日","下午 2 点开始","考 60 分钟"]},
@@ -298,52 +1055,204 @@ m4:[
   {type:"quiz", speak:"小车怎样更省力？", prompt:"小车怎样更省力？",
    options:[{e:"🛞", t:"装轮子滚着走", ok:true},{e:"📦", t:"箱子没有轮子拖着走", ok:false}],
    why:"滚动摩擦更小。"}
+],
+m5:[
+  {type:"say", emoji:"💧", title:"会跑的水", speak:"水没有颜色，没有味道，会流动。倒进杯子，就变成杯子的样子。",
+   lines:["水会流动","没有固定形状"]},
+  {type:"say", emoji:"🌫️", title:"白汽不是气", speak:"烧开水时，壶嘴冒出的白汽，是小小的水滴。真正的水蒸气，眼睛看不见。",
+   lines:["白汽 = 小水滴","水蒸气看不见"]},
+  {type:"quiz", speak:"壶嘴冒出的白汽，是看不见的水蒸气吗？", prompt:"壶嘴的白汽是什么？",
+   options:[{e:"👻", t:"看不见的水蒸气", ok:false},{e:"💧", t:"小小的水滴", ok:true}],
+   why:"白汽是小水滴，水蒸气是看不见的。"},
+  {type:"say", emoji:"🧊", title:"冰宝宝变胖", speak:"水结成冰，体积会变大。所以瓶子装满水再冻，可能会裂开。冰化成水，体积又变小。",
+   lines:["结冰：体积变大","融化：体积变小"]},
+  {type:"quiz", speak:"水结成冰，体积会怎样？", prompt:"水结成冰，体积会？",
+   options:[{e:"🎈", t:"变大", ok:true},{e:"📉", t:"变小", ok:false}], why:"冰比原来的水占的地方更大。"},
+  {type:"say", emoji:"🥄", title:"搅一搅更快", speak:"盐放进水里会溶解。搅拌、加热、把盐压碎，都能让它藏得更快。沙子和油不能溶解。",
+   lines:["搅拌、加热、压碎会更快","沙子、油不会溶解"]},
+  {type:"quiz", speak:"怎样让糖在水里藏得更快？", prompt:"怎样让糖藏得更快？",
+   options:[{e:"🥄", t:"搅拌或者加热", ok:true},{e:"🧊", t:"放进冰箱不管", ok:false}],
+   why:"搅拌和加热能加快溶解。"},
+  {type:"say", emoji:"📄", title:"杯子里的空气", speak:"把杯子口朝下扣进水里，杯底的纸常常不湿。因为杯子里已经住着空气，水挤不进去。",
+   lines:["空气占地方","纸团常常不湿"]},
+  {type:"quiz", speak:"杯子倒扣进水里，杯底纸为什么常常不湿？", prompt:"杯底的纸为什么不湿？",
+   options:[{e:"💨", t:"空气占着杯子里的地方", ok:true},{e:"🪄", t:"纸会魔法", ok:false}],
+   why:"空气占空间，水进不去。"},
+  {type:"say", emoji:"🌬️", title:"风是怎么来的", speak:"空气变热会变轻，往上跑。旁边的冷空气来补空，空气流动，就成了风。",
+   lines:["热空气往上","冷热流动就是风"]},
+  {type:"quiz", speak:"风是怎样形成的？", prompt:"风是怎样形成的？",
+   options:[{e:"🔥➡️❄️", t:"热空气和冷空气在流动", ok:true},{e:"🌳", t:"树自己在吹气", ok:false}],
+   why:"冷热空气流动形成风。"},
+  {type:"say", emoji:"🐛", title:"蚕宝宝换衣服", speak:"蚕的一生：卵、幼虫、蛹、成虫。要吃饭长大的，主要是幼虫。鸡下蛋，狗生宝宝。",
+   lines:["蚕：卵 → 幼虫 → 蛹 → 成虫","鸡是卵生，狗是胎生"]},
+  {type:"quiz", speak:"蚕宝宝一生哪一段最需要吃叶子？", prompt:"蚕哪一段最爱吃叶子？",
+   options:[{e:"🐛", t:"幼虫", ok:true},{e:"🥚", t:"卵", ok:false}], why:"幼虫才要吃东西长大。"},
+  {type:"quiz", speak:"小狗是妈妈生下来的，还是下蛋孵出来的？", prompt:"小狗是怎样来的？", tf:true,
+   options:[{e:"🥚", t:"下蛋孵出来", ok:false},{e:"🐕", t:"妈妈生下来", ok:true}],
+   why:"狗是胎生，吃奶长大。"},
+  {type:"say", emoji:"🏃", title:"谁更快", speak:"跑一样长的路，用的时间少，就更快。用的时间多，就更慢。",
+   lines:["同样的路，用时少 = 快"]},
+  {type:"quiz", speak:"两个人跑一样远，谁用的时间少，谁就怎样？", prompt:"同样的路，用时少的人？",
+   options:[{e:"⚡", t:"更快", ok:true},{e:"🐢", t:"更慢", ok:false}], why:"相同距离，用时短就快。"},
+  {type:"say", emoji:"🌊", title:"海比地大", speak:"地球上海洋面积大，陆地面积小。能喝的淡水很少，所以要节约用水。",
+   lines:["海大，地小","淡水很少"]},
+  {type:"quiz", speak:"地球上是海多，还是陆地多？", prompt:"地球上哪里更大？",
+   options:[{e:"🌊", t:"海洋更大", ok:true},{e:"🏞️", t:"陆地更大", ok:false}], why:"地球表面大部分是海。"},
+  {type:"say", emoji:"⚖️", title:"空气有多重", speak:"小鱼听好啦。皮球里再打一点气，天平就会歪。因为空气也有重量。",
+   lines:["空气也有重量"]},
+  {type:"quiz", speak:"皮球再打进一些气，会更重吗？", prompt:"空气有重量吗？", tf:true,
+   options:[{e:"💨", t:"空气有重量", ok:true},{e:"🪶", t:"空气一点也不重", ok:false}],
+   why:"空气占地方，也有重量。"},
+  {type:"say", emoji:"🌡️", title:"下午更热", speak:"一天里，下午两三点常常最热。早上太阳刚出来，还不太热。",
+   lines:["下午两三点常常最热"]},
+  {type:"quiz", speak:"一天里什么时候常常最热？", prompt:"一天里常常最热是？",
+   options:[{e:"🕑", t:"下午两三点", ok:true},{e:"🌅", t:"太阳刚出来", ok:false}],
+   why:"最高气温多半在下午。"},
+  {type:"say", emoji:"❄️", title:"雪也是水", speak:"从天上掉下来的，不只是雨。雪和冰雹，也是水宝宝换了衣服。",
+   lines:["雨、雪、冰雹都是降水"]},
+  {type:"quiz", speak:"雪是水换了衣服吗？", prompt:"雪是水换了衣服吗？", tf:true,
+   options:[{e:"💧", t:"是的，也是水", ok:true},{e:"🍬", t:"雪是糖", ok:false}],
+   why:"雨、雪、冰雹都是降水。"},
+  {type:"say", emoji:"☀️", title:"太阳是大灯", speak:"太阳是一颗会自己发光的大星星。它给地球光，也给地球热。",
+   lines:["太阳自己会发光","给地球光和热"]}
+],
+m6:[
+  {type:"say", emoji:"🎸", title:"声音会抖", speak:"声音是东西在振动。吉他弦一抖，就发出声音。真空里没有空气，声音走不过去。",
+   lines:["声音来自振动","真空不能传声"]},
+  {type:"quiz", speak:"声音是怎样发出来的？", prompt:"声音是怎样发出来的？",
+   options:[{e:"📳", t:"物体在振动", ok:true},{e:"🎨", t:"颜色变了", ok:false}], why:"物体振动产生声音。"},
+  {type:"quiz", speak:"月亮上几乎没有空气，能像在地球上一样说话吗？", prompt:"真空里能传播声音吗？", tf:true,
+   options:[{e:"🗣️", t:"能", ok:false},{e:"🤫", t:"不能", ok:true}], why:"真空不能传声。"},
+  {type:"say", emoji:"🎻", title:"细的更高", speak:"振动快，声音高；振动慢，声音低。细的、短的、紧的弦，声音更高。",
+   lines:["抖得快 = 声音高","细、短、紧 = 更高"]},
+  {type:"quiz", speak:"琴弦又细又短又紧，声音会怎样？", prompt:"细短紧的琴弦，声音？",
+   options:[{e:"🐦", t:"更高", ok:true},{e:"🐘", t:"更低", ok:false}], why:"细短紧振动更快，声音更高。"},
+  {type:"say", emoji:"⬇️", title:"往下掉", speak:"地球会拉住我们，这个力叫重力，方向竖直向下。皮球会往地上掉。",
+   lines:["重力方向：向下"]},
+  {type:"quiz", speak:"重力把东西往哪边拉？", prompt:"重力把东西往哪边拉？",
+   options:[{e:"⬇️", t:"向下", ok:true},{e:"⬆️", t:"向天上", ok:false}], why:"重力竖直向下。"},
+  {type:"say", emoji:"⚠️", title:"不要短路", speak:"电池两头用一根光导线直接连上，叫短路。会很烫，很危险。铜能导电，塑料不能。",
+   lines:["短路会发烫","铜会导电，塑料不会"]},
+  {type:"quiz", speak:"电池两头直接用光导线连上，安全吗？", prompt:"短路安全吗？", tf:true,
+   options:[{e:"✅", t:"安全", ok:false},{e:"🚫", t:"危险，会发烫", ok:true}], why:"短路会发热，很危险。"},
+  {type:"quiz", speak:"下面谁更容易让电通过？", prompt:"谁更容易让电通过？",
+   options:[{e:"🔶", t:"铜丝", ok:true},{e:"🧸", t:"塑料", ok:false}], why:"铜是导体，塑料是绝缘体。"},
+  {type:"say", emoji:"☀️", title:"光走直线", speak:"光喜欢走直线。被挡住，后面就有影子。小孔成像、日食，也跟光走直线有关。",
+   lines:["光沿直线传播","挡住就有影子"]},
+  {type:"quiz", speak:"影子是怎样来的？", prompt:"影子是怎样来的？",
+   options:[{e:"🚶⬛", t:"光被挡住，走直线", ok:true},{e:"🎨", t:"地上自己涂黑", ok:false}],
+   why:"光沿直线传播，被挡住就成影子。"},
+  {type:"say", emoji:"🌱", title:"种子起床", speak:"种子发芽要：一点水、空气、暖和。三个都要有。叶子用阳光做饭，吸入二氧化碳，放出氧气。",
+   lines:["发芽：水、空气、温度","叶子：吸二氧化碳，放氧气"]},
+  {type:"quiz", speak:"绿豆发芽，只要水，不要空气可以吗？", prompt:"发芽只要水就够了吗？", tf:true,
+   options:[{e:"💧", t:"只要水", ok:false},{e:"💧💨🌡️", t:"水、空气、温度都要", ok:true}],
+   why:"三个条件要同时具备。"},
+  {type:"say", emoji:"🚢", title:"空心小船", speak:"一团橡皮泥会沉。捏成小船，占的水更多，浮力变大，就能浮。船排开的水越多，载得越重。",
+   lines:["空心船排开的水更多","浮力变大"]},
+  {type:"quiz", speak:"橡皮泥捏成小船更容易浮，是因为什么？", prompt:"小船为什么更容易浮？",
+   options:[{e:"🛟", t:"排开的水更多，浮力更大", ok:true},{e:"🪶", t:"橡皮泥变轻了", ok:false}],
+   why:"排开水量越大，浮力越大。"},
+  {type:"say", emoji:"🐞", title:"谁吃谁", speak:"食物链：绿豆苗被蚜虫吃，蚜虫被瓢虫吃。箭头指向去吃别人的那一方，也表示能量在流动。",
+   lines:["箭头：谁被谁吃","从绿色植物开始"]},
+  {type:"quiz", speak:"绿豆苗箭头蚜虫，表示谁被谁吃？", prompt:"绿豆苗 → 蚜虫，表示？",
+   options:[{e:"🥗", t:"蚜虫吃绿豆苗", ok:true},{e:"🌱", t:"绿豆苗吃蚜虫", ok:false}],
+   why:"箭头表示谁被谁吃。"},
+  {type:"say", emoji:"🔥", title:"热会搬家", speak:"热总是从烫的地方，跑到凉的地方。金属传热快，木头塑料传热慢。",
+   lines:["热：从高温到低温","金属传热快"]},
+  {type:"quiz", speak:"热喜欢往哪边跑？", prompt:"热喜欢往哪边跑？",
+   options:[{e:"🔥➡️🧊", t:"从烫的地方跑到凉的地方", ok:true},{e:"🧊➡️🔥", t:"从凉的地方跑到烫的地方", ok:false}],
+   why:"热从高温传到低温。"},
+  {type:"say", emoji:"📢", title:"抖得大就响", speak:"弦抖得大大的，声音就响。抖得小小的，声音就轻。高和低，是抖得快还是慢。",
+   lines:["抖得大 = 声音响","抖得快 = 声音高"]},
+  {type:"quiz", speak:"弦抖得大大的，声音会怎样？", prompt:"抖得大，声音会？",
+   options:[{e:"📢", t:"更响", ok:true},{e:"🤫", t:"更轻", ok:false}], why:"振动幅度大，声音更强。"},
+  {type:"say", emoji:"🌿", title:"根往下喝水", speak:"植物的根喜欢往土里钻。根把水和养分喝上来，帮小苗站住。",
+   lines:["根往下长","根喝水和养分"]},
+  {type:"quiz", speak:"植物的根常常往哪边长？", prompt:"根常常往哪边长？",
+   options:[{e:"⬇️", t:"往土里、往下", ok:true},{e:"☁️", t:"往天上飞", ok:false}], why:"根向下，固定并吸水。"},
+  {type:"say", emoji:"🔘", title:"开关小管家", speak:"开关合上，电路走一圈，灯就亮。开关打开，路断了，灯就不亮。",
+   lines:["开关合上灯亮","开关断开灯灭"]},
+  {type:"quiz", speak:"开关断开了，灯会怎样？", prompt:"开关断开了，灯会？",
+   options:[{e:"🌑", t:"不亮", ok:true},{e:"✨", t:"更亮", ok:false}], why:"路断了，电走不了一圈。"},
+  {type:"say", emoji:"💨", title:"水宝宝逃走", speak:"水会慢慢逃走，变成看不见的汽。晒太阳、吹风、把水摊开，逃得更快。",
+   lines:["热、风、摊开，水逃得更快"]},
+  {type:"quiz", speak:"怎样让水逃得更快？", prompt:"怎样让水逃得更快？",
+   options:[{e:"☀️💨", t:"晒太阳、吹风、摊开", ok:true},{e:"🧊", t:"盖上盖子放进冰箱", ok:false}],
+   why:"加热、吹风、增大水面，蒸发更快。"}
 ]
 };
 
 const EXAM = [
   {speak:"绿旗是做什么的？", prompt:"绿旗是做什么的？",
    options:[{e:"🚩", t:"开始运行积木", ok:true},{e:"🗑️", t:"扔掉积木", ok:false},{e:"🎨", t:"只换颜色", ok:false}],
-   why:"绿旗 = 开始。"},
+   why:"绿旗等于开始。"},
   {speak:"积木应该怎样排？", prompt:"积木应该怎样排？",
    options:[{e:"⬇️", t:"从上往下手拉手", ok:true},{e:"🌪️", t:"随便丢在舞台上", ok:false}],
    why:"程序从上到下执行。"},
   {speak:"玩具汽车是真汽车吗？", prompt:"玩具汽车是真汽车吗？", tf:true,
    options:[{e:"🚌", t:"是真的能开上路", ok:false},{e:"🧱", t:"是模型", ok:true}], why:"模型是简化的替身。"},
-  {speak:"Scratch 小猫走路，是哪一种？", prompt:"小猫走路程序是？",
-   options:[{e:"💻", t:"电脑里的模型", ok:true},{e:"🐱", t:"家里真的猫出门", ok:false}], why:"用程序模拟走路。"},
   {speak:"对比实验可以一次改好几个条件吗？", prompt:"对比实验能一次改好几个吗？", tf:true,
    options:[{e:"✅", t:"可以乱改", ok:false},{e:"1️⃣", t:"只能改一个", ok:true}], why:"只改一个才公平。"},
-  {speak:"盐放进水里常常会怎样？", prompt:"盐放进水里？",
-   options:[{e:"👻", t:"藏起来看不见", ok:true},{e:"🧱", t:"变成大砖头", ok:false}], why:"溶解了。"},
-  {speak:"磁铁能吸住橡皮吗？", prompt:"磁铁能吸橡皮吗？", tf:true,
+  {speak:"盐放进水里常常会怎样？", prompt:"盐放进水里会怎样？",
+   options:[{e:"👻", t:"藏起来看不见", ok:true},{e:"🧱", t:"变成大砖头", ok:false}], why:"盐能溶解。"},
+  {speak:"磁铁能吸住橡皮吗？", prompt:"磁铁能吸住橡皮吗？", tf:true,
    options:[{e:"🧲", t:"能", ok:false},{e:"🙅", t:"不能", ok:true}], why:"橡皮没有铁。"},
   {speak:"电路断了，小灯泡会亮吗？", prompt:"电路断了，灯会亮吗？", tf:true,
    options:[{e:"💡", t:"会亮", ok:false},{e:"🌑", t:"不亮", ok:true}], why:"电走不了一圈。"},
-  {speak:"植物没有阳光会长得更好吗？", prompt:"没有阳光，植物？",
-   options:[{e:"🌱💪", t:"长得更好", ok:false},{e:"🌱😵", t:"又细又弱", ok:true}], why:"没光就做不了饭。"},
-  {speak:"中午的影子通常怎样？", prompt:"中午影子？",
-   options:[{e:"📏", t:"最短", ok:true},{e:"🦒", t:"最长", ok:false}], why:"太阳最高。"},
+  {speak:"中午的影子通常怎样？", prompt:"中午的影子通常怎样？",
+   options:[{e:"📏", t:"最短", ok:true},{e:"🦒", t:"最长", ok:false}], why:"太阳最高，影子最短。"},
   {speak:"月亮自己会发光吗？", prompt:"月亮自己会发光吗？", tf:true,
-   options:[{e:"✨", t:"会", ok:false},{e:"☀️", t:"不会，是借太阳的光", ok:true}], why:"反射太阳光。"},
-  {speak:"鞋底磨平了容易怎样？", prompt:"鞋底磨平了？",
-   options:[{e:"🧊", t:"容易滑倒", ok:true},{e:"🦸", t:"跑得像飞", ok:false}], why:"摩擦变小。"},
-  {speak:"搭塔时三角形有什么好处？", prompt:"三角形？",
-   options:[{e:"🏛️", t:"更稳不容易倒", ok:true},{e:"🎈", t:"会飞走", ok:false}], why:"三角形稳定。"},
-  {speak:"橙色积木常常表示什么？", prompt:"橙色积木常常是？",
-   options:[{e:"🔁", t:"重复 / 如果", ok:true},{e:"🚶", t:"走路", ok:false}], why:"控制积木是橙色。"}
+   options:[{e:"✨", t:"会", ok:false},{e:"☀️", t:"不会，是借太阳的光", ok:true}], why:"月亮反射太阳光。"},
+  {speak:"壶嘴冒出的白汽是什么？", prompt:"壶嘴冒出的白汽是什么？",
+   options:[{e:"💧", t:"小小的水滴", ok:true},{e:"👻", t:"看不见的水蒸气", ok:false}],
+   why:"白汽是小水滴。"},
+  {speak:"水结成冰，体积会变大吗？", prompt:"水结成冰，体积会变大吗？", tf:true,
+   options:[{e:"🎈", t:"会变大", ok:true},{e:"📉", t:"会变小", ok:false}], why:"结冰体积变大。"},
+  {speak:"空气会占地方吗？", prompt:"空气会占地方吗？", tf:true,
+   options:[{e:"💨", t:"会", ok:true},{e:"🚫", t:"不会", ok:false}], why:"空气占有一定空间。"},
+  {speak:"蚕宝宝哪一段最需要吃叶子？", prompt:"蚕宝宝哪一段最需要吃叶子？",
+   options:[{e:"🐛", t:"幼虫", ok:true},{e:"🦋", t:"成虫", ok:false}], why:"幼虫才要吃东西。"},
+  {speak:"声音是怎样产生的？", prompt:"声音是怎样产生的？",
+   options:[{e:"📳", t:"物体振动", ok:true},{e:"🎨", t:"颜色变化", ok:false}], why:"物体振动产生声音。"},
+  {speak:"真空里能传播声音吗？", prompt:"真空里能传播声音吗？", tf:true,
+   options:[{e:"🗣️", t:"能", ok:false},{e:"🤫", t:"不能", ok:true}], why:"真空不能传声。"},
+  {speak:"重力把东西往哪边拉？", prompt:"重力把东西往哪边拉？",
+   options:[{e:"⬇️", t:"向下", ok:true},{e:"⬆️", t:"向上", ok:false}], why:"重力竖直向下。"},
+  {speak:"电池两头直接用光导线连上安全吗？", prompt:"短路安全吗？", tf:true,
+   options:[{e:"✅", t:"安全", ok:false},{e:"🚫", t:"危险", ok:true}], why:"短路会发热。"},
+  {speak:"铜丝和塑料，谁更容易让电通过？", prompt:"谁更容易让电通过？",
+   options:[{e:"🔶", t:"铜丝", ok:true},{e:"🧸", t:"塑料", ok:false}], why:"铜是导体。"},
+  {speak:"绿豆发芽只要水就够了吗？", prompt:"绿豆发芽只要水就够了吗？", tf:true,
+   options:[{e:"💧", t:"只要水", ok:false},{e:"💧💨🌡️", t:"还要空气和温度", ok:true}],
+   why:"水、空气、温度都要。"},
+  {speak:"绿豆苗箭头蚜虫，表示谁被谁吃？", prompt:"绿豆苗 → 蚜虫，表示什么？",
+   options:[{e:"🐞", t:"蚜虫吃绿豆苗", ok:true},{e:"🌱", t:"绿豆苗吃蚜虫", ok:false}],
+   why:"箭头表示谁被谁吃。"},
+  {speak:"空气有重量吗？", prompt:"空气有重量吗？", tf:true,
+   options:[{e:"💨", t:"有", ok:true},{e:"🚫", t:"没有", ok:false}], why:"空气占地方，也有重量。"},
+  {speak:"热总是从烫的地方跑到凉的地方吗？", prompt:"热总是从烫的跑到凉的吗？", tf:true,
+   options:[{e:"✅", t:"对", ok:true},{e:"❌", t:"错", ok:false}], why:"热从高温传到低温。"},
+  {speak:"开关断开了，灯还会亮吗？", prompt:"开关断开了，灯还会亮吗？", tf:true,
+   options:[{e:"💡", t:"还会亮", ok:false},{e:"🌑", t:"不亮", ok:true}], why:"路断了电走不了一圈。"},
+  {speak:"太阳自己会发光吗？", prompt:"太阳自己会发光吗？", tf:true,
+   options:[{e:"☀️", t:"会，它是大灯", ok:true},{e:"🌙", t:"不会，它借月亮的光", ok:false}],
+   why:"太阳自己发光，给地球光和热。"}
 ];
 
 let view = "home";
 let mid = "m0";
 let step = 0;
-let examMode = false; // practice vs exam
+let examMode = false;
 let examI = 0;
 let examScore = 0;
+let examPts = 0;
 let examWrong = [];
 let picked = null;
 let orderSel = [];
 let device = {chrome:false, sound:false, click:false, net:false, cam:false};
+
+function qPts(s){ return s.tf ? 2 : 4; }
+function examFull(){ return EXAM.reduce((a,q)=>a+qPts(q),0); }
 
 function goHome(){
   stopCam();
@@ -380,9 +1289,9 @@ function htmlHome(){
   return `
   <div class="hero">
     <div class="mascot">🐟</div>
-    <h1>小鱼的积木比赛</h1>
-    <p class="sub">E2 图形化编程建模 · 少字 · 能听 · 点图画</p>
-    <div class="bubble">9 月 13 日 下午 2 点 · 点对的就赢</div>
+    <h1>${rubyize("小鱼的积木比赛")}</h1>
+    <p class="sub">${rubyize("少字 · 能听 · 点图画")}</p>
+    <div class="bubble">${rubyize("9 月 13 日 下午 2 点 · 点对的就赢")}</div>
     <div class="row">
       <button class="big" id="goStart">▶ 开始复习</button>
       <button class="big sec" id="goParent">👨‍👦 给爸爸妈妈</button>
@@ -392,13 +1301,13 @@ function htmlHome(){
     ${MODULES.map(m => `
       <button class="mod ${state.done[m.id]?"done":""}" data-m="${m.id}" style="--c:${m.c}">
         <div class="ic">${m.ic}</div>
-        <h3>${m.name}</h3>
-        <p>${m.color}</p>
+        <h3>${rubyize(m.name)}</h3>
+        <p>${rubyize(m.color)}</p>
         ${state.done[m.id]?'<span class="badge">★ 亮啦</span>':'<span class="badge" style="color:#94a3b8">还没亮</span>'}
       </button>
     `).join("")}
   </div>
-  <p class="tiny" style="margin-top:16px">已经点亮 ${n} / 6 关 · 星星 ${state.stars} 颗
+  <p class="tiny" style="margin-top:16px">已经点亮 ${n} / ${MODULES.length} 关 · 星星 ${state.stars} 颗
     ${state.examBest?` · 模拟考最好 ${state.examBest} 分`:""}</p>
   <p class="tiny"><a href="index.html">← 回小鱼课程首页</a></p>`;
 }
@@ -418,17 +1327,19 @@ function extraHtml(s){
 
 function htmlSay(s){
   return `<div class="emoji">${s.emoji||"🐟"}</div>
-    <h2 class="title">${s.title}</h2>
+    <h2 class="title">${rubyize(s.title)}</h2>
     ${extraHtml(s)}
-    <div class="lines">${(s.lines||[]).map(x=>`<p>${x}</p>`).join("")}</div>
+    <div class="lines">${(s.lines||[]).map(x=>`<p>${rubyize(x)}</p>`).join("")}</div>
     <div class="row"><button class="big" id="next">下一页 ▶</button></div>`;
 }
 
 function htmlQuiz(s, lock){
   const cls = s.tf ? "opts tf" : "opts";
-  return `<h2 class="title">${s.prompt}</h2>
+  const pts = qPts(s);
+  return `<h2 class="title">${rubyize(s.prompt)}</h2>
+    <p class="tiny">${rubyize(s.tf ? "判断题 · "+pts+" 分" : "选择题 · "+pts+" 分")}</p>
     <div class="${cls}">
-      ${s.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="e">${o.e}</span><span>${o.t}</span></button>`).join("")}
+      ${s.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="e">${o.e}</span><span class="han">${rubyize(o.t)}</span></button>`).join("")}
     </div>
     <div class="fb" id="fb"></div>
     <div class="row"><button class="big" id="next" ${lock?"disabled":""} style="${lock?"opacity:.4":""}">下一页 ▶</button></div>`;
@@ -438,12 +1349,12 @@ function htmlOrder(s){
   const slots = [0,1,2].map(i=>{
     const id = orderSel[i];
     const it = id ? s.items.find(x=>x.id===id) : null;
-    return `<div class="slot ${it?"filled":""}" style="${it?`background:${it.c}`:""}">${it?it.t:(i+1)+" 放这里"}</div>`;
+    return `<div class="slot ${it?"filled":""}" style="${it?`background:${it.c}`:""}">${it?rubyize(it.t):(i+1)+" 放这里"}</div>`;
   }).join("");
   const rest = s.items.filter(x=>!orderSel.includes(x.id));
-  return `<h2 class="title">${s.prompt}</h2>
+  return `<h2 class="title">${rubyize(s.prompt)}</h2>
     <div class="stack">${slots}</div>
-    <div class="palette">${rest.map(it=>`<button class="blk" data-id="${it.id}" style="background:${it.c}">${it.t}</button>`).join("")}
+    <div class="palette">${rest.map(it=>`<button class="blk" data-id="${it.id}" style="background:${it.c}">${rubyize(it.t)}</button>`).join("")}
       ${orderSel.length?`<button class="blk" id="undo" style="background:#e2e8f0">↩ 退回</button>`:""}
     </div>
     <div class="fb" id="fb"></div>
@@ -483,7 +1394,7 @@ function htmlParent(){
     <ul>
       <li><b>赛项</b>：E2 数智创新编程建模 — 图形化编程建模（个人赛）</li>
       <li><b>组别</b>：小学低年级 · <b>9 月 13 日 14:00–15:00</b></li>
-      <li><b>题型</b>：选择题、判断题；选择 4 分，判断 2 分</li>
+      <li><b>题型</b>：选择题、判断题；选择 4 分，判断 2 分。网页题带汉字拼音，模拟考结束有得分和小奖状。</li>
       <li><b>进入</b>：官网登录 → 个人中心 → 赛事足迹 → 参加测评</li>
       <li><b>电脑</b>：Win10 / macOS 11+，Chrome ≥109，内存 8G，前置摄像头，约 50Mbps</li>
       <li><b>监考</b>：另一部手机/平板，微信 ≥8.0.30</li>
@@ -499,11 +1410,12 @@ function htmlParent(){
 
 function htmlExamHub(){
   return `<div class="emoji">⭐</div>
-    <h2 class="title">闯关小测验</h2>
-    <p class="lines" style="text-align:center">先练一练。考前再模拟一次。</p>
+    <h2 class="title">${rubyize("闯关小测验")}</h2>
+    <p class="lines" style="text-align:center">${rubyize("先练一练。考前再模拟一次。")}</p>
+    <p class="tiny">${rubyize("选择题每题 4 分，判断题每题 2 分，满分 "+examFull()+" 分")}</p>
     <div class="row">
       <button class="big ok" id="prac">😊 练一练<br><span style="font-size:.8rem;font-weight:600">选错了可以再选</span></button>
-      <button class="big" id="exam">📝 模拟考<br><span style="font-size:.8rem;font-weight:600">一遍过，看星星</span></button>
+      <button class="big" id="exam">📝 模拟考<br><span style="font-size:.8rem;font-weight:600">一遍过，看分数</span></button>
     </div>`;
 }
 
@@ -511,32 +1423,65 @@ function htmlExamQ(){
   const s = EXAM[examI];
   const pct = Math.round(examI/EXAM.length*100);
   return `<div class="prog"><i style="width:${pct}%"></i></div>
-    <p class="tiny">第 ${examI+1} / ${EXAM.length} 题</p>
+    <div class="scorebar">${rubyize("第 "+(examI+1)+" / "+EXAM.length+" 题")}　·　${rubyize("已得 "+examPts+" 分")}</div>
     ${htmlQuiz(s, true)}`;
 }
 
+function scoreTier(pct){
+  if(pct >= 90) return {
+    cup:"🏆", title:"超级小鱼冠军",
+    speak:"哇，太厉害啦。你是超级小鱼冠军。星星都为你闪亮。",
+    line:"金牌闪闪，小鱼最棒！"
+  };
+  if(pct >= 75) return {
+    cup:"🌟", title:"闪亮小明星",
+    speak:"真厉害呀。你是闪亮小明星。再听一听错过的题，就会更棒。",
+    line:"银光闪闪，继续加油！"
+  };
+  if(pct >= 60) return {
+    cup:"💪", title:"勇敢小探险家",
+    speak:"你已经很勇敢啦。再玩一遍，分数还会往上爬。",
+    line:"铜牌到手，再闯一关！"
+  };
+  return {
+    cup:"🐟", title:"不怕，再来一次",
+    speak:"没关系呀。小鱼每次试，都会更懂一点。我们再玩一遍吧。",
+    line:"勇气金牌，已经出发！"
+  };
+}
+
 function htmlExamEnd(){
-  const pct = Math.round(examScore/EXAM.length*100);
+  const full = examFull();
+  const pct = full ? Math.min(100, Math.round(examPts/full*100)) : 0;
   if(examMode && pct>state.examBest){ state.examBest=pct; save(); }
-  markDone("m5");
-  const wr = examWrong.map(w=>`<li>${w.prompt} → ${w.why}</li>`).join("");
-  return `<div class="cert">
-    <div class="cup">${pct>=80?"🏆":"🌟"}</div>
-    <h2 class="title">${examMode?"模拟考结束":"练习结束"}</h2>
-    <p class="lines">答对 ${examScore} / ${EXAM.length}　·　大约 ${pct} 分</p>
-    ${wr?`<p><b>再听这些：</b></p><ul style="text-align:left">${wr}</ul>`:"<p>全对！太棒了！</p>"}
+  markDone("m7");
+  const tier = scoreTier(pct);
+  const wr = examWrong.map(w=>`<li>${rubyize(w.prompt)} → ${rubyize(w.why)}</li>`).join("");
+  const allRight = examScore === EXAM.length && !examWrong.length;
+  const confetti = pct>=60 ? `<div class="confetti">${Array.from({length:22},(_,i)=>`<i style="left:${4+i*4.4}%;animation-delay:${(i%7)*0.12}s">${["⭐","🎉","🐟","🌟","🎈"][i%5]}</i>`).join("")}</div>` : "";
+  return `${confetti}<div class="cert">
+    <div class="cup">${tier.cup}</div>
+    <h2 class="title">${rubyize(tier.title)}</h2>
+    <p class="lines">${rubyize("答对 "+examScore+" / "+EXAM.length+" 题")}</p>
+    <div class="scorebar">${rubyize("得分 "+examPts+" / "+full)}　·　${rubyize("大约 "+pct+" 分")}</div>
+    <p class="tier">${rubyize(tier.line)}</p>
+    ${wr?`<p><b>${rubyize("再听这些：")}</b></p><ul style="text-align:left">${wr}</ul>`:(allRight?`<p>${rubyize("全对！太棒了！")}</p>`:"")}
     <div class="row"><button class="big" id="again">再来一次</button>
       <button class="big sec" id="back">回家</button></div>
   </div>`;
 }
 
 function currentSpeak(){
-  if(view==="home") return "小鱼你好。点开始复习。也可以先点一个关卡。";
+  if(view==="home") return "小鱼你好呀。点开始复习吧。也可以先点一个关卡。";
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
-  if(view==="doneMod") return "这一关亮起来了。你真厉害。";
-  if(view==="examHub") return "先练一练，选错了可以再选。模拟考要一遍过。";
+  if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
+  if(view==="examHub") return "先练一练吧。选错了可以再选。模拟考要一遍过，最后会给你打分，还有小奖状。";
   if(view==="examQ") return EXAM[examI].speak;
-  if(view==="examEnd") return "测验结束。看看星星。";
+  if(view==="examEnd") {
+    const full = examFull();
+    const pct = full ? Math.round(examPts/full*100) : 0;
+    return scoreTier(pct).speak;
+  }
   const s = STEPS[mid][step];
   return s.speak || s.prompt || "";
 }
@@ -544,7 +1489,7 @@ function currentSpeak(){
 function render(skipSpeak){
   const app = document.getElementById("app");
   const shown = Object.keys(state.done).length;
-  let body = `<div class="topbar"><span class="stars">⭐ ${state.stars} · ${shown}/6 关</span></div>`;
+  let body = `<div class="topbar"><span class="stars">⭐ ${state.stars} · ${shown}/${MODULES.length} 关</span></div>`;
 
   if(view==="home") body += htmlHome();
   else if(view==="parent") body += htmlParent();
@@ -554,8 +1499,8 @@ function render(skipSpeak){
   else if(view==="doneMod"){
     const m = MODULES.find(x=>x.id===mid);
     body += `<div class="card cert"><div class="cup">⭐</div>
-      <h2 class="title">${m.ic} ${m.name} 亮啦</h2>
-      <p class="lines">小鱼真棒！</p>
+      <h2 class="title">${m.ic} ${rubyize(m.name + " 亮啦")}</h2>
+      <p class="lines">${rubyize("小鱼真棒！")}</p>
       <div class="row"><button class="big" id="back">回地图</button>
       <button class="big sec" id="nextMod">下一关 ▶</button></div></div>`;
   } else {
@@ -582,7 +1527,7 @@ function render(skipSpeak){
 function bind(){
   document.getElementById("goStart")?.addEventListener("click", ()=>{
     const first = MODULES.find(m=>!state.done[m.id]) || MODULES[0];
-    if(first.id==="m5"){ view="examHub"; render(); }
+    if(first.id==="m7"){ view="examHub"; render(); }
     else openMod(first.id);
   });
   document.getElementById("goParent")?.addEventListener("click", ()=>{ view="parent"; render(); });
@@ -597,11 +1542,11 @@ function bind(){
     const i = MODULES.findIndex(x=>x.id===mid);
     const n = MODULES[i+1];
     if(!n) goHome();
-    else if(n.id==="m5"){ view="examHub"; render(); }
+    else if(n.id==="m7"){ view="examHub"; render(); }
     else openMod(n.id);
   });
   document.querySelectorAll("[data-m]").forEach(b=>b.onclick = ()=>{
-    if(b.dataset.m==="m5"){ view="examHub"; render(); }
+    if(b.dataset.m==="m7"){ view="examHub"; render(); }
     else openMod(b.dataset.m);
   });
   document.getElementById("prac")?.addEventListener("click", ()=> startExam(false));
@@ -620,7 +1565,7 @@ function bind(){
 }
 
 function startExam(mode){
-  examMode = mode; examI=0; examScore=0; examWrong=[]; picked=null;
+  examMode = mode; examI=0; examScore=0; examPts=0; examWrong=[]; picked=null;
   view="examQ"; render();
 }
 
@@ -638,17 +1583,17 @@ function wireQuiz(s, isExam){
         document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
         if(o.ok){
           b.classList.add("good");
-          fb.className="fb good"; fb.textContent="对啦！"+ (s.why||"");
-          speak("对啦。"+ (s.why||""));
+          fb.className="fb good"; fb.innerHTML=rubyize("对啦！"+ (s.why||""));
+          speak("对啦，真棒。"+ (s.why||""));
           next.disabled=false; next.style.opacity=1;
           picked=i;
-          if(view==="examQ") examScore++;
+          if(view==="examQ"){ examScore++; examPts += qPts(s); }
         }else{
           b.classList.add("bad");
-          fb.className="fb bad"; fb.textContent="再想想。"+ (s.why||"");
-          speak("再想想。"+ (s.why||""));
+          fb.className="fb bad"; fb.innerHTML=rubyize("再想想。"+ (s.why||""));
+          speak("没关系，再想想。"+ (s.why||""));
           picked=null;
-          if(view==="examQ" && !examWrong.includes(s)) examWrong.push(s);
+          if(view==="examQ" && isExam && !examWrong.includes(s)) examWrong.push(s);
         }
       }else{
         if(picked!==null) return;
@@ -660,9 +1605,9 @@ function wireQuiz(s, isExam){
           [...document.querySelectorAll(".opt")].forEach((x,idx)=>{ if(s.options[idx].ok) x.classList.add("good"); });
         }
         fb.className="fb "+(o.ok?"good":"bad");
-        fb.textContent=(o.ok?"对啦！":"这题先记着。")+ (s.why||"");
-        speak((o.ok?"对啦。":"这题先记着。")+ (s.why||""));
-        if(o.ok) examScore++; else examWrong.push(s);
+        fb.innerHTML=rubyize((o.ok?"对啦！":"这题先记着。")+ (s.why||""));
+        speak((o.ok?"对啦，真棒。":"这题先记着，下次就知道啦。")+ (s.why||""));
+        if(o.ok){ examScore++; examPts += qPts(s); } else examWrong.push(s);
         next.disabled=false; next.style.opacity=1;
       }
     };
