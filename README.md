@@ -61,7 +61,7 @@ python3 build_html.py --pages      # 额外生成 docs/（GitHub Pages）
 
 ## 📁 目录结构
 
-- `E2课程/`：**E2 图形化编程建模赛前复习**（大纲、家长指南、6 课讲稿）+ 网页课 `site/e2.html`
+- `E2课程/`：**E2 图形化编程建模赛前复习**（大纲、家长指南、8 关讲稿）+ 网页课 `site/e2.html`
 - `course/`：核心教学资源
   - `lesson_*.py`：可运行的 Python 代码脚本。
   - `*.md`：对应的课程文档，解释编程概念。
