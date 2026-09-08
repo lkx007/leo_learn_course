@@ -1452,11 +1452,12 @@ function scoreTier(pct){
 
 function htmlExamEnd(){
   const full = examFull();
-  const pct = full ? Math.round(examPts/full*100) : 0;
+  const pct = full ? Math.min(100, Math.round(examPts/full*100)) : 0;
   if(examMode && pct>state.examBest){ state.examBest=pct; save(); }
   markDone("m7");
   const tier = scoreTier(pct);
   const wr = examWrong.map(w=>`<li>${rubyize(w.prompt)} → ${rubyize(w.why)}</li>`).join("");
+  const allRight = examScore === EXAM.length && !examWrong.length;
   const confetti = pct>=60 ? `<div class="confetti">${Array.from({length:22},(_,i)=>`<i style="left:${4+i*4.4}%;animation-delay:${(i%7)*0.12}s">${["⭐","🎉","🐟","🌟","🎈"][i%5]}</i>`).join("")}</div>` : "";
   return `${confetti}<div class="cert">
     <div class="cup">${tier.cup}</div>
@@ -1464,7 +1465,7 @@ function htmlExamEnd(){
     <p class="lines">${rubyize("答对 "+examScore+" / "+EXAM.length+" 题")}</p>
     <div class="scorebar">${rubyize("得分 "+examPts+" / "+full)}　·　${rubyize("大约 "+pct+" 分")}</div>
     <p class="tier">${rubyize(tier.line)}</p>
-    ${wr?`<p><b>${rubyize("再听这些：")}</b></p><ul style="text-align:left">${wr}</ul>`:`<p>${rubyize("全对！太棒了！")}</p>`}
+    ${wr?`<p><b>${rubyize("再听这些：")}</b></p><ul style="text-align:left">${wr}</ul>`:(allRight?`<p>${rubyize("全对！太棒了！")}</p>`:"")}
     <div class="row"><button class="big" id="again">再来一次</button>
       <button class="big sec" id="back">回家</button></div>
   </div>`;
