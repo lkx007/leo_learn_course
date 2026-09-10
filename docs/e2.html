@@ -132,6 +132,14 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 .confetti i{position:absolute;top:-20px;font-size:1.6rem;animation:fall 2.8s linear forwards}
 @keyframes fall{to{transform:translateY(110vh) rotate(240deg);opacity:.2}}
 .tier{font-size:1.05rem;color:#475569;margin:.4em 0 1em}
+.papers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}
+.paper{
+  border:4px solid #e2e8f0;background:#fff;border-radius:18px;padding:12px 10px;
+  font-weight:800;color:var(--ink);text-align:center;font-size:1.05rem
+}
+.paper .ic{font-size:1.8rem;display:block}
+.paper.on{border-color:#f59e0b;background:#fff7ed}
+.paper .best{display:block;margin-top:4px;font-size:.8rem;color:#9a3412}
 @media (max-width:520px){
   .title{font-size:1.32rem}.lines{font-size:1.12rem}
   .tf{grid-template-columns:1fr}
@@ -143,7 +151,7 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 <button class="fab home" id="btnHome" title="回家">🏠</button>
 <button class="fab" id="btnSpeak" title="再听一遍">🔊</button>
 <script>
-const STORE = "leo-e2-v3";
+const STORE = "leo-e2-v4";
 const state = load();
 let lastSpeak = "";
 let camStream = null;
@@ -151,8 +159,8 @@ let speakToken = 0;
 let preferredVoice = null;
 
 function load(){
-  try{ return Object.assign({stars:0, done:{}, examBest:0}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
-  catch(e){ return {stars:0, done:{}, examBest:0}; }
+  try{ return Object.assign({stars:0, done:{}, examBest:0, paperBest:{}}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
+  catch(e){ return {stars:0, done:{}, examBest:0, paperBest:{}}; }
 }
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
 
@@ -270,6 +278,7 @@ const PY = {
   "卡": "kǎ",
   "危": "wēi",
   "卵": "luǎn",
+  "卷": "juǎn",
   "厉": "lì",
   "压": "yā",
   "原": "yuán",
@@ -352,6 +361,7 @@ const PY = {
   "头": "tóu",
   "奇": "qí",
   "奖": "jiǎng",
+  "套": "tào",
   "女": "nǚ",
   "奶": "nǎi",
   "好": "hǎo",
@@ -400,9 +410,11 @@ const PY = {
   "平": "píng",
   "年": "nián",
   "并": "bìng",
+  "幸": "xìng",
   "幼": "yòu",
   "床": "chuáng",
   "序": "xù",
+  "库": "kù",
   "应": "yīng",
   "底": "dǐ",
   "度": "dù",
@@ -416,6 +428,7 @@ const PY = {
   "当": "dāng",
   "录": "lù",
   "形": "xíng",
+  "彩": "cǎi",
   "影": "yǐng",
   "往": "wǎng",
   "待": "dài",
@@ -450,6 +463,7 @@ const PY = {
   "把": "bǎ",
   "抓": "zhuā",
   "抖": "dǒu",
+  "抽": "chōu",
   "拉": "lā",
   "拌": "bàn",
   "拖": "tuō",
@@ -715,6 +729,7 @@ const PY = {
   "蓝": "lán",
   "藏": "cáng",
   "虫": "chóng",
+  "虹": "hóng",
   "蚓": "yǐn",
   "蚕": "cán",
   "蚜": "yá",
@@ -936,7 +951,7 @@ const MODULES = [
   {id:"m4", ic:"🌈", name:"科学小故事", c:"#f472b6", color:"为什么？听图画"},
   {id:"m5", ic:"💧", name:"水和空气", c:"#22d3ee", color:"三年级：水、冰、风、蚕宝宝"},
   {id:"m6", ic:"🔊", name:"声音和光", c:"#818cf8", color:"四五年级：声音、电路、种子"},
-  {id:"m7", ic:"⭐", name:"闯关小测验", c:"#f59e0b", color:"像考试一样点文字"}
+  {id:"m7", ic:"⭐", name:"闯关小测验", c:"#f59e0b", color:"四套卷子加幸运抽题"}
 ];
 
 const STEPS = {
@@ -1210,7 +1225,8 @@ m6:[
 ]
 };
 
-const EXAM = [
+const PAPERS = [
+{id:"p0", ic:"🐟", name:"小鱼卷", qs:[
   {speak:"绿旗是做什么的？", prompt:"绿旗是做什么的？",
    options:[{e:"🚩", t:"开始运行积木", ok:true},{e:"🗑️", t:"扔掉积木", ok:false},{e:"🎨", t:"只换颜色", ok:false}],
    why:"绿旗等于开始。"},
@@ -1282,7 +1298,235 @@ const EXAM = [
   {speak:"太阳自己会发光吗？", prompt:"太阳自己会发光吗？", tf:true,
    options:[{e:"☀️", t:"会，它是大灯", ok:true},{e:"🌙", t:"不会，它借月亮的光", ok:false}],
    why:"太阳自己发光，给地球光和热。"}
+]},
+{id:"p1", ic:"🐱", name:"小猫卷", qs:[
+  {speak:"红圆常常是做什么的？", prompt:"红圆常常是做什么的？",
+   options:[{e:"🟥", t:"停止", ok:true},{e:"🚩", t:"开始", ok:false},{e:"🎨", t:"只换颜色", ok:false}],
+   why:"红圆是停止。绿旗才是开始。"},
+  {speak:"黄色积木常常干什么？", prompt:"黄色积木常常干什么？",
+   options:[{e:"🏁", t:"什么时候开始", ok:true},{e:"🚶", t:"走路", ok:false}], why:"黄色管什么时候开始。"},
+  {speak:"积木手拉手，谁先做？", prompt:"积木手拉手，谁先做？",
+   options:[{e:"⬆️", t:"上面的先做", ok:true},{e:"⬇️", t:"下面的先做", ok:false}],
+   why:"从上往下做。"},
+  {speak:"Scratch 里小猫走路，是真小猫出门吗？", prompt:"小猫程序是什么？",
+   options:[{e:"🧱", t:"走路的电脑模型", ok:true},{e:"🐈", t:"真的小猫出门了", ok:false}],
+   why:"程序是模型，不是真猫出门。"},
+  {speak:"地球仪是真的地球吗？", prompt:"地球仪是什么？",
+   options:[{e:"🧱", t:"地球的模型", ok:true},{e:"🌍", t:"真的星球", ok:false}], why:"地球仪是模型。"},
+  {speak:"科学家第一步常常是什么？", prompt:"第一步常常是？",
+   options:[{e:"👀", t:"看一看", ok:true},{e:"📣", t:"先喊结论", ok:false}], why:"先观察，再提问。"},
+  {speak:"怎样让糖在水里藏得更快？", prompt:"怎样让糖藏得更快？",
+   options:[{e:"🥄", t:"搅拌或者加热", ok:true},{e:"🧊", t:"放进冰箱不管", ok:false}],
+   why:"搅拌和加热能加快溶解。"},
+  {speak:"冰化成水，变成糖了吗？", prompt:"冰化了，变成什么？",
+   options:[{e:"💧", t:"还是水", ok:true},{e:"🍬", t:"变成糖了", ok:false}], why:"只是样子变了。"},
+  {speak:"磁铁能吸住塑料尺吗？", prompt:"磁铁能吸塑料尺吗？",
+   options:[{e:"🙅", t:"吸不住", ok:true},{e:"🧲📏", t:"能吸住", ok:false}], why:"塑料里没有铁。"},
+  {speak:"电线断了一截，灯会怎样？", prompt:"电线断了，灯会？",
+   options:[{e:"🌑", t:"不亮", ok:true},{e:"✨", t:"更亮", ok:false}], why:"路断了，电走不了一圈。"},
+  {speak:"一天里什么时候影子最短？", prompt:"影子最短是？",
+   options:[{e:"🕛", t:"中午", ok:true},{e:"🌅", t:"刚出太阳", ok:false}], why:"中午太阳最高。"},
+  {speak:"杯子倒扣进水里，杯底纸为什么常常不湿？", prompt:"杯底的纸为什么不湿？",
+   options:[{e:"💨", t:"空气占着杯子里的地方", ok:true},{e:"🪄", t:"纸会魔法", ok:false}],
+   why:"空气占空间，水进不去。"},
+  {speak:"小狗是妈妈生下来的，还是下蛋孵出来的？", prompt:"小狗是怎样来的？",
+   options:[{e:"🐕", t:"妈妈生下来", ok:true},{e:"🥚", t:"下蛋孵出来", ok:false}], why:"狗是胎生。"},
+  {speak:"地球上是海多，还是陆地多？", prompt:"地球上哪里更大？",
+   options:[{e:"🌊", t:"海洋更大", ok:true},{e:"🏞️", t:"陆地更大", ok:false}], why:"地球表面大部分是海。"},
+  {speak:"琴弦又细又短又紧，声音会怎样？", prompt:"细短紧的琴弦，声音？",
+   options:[{e:"🐦", t:"更高", ok:true},{e:"🐘", t:"更低", ok:false}], why:"细短紧振动更快。"},
+  {speak:"电池两头用光导线直接连上，会怎样？", prompt:"短路会怎样？",
+   options:[{e:"🚫", t:"发烫，很危险", ok:true},{e:"✅", t:"更安全", ok:false}], why:"短路会发热。"},
+  {speak:"绿豆发芽只要水就够了吗？", prompt:"发芽只要水就够了吗？",
+   options:[{e:"💧💨🌡️", t:"水、空气、温度都要", ok:true},{e:"💧", t:"只要水", ok:false}],
+   why:"三个条件要同时有。"},
+  {speak:"橡皮泥捏成小船更容易浮，是因为什么？", prompt:"小船为什么更容易浮？",
+   options:[{e:"🛟", t:"排开的水更多，浮力更大", ok:true},{e:"🪶", t:"橡皮泥变轻了", ok:false}],
+   why:"排开水量越大，浮力越大。"},
+  {speak:"开关断开了，灯会怎样？", prompt:"开关断开了，灯会？",
+   options:[{e:"🌑", t:"不亮", ok:true},{e:"✨", t:"更亮", ok:false}], why:"路断了电走不了一圈。"},
+  {speak:"比赛几点开始？", prompt:"比赛几点开始？",
+   options:[{e:"🕑", t:"下午 2 点", ok:true},{e:"🕖", t:"早上 7 点", ok:false}],
+   why:"小学低年级是下午两点。"},
+  {speak:"绿旗是停止键吗？", prompt:"绿旗是停止键吗？", tf:true,
+   options:[{e:"✅", t:"是停止", ok:false},{e:"🚩", t:"不是，绿旗是开始", ok:true}], why:"绿旗等于开始。"},
+  {speak:"地图是城市的模型吗？", prompt:"地图是城市的模型吗？", tf:true,
+   options:[{e:"✅", t:"是", ok:true},{e:"❌", t:"不是", ok:false}], why:"纸上的路代表外面的路。"},
+  {speak:"猜一猜就是最后的结论吗？", prompt:"猜一猜就是结论吗？", tf:true,
+   options:[{e:"✅", t:"是，猜完就结束", ok:false},{e:"🧪", t:"不是，还要试", ok:true}], why:"猜完还要做实验。"},
+  {speak:"沙子能藏进水里看不见吗？", prompt:"沙子能藏进水里吗？", tf:true,
+   options:[{e:"👻", t:"能，像盐一样", ok:false},{e:"🪨", t:"不能，会沉下去", ok:true}], why:"沙子不能溶解。"},
+  {speak:"金属勺放进热汤，勺柄会慢慢变烫吗？", prompt:"金属勺柄会变烫吗？", tf:true,
+   options:[{e:"🔥", t:"会", ok:true},{e:"🧊", t:"不会，会变成冰", ok:false}], why:"热会传到勺柄。"},
+  {speak:"空气有重量吗？", prompt:"空气有重量吗？", tf:true,
+   options:[{e:"💨", t:"有", ok:true},{e:"🚫", t:"没有", ok:false}], why:"空气占地方，也有重量。"},
+  {speak:"雪是水换了衣服吗？", prompt:"雪是水换了衣服吗？", tf:true,
+   options:[{e:"💧", t:"是的，也是水", ok:true},{e:"🍬", t:"雪是糖", ok:false}], why:"雨雪冰雹都是降水。"},
+  {speak:"真空里能像在地球上一样说话吗？", prompt:"真空里能传声吗？", tf:true,
+   options:[{e:"🗣️", t:"能", ok:false},{e:"🤫", t:"不能", ok:true}], why:"真空不能传声。"},
+  {speak:"植物的根喜欢往天上飞吗？", prompt:"根会往天上飞吗？", tf:true,
+   options:[{e:"☁️", t:"会飞上去", ok:false},{e:"⬇️", t:"不会，根往土里钻", ok:true}], why:"根向下吸水。"},
+  {speak:"橙色正式比赛可以点很多次吗？", prompt:"橙按钮可以点很多次吗？", tf:true,
+   options:[{e:"✅", t:"可以很多次", ok:false},{e:"1️⃣", t:"只能一次", ok:true}], why:"正式考试每人只有一次。"}
+]},
+{id:"p2", ic:"🌈", name:"彩虹卷", qs:[
+  {speak:"紫色积木常常干什么？", prompt:"紫色积木常常干什么？",
+   options:[{e:"💬", t:"说话、换装", ok:true},{e:"🚶", t:"走路", ok:false}], why:"紫色管外观和说话。"},
+  {speak:"积木拼好了不对，应该怎样？", prompt:"试完不对，应该？",
+   options:[{e:"🔧", t:"改一改再试", ok:true},{e:"🙈", t:"不管它", ok:false}],
+   why:"拼、排、试、改。"},
+  {speak:"哪一个是地球的模型？", prompt:"哪一个是地球的模型？",
+   options:[{e:"🌍", t:"地球仪", ok:true},{e:"🐘", t:"大象", ok:false}], why:"地球仪代表地球。"},
+  {speak:"两盆绿豆，一盆有阳光有水，一盆又黑又干，这样公平吗？", prompt:"这样对比公平吗？",
+   options:[{e:"🙅", t:"不公平，改了两个", ok:true},{e:"✅", t:"公平", ok:false}],
+   why:"一次只能改一个条件。"},
+  {speak:"谁会藏进水里看不见？", prompt:"谁会藏进水里？",
+   options:[{e:"🧂", t:"盐或者糖", ok:true},{e:"🪨", t:"沙子石头", ok:false}], why:"盐能溶解。"},
+  {speak:"跑完步心跳会怎样？", prompt:"跑完步心跳？",
+   options:[{e:"💓", t:"变快", ok:true},{e:"🛑", t:"完全停住", ok:false}], why:"要运送更多氧气。"},
+  {speak:"蚯蚓喜欢待在哪里？", prompt:"蚯蚓喜欢？",
+   options:[{e:"💧🪴", t:"潮湿的土", ok:true},{e:"☀️🏜️", t:"干干的沙", ok:false}], why:"皮肤要湿才能呼吸。"},
+  {speak:"小苗怎样长得更好？", prompt:"小苗怎样长得更好？",
+   options:[{e:"☀️", t:"有阳光", ok:true},{e:"🌑", t:"一直关在黑柜子", ok:false}], why:"叶子用阳光做饭。"},
+  {speak:"水结成冰，体积会怎样？", prompt:"水结成冰，体积会？",
+   options:[{e:"🎈", t:"变大", ok:true},{e:"📉", t:"变小", ok:false}], why:"冰比原来的水占的地方更大。"},
+  {speak:"壶嘴白白的汽是看不见的水蒸气吗？", prompt:"壶嘴的白汽是什么？",
+   options:[{e:"💧", t:"小小的水滴", ok:true},{e:"👻", t:"看不见的气", ok:false}], why:"白汽是小水滴。"},
+  {speak:"风是树自己吹出来的吗？", prompt:"风是怎样来的？",
+   options:[{e:"🔥➡️❄️", t:"热空气和冷空气在流动", ok:true},{e:"🌳", t:"树在吹气", ok:false}],
+   why:"冷热空气流动形成风。"},
+  {speak:"蚕宝宝哪一段最爱吃叶子？", prompt:"蚕哪一段最爱吃叶子？",
+   options:[{e:"🐛", t:"幼虫", ok:true},{e:"🥚", t:"卵", ok:false}], why:"幼虫才要吃东西长大。"},
+  {speak:"声音是怎样发出来的？", prompt:"声音是怎样发出来的？",
+   options:[{e:"📳", t:"物体在振动", ok:true},{e:"🎨", t:"颜色变了", ok:false}], why:"物体振动产生声音。"},
+  {speak:"重力把皮球往哪边拉？", prompt:"重力把皮球往哪边拉？",
+   options:[{e:"⬇️", t:"向下掉", ok:true},{e:"⬆️", t:"飞上天", ok:false}], why:"重力竖直向下。"},
+  {speak:"谁更容易让电通过？", prompt:"谁更容易让电通过？",
+   options:[{e:"🔶", t:"铜丝", ok:true},{e:"🧸", t:"塑料", ok:false}], why:"铜是导体。"},
+  {speak:"影子是怎样来的？", prompt:"影子是怎样来的？",
+   options:[{e:"🚶⬛", t:"光被挡住，走直线", ok:true},{e:"🎨", t:"地上自己涂黑", ok:false}],
+   why:"光沿直线传播，被挡住就成影子。"},
+  {speak:"抖得大大的，声音会怎样？", prompt:"抖得大，声音会？",
+   options:[{e:"📢", t:"更响", ok:true},{e:"🤫", t:"更轻", ok:false}], why:"振动幅度大，声音更强。"},
+  {speak:"怎样让水逃得更快？", prompt:"怎样让水逃得更快？",
+   options:[{e:"☀️💨", t:"晒太阳、吹风、摊开", ok:true},{e:"🧊", t:"盖上盖子放冰箱", ok:false}],
+   why:"加热、吹风、增大水面，蒸发更快。"},
+  {speak:"小车怎样更省力？", prompt:"小车怎样更省力？",
+   options:[{e:"🛞", t:"装轮子滚着走", ok:true},{e:"📦", t:"没有轮子拖着走", ok:false}],
+   why:"滚动更省力。"},
+  {speak:"搭高塔哪种更稳？", prompt:"哪种更稳？",
+   options:[{e:"🔺", t:"三角形", ok:true},{e:"〰️", t:"软面条形", ok:false}], why:"三角形很稳。"},
+  {speak:"玩具汽车能开上马路吗？", prompt:"玩具汽车能开上马路吗？", tf:true,
+   options:[{e:"🚌", t:"能，它是真车", ok:false},{e:"🧱", t:"不能，它是模型", ok:true}], why:"模型不是真车。"},
+  {speak:"做对比实验可以一次改好几个吗？", prompt:"对比实验能一次改好几个吗？", tf:true,
+   options:[{e:"✅", t:"可以乱改", ok:false},{e:"1️⃣", t:"只能改一个", ok:true}], why:"只改一个才公平。"},
+  {speak:"磁铁能吸住橡皮吗？", prompt:"磁铁能吸住橡皮吗？", tf:true,
+   options:[{e:"🧲", t:"能", ok:false},{e:"🙅", t:"不能", ok:true}], why:"橡皮没有铁。"},
+  {speak:"电路断了，小灯泡还会亮吗？", prompt:"电路断了，灯还会亮吗？", tf:true,
+   options:[{e:"💡", t:"会亮", ok:false},{e:"🌑", t:"不亮", ok:true}], why:"电走不了一圈。"},
+  {speak:"月亮自己会发光吗？", prompt:"月亮自己会发光吗？", tf:true,
+   options:[{e:"✨", t:"会", ok:false},{e:"☀️", t:"不会，是借太阳的光", ok:true}], why:"月亮反射太阳光。"},
+  {speak:"水结成冰，体积会变大吗？", prompt:"水结成冰，体积会变大吗？", tf:true,
+   options:[{e:"🎈", t:"会变大", ok:true},{e:"📉", t:"会变小", ok:false}], why:"结冰体积变大。"},
+  {speak:"空气会占地方吗？", prompt:"空气会占地方吗？", tf:true,
+   options:[{e:"💨", t:"会", ok:true},{e:"🚫", t:"不会", ok:false}], why:"空气占有一定空间。"},
+  {speak:"太阳自己会发光吗？", prompt:"太阳自己会发光吗？", tf:true,
+   options:[{e:"☀️", t:"会", ok:true},{e:"🌙", t:"不会，它借月亮的光", ok:false}], why:"太阳自己发光。"},
+  {speak:"热总是从烫的地方跑到凉的地方吗？", prompt:"热是从烫的跑到凉的吗？", tf:true,
+   options:[{e:"✅", t:"对", ok:true},{e:"❌", t:"错", ok:false}], why:"热从高温传到低温。"},
+  {speak:"蓝按钮是正式比赛吗？", prompt:"蓝按钮是正式比赛吗？", tf:true,
+   options:[{e:"📙", t:"是，蓝的才是真考", ok:false},{e:"📘", t:"不是，蓝的是练习", ok:true}],
+   why:"蓝练橙赛。橙的才是真比赛。"}
+]},
+{id:"p3", ic:"⭐", name:"星星卷", qs:[
+  {speak:"绿旗是做什么的？", prompt:"绿旗是做什么的？",
+   options:[{e:"🚩", t:"开始运行积木", ok:true},{e:"🗑️", t:"扔掉积木", ok:false}], why:"绿旗等于开始。"},
+  {speak:"积木应该怎样排？", prompt:"积木应该怎样排？",
+   options:[{e:"⬇️", t:"从上往下手拉手", ok:true},{e:"🌪️", t:"随便丢在舞台上", ok:false}],
+   why:"程序从上到下执行。"},
+  {speak:"蓝色积木常常干什么？", prompt:"蓝色积木常常干什么？",
+   options:[{e:"🚶", t:"走路、转身", ok:true},{e:"💬", t:"说话", ok:false}], why:"蓝色是运动积木。"},
+  {speak:"哪一个是汽车的模型？", prompt:"哪一个是汽车的模型？",
+   options:[{e:"🧸🚗", t:"玩具小车", ok:true},{e:"🚌", t:"马路上的大巴士", ok:false}],
+   why:"玩具车代表真车。"},
+  {speak:"盐放进水里常常会怎样？", prompt:"盐放进水里会怎样？",
+   options:[{e:"👻", t:"藏起来看不见", ok:true},{e:"🧱", t:"变成大砖头", ok:false}], why:"盐能溶解。"},
+  {speak:"中午的影子通常怎样？", prompt:"中午的影子通常怎样？",
+   options:[{e:"📏", t:"最短", ok:true},{e:"🦒", t:"最长", ok:false}], why:"太阳最高，影子最短。"},
+  {speak:"蚕宝宝哪一段最需要吃叶子？", prompt:"蚕宝宝哪一段最需要吃叶子？",
+   options:[{e:"🐛", t:"幼虫", ok:true},{e:"🦋", t:"成虫", ok:false}], why:"幼虫才要吃东西。"},
+  {speak:"声音是怎样产生的？", prompt:"声音是怎样产生的？",
+   options:[{e:"📳", t:"物体振动", ok:true},{e:"🎨", t:"颜色变化", ok:false}], why:"物体振动产生声音。"},
+  {speak:"重力把东西往哪边拉？", prompt:"重力把东西往哪边拉？",
+   options:[{e:"⬇️", t:"向下", ok:true},{e:"⬆️", t:"向上", ok:false}], why:"重力竖直向下。"},
+  {speak:"铜丝和塑料，谁更容易让电通过？", prompt:"谁更容易让电通过？",
+   options:[{e:"🔶", t:"铜丝", ok:true},{e:"🧸", t:"塑料", ok:false}], why:"铜是导体。"},
+  {speak:"绿豆苗箭头蚜虫，表示谁被谁吃？", prompt:"绿豆苗 → 蚜虫，表示什么？",
+   options:[{e:"🐞", t:"蚜虫吃绿豆苗", ok:true},{e:"🌱", t:"绿豆苗吃蚜虫", ok:false}],
+   why:"箭头表示谁被谁吃。"},
+  {speak:"鞋底花纹有什么用？", prompt:"鞋底花纹？",
+   options:[{e:"🦶", t:"防滑", ok:true},{e:"🎈", t:"让人飞起来", ok:false}], why:"花纹增大摩擦。"},
+  {speak:"植物的根常常往哪边长？", prompt:"根常常往哪边长？",
+   options:[{e:"⬇️", t:"往土里、往下", ok:true},{e:"☁️", t:"往天上飞", ok:false}], why:"根向下吸水。"},
+  {speak:"热喜欢往哪边跑？", prompt:"热喜欢往哪边跑？",
+   options:[{e:"🔥➡️🧊", t:"从烫的跑到凉的", ok:true},{e:"🧊➡️🔥", t:"从凉的跑到烫的", ok:false}],
+   why:"热从高温传到低温。"},
+  {speak:"电脑上橙色大按钮是什么？", prompt:"橙色按钮是？",
+   options:[{e:"📙", t:"真比赛，只能一次", ok:true},{e:"📘", t:"随便练，可以很多次", ok:false}],
+   why:"蓝的是练习。橙的是正式考试。"},
+  {speak:"一天里常常最热是什么时候？", prompt:"一天里常常最热是？",
+   options:[{e:"🕑", t:"下午两三点", ok:true},{e:"🌅", t:"太阳刚出来", ok:false}],
+   why:"最高气温多半在下午。"},
+  {speak:"叶子做饭时，常常放出什么？", prompt:"叶子做饭常常放出？",
+   options:[{e:"💨", t:"氧气", ok:true},{e:"🪨", t:"石头", ok:false}], why:"叶子吸入二氧化碳，放出氧气。"},
+  {speak:"鸡是下蛋的，还是妈妈直接生宝宝？", prompt:"鸡是怎样来小宝宝的？",
+   options:[{e:"🥚", t:"下蛋孵出来", ok:true},{e:"🐕", t:"像狗一样生下来", ok:false}], why:"鸡是卵生。"},
+  {speak:"光被挡住，后面常常会有什么？", prompt:"光被挡住，后面会有？",
+   options:[{e:"⬛", t:"影子", ok:true},{e:"🌈", t:"彩虹糖", ok:false}], why:"光走直线，挡住就有影子。"},
+  {speak:"积木拼好了，下一步常常做什么？", prompt:"拼好了，下一步常常？",
+   options:[{e:"🚩", t:"点绿旗试一试", ok:true},{e:"🗑️", t:"全部扔掉", ok:false}],
+   why:"拼、排、试、改。"},
+  {speak:"地球仪是真的地球吗？", prompt:"地球仪是真的地球吗？", tf:true,
+   options:[{e:"🌍", t:"是真地球", ok:false},{e:"🧱", t:"是模型", ok:true}], why:"地球仪是模型。"},
+  {speak:"对比实验可以一次改好几个条件吗？", prompt:"对比实验能一次改好几个吗？", tf:true,
+   options:[{e:"✅", t:"可以乱改", ok:false},{e:"1️⃣", t:"只能改一个", ok:true}], why:"只改一个才公平。"},
+  {speak:"磁铁能吸住塑料尺吗？", prompt:"磁铁能吸塑料尺吗？", tf:true,
+   options:[{e:"🧲", t:"能", ok:false},{e:"🙅", t:"不能", ok:true}], why:"塑料没有铁。"},
+  {speak:"电路断了，小灯泡会亮吗？", prompt:"电路断了，灯会亮吗？", tf:true,
+   options:[{e:"💡", t:"会亮", ok:false},{e:"🌑", t:"不亮", ok:true}], why:"电走不了一圈。"},
+  {speak:"月亮自己会发光吗？", prompt:"月亮自己会发光吗？", tf:true,
+   options:[{e:"✨", t:"会", ok:false},{e:"☀️", t:"不会，是借太阳的光", ok:true}], why:"月亮反射太阳光。"},
+  {speak:"空气会占地方吗？", prompt:"空气会占地方吗？", tf:true,
+   options:[{e:"💨", t:"会", ok:true},{e:"🚫", t:"不会", ok:false}], why:"空气占有一定空间。"},
+  {speak:"真空里能传播声音吗？", prompt:"真空里能传播声音吗？", tf:true,
+   options:[{e:"🗣️", t:"能", ok:false},{e:"🤫", t:"不能", ok:true}], why:"真空不能传声。"},
+  {speak:"短路安全吗？", prompt:"短路安全吗？", tf:true,
+   options:[{e:"✅", t:"安全", ok:false},{e:"🚫", t:"危险", ok:true}], why:"短路会发热。"},
+  {speak:"太阳自己会发光吗？", prompt:"太阳自己会发光吗？", tf:true,
+   options:[{e:"☀️", t:"会，它是大灯", ok:true},{e:"🌙", t:"不会", ok:false}], why:"太阳自己发光。"},
+  {speak:"比赛要自己打很多字吗？", prompt:"比赛要打很多字吗？", tf:true,
+   options:[{e:"✍️", t:"要打字", ok:false},{e:"👆", t:"点图画就行", ok:true}], why:"初赛是选择题和判断题。"}
+]}
 ];
+const MIX_I = PAPERS.length;
+let paperI = 0;
+let mixedQs = null;
+function examQs(){ return paperI === MIX_I ? (mixedQs || []) : PAPERS[paperI].qs; }
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
+  return a;
+}
+function uniqPrompt(list){
+  const seen = new Set();
+  return list.filter(q => { if(seen.has(q.prompt)) return false; seen.add(q.prompt); return true; });
+}
+function mixPaper(){
+  const all = PAPERS.flatMap(p => p.qs);
+  const choice = shuffle(uniqPrompt(all.filter(q => !q.tf))).slice(0, 20);
+  const tf = shuffle(uniqPrompt(all.filter(q => q.tf))).slice(0, 10);
+  return choice.concat(tf);
+}
 
 let view = "home";
 let mid = "m0";
@@ -1297,7 +1541,7 @@ let orderSel = [];
 let device = {chrome:false, sound:false, click:false, net:false, cam:false};
 
 function qPts(s){ return s.tf ? 2 : 4; }
-function examFull(){ return EXAM.reduce((a,q)=>a+qPts(q),0); }
+function examFull(){ return examQs().reduce((a,q)=>a+qPts(q),0); }
 
 function goHome(){
   stopCam();
@@ -1460,10 +1704,25 @@ function htmlParent(){
 }
 
 function htmlExamHub(){
+  const mixOn = paperI === MIX_I;
+  const papers = PAPERS.map((p,i)=>{
+    const best = state.paperBest && state.paperBest[p.id];
+    return `<button class="paper ${paperI===i?"on":""}" data-p="${i}">
+      <span class="ic">${p.ic}</span>${rubyize(p.name)}
+      ${best?`<span class="best">${rubyize("最好 "+best+" 分")}</span>`:""}
+    </button>`;
+  }).join("");
+  const mixBest = state.paperBest && state.paperBest.mix;
   return `<div class="emoji">⭐</div>
     <h2 class="title">${rubyize("闯关小测验")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先练一练。考前再像真考一样做一遍。")}</p>
+    <p class="lines" style="text-align:center">${rubyize("先选一套。每套都是三十题。")}</p>
     <p class="tiny">${rubyize("对照初赛：20 道选择 + 10 道判断，满分 100 分")}</p>
+    <div class="papers">${papers}
+      <button class="paper ${mixOn?"on":""}" data-p="${MIX_I}" style="grid-column:1/-1">
+        <span class="ic">🎲</span>${rubyize("幸运卷 · 题库里抽三十题")}
+        ${mixBest?`<span class="best">${rubyize("最好 "+mixBest+" 分")}</span>`:""}
+      </button>
+    </div>
     <div class="row">
       <button class="big ok" id="prac">😊 练一练<br><span style="font-size:.8rem;font-weight:600">选错了可以再选</span></button>
       <button class="big" id="exam">📝 模拟考<br><span style="font-size:.8rem;font-weight:600">一遍过，看分数</span></button>
@@ -1471,10 +1730,12 @@ function htmlExamHub(){
 }
 
 function htmlExamQ(){
-  const s = EXAM[examI];
-  const pct = Math.round(examI/EXAM.length*100);
+  const qs = examQs();
+  const s = qs[examI];
+  const pct = Math.round(examI/qs.length*100);
+  const pname = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
   return `<div class="prog"><i style="width:${pct}%"></i></div>
-    <div class="scorebar">${rubyize("第 "+(examI+1)+" / "+EXAM.length+" 题")}　·　${rubyize("已得 "+examPts+" 分")}</div>
+    <div class="scorebar">${rubyize(pname+" · 第 "+(examI+1)+" / "+qs.length+" 题")}　·　${rubyize("已得 "+examPts+" 分")}</div>
     ${htmlQuiz(s, true)}`;
 }
 
@@ -1502,18 +1763,26 @@ function scoreTier(pct){
 }
 
 function htmlExamEnd(){
+  const qs = examQs();
   const full = examFull();
   const pct = full ? Math.min(100, Math.round(examPts/full*100)) : 0;
-  if(examMode && pct>state.examBest){ state.examBest=pct; save(); }
+  const pid = paperI === MIX_I ? "mix" : PAPERS[paperI].id;
+  if(examMode){
+    if(pct>state.examBest){ state.examBest=pct; }
+    if(!state.paperBest) state.paperBest = {};
+    if(!(pid in state.paperBest) || pct>state.paperBest[pid]) state.paperBest[pid]=pct;
+    save();
+  }
   markDone("m7");
   const tier = scoreTier(pct);
   const wr = examWrong.map(w=>`<li>${rubyize(w.prompt)} → ${rubyize(w.why)}</li>`).join("");
-  const allRight = examScore === EXAM.length && !examWrong.length;
+  const allRight = examScore === qs.length && !examWrong.length;
   const confetti = pct>=60 ? `<div class="confetti">${Array.from({length:22},(_,i)=>`<i style="left:${4+i*4.4}%;animation-delay:${(i%7)*0.12}s">${["⭐","🎉","🐟","🌟","🎈"][i%5]}</i>`).join("")}</div>` : "";
+  const pname = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
   return `${confetti}<div class="cert">
     <div class="cup">${tier.cup}</div>
     <h2 class="title">${rubyize(tier.title)}</h2>
-    <p class="lines">${rubyize("答对 "+examScore+" / "+EXAM.length+" 题")}</p>
+    <p class="lines">${rubyize(pname)} · ${rubyize("答对 "+examScore+" / "+qs.length+" 题")}</p>
     <div class="scorebar">${rubyize("得分 "+examPts+" / "+full)}　·　${rubyize("大约 "+pct+" 分")}</div>
     <p class="tier">${rubyize(tier.line)}</p>
     ${wr?`<p><b>${rubyize("再听这些：")}</b></p><ul style="text-align:left">${wr}</ul>`:(allRight?`<p>${rubyize("全对！太棒了！")}</p>`:"")}
@@ -1526,8 +1795,8 @@ function currentSpeak(){
   if(view==="home") return "小鱼你好呀。点开始复习吧。也可以先点一个关卡。";
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
   if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
-  if(view==="examHub") return "先练一练吧。选错了可以再选。像真考那样做一遍，一共三十题，满分一百分。";
-  if(view==="examQ") return EXAM[examI].speak;
+  if(view==="examHub") return "先选一套卷子吧。小鱼卷、小猫卷、彩虹卷、星星卷，还可以抽幸运卷。每套三十题。";
+  if(view==="examQ") return examQs()[examI].speak;
   if(view==="examEnd") {
     const full = examFull();
     const pct = full ? Math.round(examPts/full*100) : 0;
@@ -1585,7 +1854,7 @@ function bind(){
   document.getElementById("back")?.addEventListener("click", goHome);
   document.getElementById("reset")?.addEventListener("click", ()=>{
     localStorage.removeItem(STORE);
-    state.stars = 0; state.done = {}; state.examBest = 0;
+    state.stars = 0; state.done = {}; state.examBest = 0; state.paperBest = {};
     goHome();
   });
   document.getElementById("again")?.addEventListener("click", ()=>{ view="examHub"; render(); });
@@ -1600,6 +1869,12 @@ function bind(){
     if(b.dataset.m==="m7"){ view="examHub"; render(); }
     else openMod(b.dataset.m);
   });
+  document.querySelectorAll("[data-p]").forEach(b=>b.onclick = ()=>{
+    paperI = +b.dataset.p;
+    render(true);
+    const name = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
+    speak(name + "。点练一练，或者点模拟考。");
+  });
   document.getElementById("prac")?.addEventListener("click", ()=> startExam(false));
   document.getElementById("exam")?.addEventListener("click", ()=> startExam(true));
   document.getElementById("next")?.addEventListener("click", ()=>{
@@ -1607,7 +1882,7 @@ function bind(){
     else nextStep();
   });
 
-  const quizRoot = view==="examQ" ? EXAM[examI] : (view==="mod" ? STEPS[mid][step] : null);
+  const quizRoot = view==="examQ" ? examQs()[examI] : (view==="mod" ? STEPS[mid][step] : null);
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
     wireQuiz(quizRoot, view==="examQ" && examMode);
   }
@@ -1616,6 +1891,7 @@ function bind(){
 }
 
 function startExam(mode){
+  if(paperI === MIX_I) mixedQs = mixPaper();
   examMode = mode; examI=0; examScore=0; examPts=0; examWrong=[]; picked=null;
   view="examQ"; render();
 }
@@ -1666,7 +1942,7 @@ function wireQuiz(s, isExam){
 }
 
 function examAdvance(){
-  if(examI < EXAM.length-1){ examI++; picked=null; view="examQ"; render(); }
+  if(examI < examQs().length-1){ examI++; picked=null; view="examQ"; render(); }
   else { view="examEnd"; render(); }
 }
 
