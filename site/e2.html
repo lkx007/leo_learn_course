@@ -168,7 +168,7 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
   <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
   <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
 </div>
-<script src="e2-topics.js?v=prog1"></script>
+<script src="e2-topics.js?v=prog2"></script>
 <script>
 const STORE = "leo-e2-v5";
 const state = load();
@@ -186,6 +186,7 @@ function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
 /*PYBEGIN*/
 const PY = {
   "一": "yī",
+  "七": "qī",
   "三": "sān",
   "上": "shàng",
   "下": "xià",
@@ -201,6 +202,7 @@ const PY = {
   "串": "chuàn",
   "为": "wèi",
   "主": "zhǔ",
+  "举": "jǔ",
   "久": "jiǔ",
   "么": "me",
   "义": "yì",
@@ -236,6 +238,7 @@ const PY = {
   "仪": "yí",
   "们": "men",
   "件": "jiàn",
+  "任": "rèn",
   "优": "yōu",
   "会": "huì",
   "传": "chuán",
@@ -246,6 +249,7 @@ const PY = {
   "体": "tǐ",
   "作": "zuò",
   "你": "nǐ",
+  "例": "lì",
   "侦": "zhēn",
   "便": "biàn",
   "信": "xìn",
@@ -307,9 +311,12 @@ const PY = {
   "刷": "shuā",
   "刻": "kè",
   "前": "qián",
+  "剩": "shèng",
   "力": "lì",
+  "办": "bàn",
   "功": "gōng",
   "加": "jiā",
+  "务": "wù",
   "动": "dòng",
   "劲": "jìn",
   "劳": "láo",
@@ -370,6 +377,7 @@ const PY = {
   "吸": "xī",
   "吹": "chuī",
   "呀": "ya",
+  "告": "gào",
   "呢": "ne",
   "味": "wèi",
   "呼": "hū",
@@ -455,6 +463,7 @@ const PY = {
   "宝": "bǎo",
   "实": "shí",
   "审": "shěn",
+  "室": "shì",
   "宫": "gōng",
   "害": "hài",
   "家": "jiā",
@@ -472,6 +481,8 @@ const PY = {
   "层": "céng",
   "属": "shǔ",
   "山": "shān",
+  "岁": "suì",
+  "岔": "chà",
   "嵌": "qiàn",
   "工": "gōng",
   "左": "zuǒ",
@@ -523,6 +534,7 @@ const PY = {
   "心": "xīn",
   "忙": "máng",
   "快": "kuài",
+  "念": "niàn",
   "态": "tài",
   "怎": "zěn",
   "怕": "pà",
@@ -597,6 +609,7 @@ const PY = {
   "放": "fàng",
   "故": "gù",
   "敏": "mǐn",
+  "教": "jiào",
   "敢": "gǎn",
   "数": "shù",
   "整": "zhěng",
@@ -649,6 +662,7 @@ const PY = {
   "林": "lín",
   "果": "guǒ",
   "柄": "bǐng",
+  "某": "mǒu",
   "柜": "guì",
   "查": "chá",
   "标": "biāo",
@@ -659,11 +673,15 @@ const PY = {
   "根": "gēn",
   "格": "gé",
   "案": "àn",
+  "桌": "zhuō",
   "桶": "tǒng",
   "梯": "tī",
   "检": "jiǎn",
   "棒": "bàng",
   "植": "zhí",
+  "楚": "chǔ",
+  "楼": "lóu",
+  "概": "gài",
   "模": "mó",
   "橙": "chéng",
   "橡": "xiàng",
@@ -674,6 +692,7 @@ const PY = {
   "正": "zhèng",
   "步": "bù",
   "歪": "wāi",
+  "死": "sǐ",
   "段": "duàn",
   "每": "měi",
   "比": "bǐ",
@@ -691,6 +710,7 @@ const PY = {
   "沙": "shā",
   "没": "méi",
   "油": "yóu",
+  "治": "zhì",
   "沿": "yán",
   "法": "fǎ",
   "泡": "pào",
@@ -698,6 +718,7 @@ const PY = {
   "泥": "ní",
   "注": "zhù",
   "洋": "yáng",
+  "洗": "xǐ",
   "洞": "dòng",
   "流": "liú",
   "浇": "jiāo",
@@ -723,7 +744,9 @@ const PY = {
   "滴": "dī",
   "漆": "qī",
   "演": "yǎn",
+  "漱": "shù",
   "潮": "cháo",
+  "火": "huǒ",
   "灭": "miè",
   "灯": "dēng",
   "灰": "huī",
@@ -740,6 +763,7 @@ const PY = {
   "牌": "pái",
   "牙": "yá",
   "物": "wù",
+  "特": "tè",
   "状": "zhuàng",
   "狗": "gǒu",
   "独": "dú",
@@ -793,6 +817,7 @@ const PY = {
   "确": "què",
   "碍": "ài",
   "碎": "suì",
+  "碗": "wǎn",
   "碰": "pèng",
   "碳": "tàn",
   "磁": "cí",
@@ -855,10 +880,12 @@ const PY = {
   "网": "wǎng",
   "置": "zhì",
   "羽": "yǔ",
+  "翻": "fān",
   "老": "lǎo",
   "考": "kǎo",
   "者": "zhě",
   "而": "ér",
+  "耳": "ěr",
   "联": "lián",
   "肚": "dù",
   "肤": "fū",
@@ -873,6 +900,7 @@ const PY = {
   "脸": "liǎn",
   "腿": "tuǐ",
   "膀": "bǎng",
+  "膏": "gāo",
   "自": "zì",
   "至": "zhì",
   "舞": "wǔ",
@@ -885,6 +913,7 @@ const PY = {
   "苏": "sū",
   "苗": "miáo",
   "英": "yīng",
+  "苹": "píng",
   "草": "cǎo",
   "莓": "méi",
   "蒸": "zhēng",
@@ -899,6 +928,7 @@ const PY = {
   "蛋": "dàn",
   "蛹": "yǒng",
   "蛾": "é",
+  "蜡": "là",
   "蝙": "biān",
   "蝠": "fú",
   "融": "róng",
@@ -926,6 +956,7 @@ const PY = {
   "让": "ràng",
   "议": "yì",
   "记": "jì",
+  "讲": "jiǎng",
   "许": "xǔ",
   "论": "lùn",
   "设": "shè",
@@ -933,6 +964,7 @@ const PY = {
   "证": "zhèng",
   "评": "píng",
   "识": "shí",
+  "诉": "sù",
   "试": "shì",
   "话": "huà",
   "询": "xún",
@@ -1022,6 +1054,7 @@ const PY = {
   "锈": "xiù",
   "错": "cuò",
   "键": "jiàn",
+  "镜": "jìng",
   "长": "cháng",
   "门": "mén",
   "闪": "shǎn",
@@ -1066,6 +1099,7 @@ const PY = {
   "首": "shǒu",
   "马": "mǎ",
   "验": "yàn",
+  "骤": "zhòu",
   "高": "gāo",
   "魔": "mó",
   "鱼": "yú",
@@ -1375,7 +1409,7 @@ function htmlHome(){
     <div class="mascot">🐟</div>
     <h1>${rubyize("小鱼的积木比赛")}</h1>
     <p class="sub">${rubyize("积木编程课 · 少字 · 能听 · 点图画")}</p>
-    <div class="bubble">${rubyize("先听知识点，再做选择题 · 9 月 13 日下午 2 点")}</div>
+    <div class="bubble">${rubyize("先听概念和例子，再做题 · 9 月 13 日下午 2 点")}</div>
     <div class="row">
       <button class="big" id="goTopics">📚 知识点小课</button>
       <button class="big sec" id="goStart">🎒 比赛怎么考</button>
@@ -1492,8 +1526,8 @@ function htmlParent(){
       <li><b>电脑</b>：Win10 或 macOS 11+（<b>不要在 Mac 上装 Windows 来考</b>），内存 8G，C 盘 4G，<b>Chrome ≥109</b>，前置摄像头，键鼠能用，建议 50Mbps，<b>插上电源</b></li>
       <li><b>摄像头小窗</b>：选「访问该网站时允许」。脸和上半身在画面里。页面常开，中途退出可能丢进度</li>
       <li><b>喇叭</b>：打开网页先点「我要听」。Chrome 不允许一进门就自动说话。右下角大喇叭可再听一遍。电脑系统里要有中文语音。请硬刷新（Ctrl+Shift+R）</li>
-      <li><b>这是编程课</b>：图形化积木、顺序、如果、循环、变量、逻辑、侦测、函数、列表、字典、栈、广度、深度。水和空气、声音和光那些科学常识课已经拿掉</li>
-      <li><b>怎么练</b>：先点「知识点小课」听故事再选择题；再去闯关小测验做 30 题。问卷星原题文字太难，这里用一年级能听懂的说法</li>
+      <li><b>这是编程课</b>：算法、图形化积木、顺序、如果、循环、变量、逻辑、侦测、函数、递归、列表、字典、栈、广度、深度。水和空气、声音和光那些科学常识课已经拿掉</li>
+      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子（比如递归用套娃和数楼梯），再做判断和选择；然后再去闯关小测验做 30 题。问卷星原题文字太难，这里用一年级能听懂的说法</li>
     </ul>
     <p>网页课里的「模拟考」是给孩子练手的，<b>不是</b>官网那一次正式考试。弹出语言选择时选图形化 / Scratch，不要选 Python。</p>
     <div class="row">
@@ -1516,7 +1550,7 @@ function htmlTopicHub(){
   }).join("");
   return `<div class="emoji">📚</div>
     <h2 class="title">${rubyize("知识点小课")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先听故事，再点选择题。")}</p>
+    <p class="lines" style="text-align:center">${rubyize("先听概念和例子，再做判断和选择。")}</p>
     <p class="tiny">${rubyize("来自建模大赛和建模十一到十八的编程知识点。已经听 "+n+" / "+TOPICS.length+" 课")}</p>
     <div class="grid">${cards}</div>
     <div class="row"><button class="big sec" id="back">← 回家</button></div>`;
