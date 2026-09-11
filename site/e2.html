@@ -62,7 +62,7 @@ h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0;line-height:1.85}
 .prog>i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22c55e,#38bdf8);transition:width .3s}
 .emoji{font-size:4rem;text-align:center;line-height:1;margin:4px 0 8px}
 .title{font-size:1.55rem;margin:0 0 8px;text-align:center}
-.lines{font-size:1.28rem;margin:0}
+.lines{font-size:1.28rem;margin:0;text-align:center}
 .lines p{margin:.45em 0}
 .opts{display:grid;gap:12px;margin-top:14px}
 .opt{
@@ -105,7 +105,17 @@ h1{font-size:clamp(1.6rem,5vw,2.2rem);margin:.2em 0;line-height:1.85}
   width:68px;height:68px;border-radius:50%;border:0;font-size:1.8rem;
   background:#0ea5e9;color:#fff;box-shadow:0 8px 20px rgba(14,165,233,.45)
 }
+.fab.talk{background:#16a34a}
 .fab.home{right:92px;background:#f97316;font-size:1.4rem}
+.gate{
+  position:fixed;inset:0;z-index:40;
+  background:linear-gradient(#7dd3fc 0%, #fff7e8 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:24px;text-align:center
+}
+.gate.hide{display:none}
+.gate .mascot{font-size:5rem}
+.gate p{font-size:1.25rem;font-weight:800;max-width:22em}
 .clock{
   width:160px;height:160px;border-radius:50%;margin:8px auto;background:#fff;
   border:10px solid #0f172a;position:relative
@@ -151,6 +161,13 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 <div id="app"></div>
 <button class="fab home" id="btnHome" title="回家">🏠</button>
 <button class="fab" id="btnSpeak" title="再听一遍">🔊</button>
+<div class="gate" id="speechGate">
+  <div class="mascot">🐟</div>
+  <p id="gateText">点一下，开始听说话</p>
+  <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
+  <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
+</div>
+<script src="e2-topics.js"></script>
 <script>
 const STORE = "leo-e2-v4";
 const state = load();
@@ -160,8 +177,8 @@ let speakToken = 0;
 let preferredVoice = null;
 
 function load(){
-  try{ return Object.assign({stars:0, done:{}, examBest:0, paperBest:{}}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
-  catch(e){ return {stars:0, done:{}, examBest:0, paperBest:{}}; }
+  try{ return Object.assign({stars:0, done:{}, examBest:0, paperBest:{}, topicDone:{}}, JSON.parse(localStorage.getItem(STORE)||"{}")); }
+  catch(e){ return {stars:0, done:{}, examBest:0, paperBest:{}, topicDone:{}}; }
 }
 function save(){ localStorage.setItem(STORE, JSON.stringify(state)); }
 
@@ -172,6 +189,7 @@ const PY = {
   "上": "shàng",
   "下": "xià",
   "不": "bù",
+  "与": "yǔ",
   "且": "qiě",
   "东": "dōng",
   "丝": "sī",
@@ -179,6 +197,7 @@ const PY = {
   "两": "liǎng",
   "个": "gè",
   "中": "zhōng",
+  "串": "chuàn",
   "为": "wèi",
   "主": "zhǔ",
   "久": "jiǔ",
@@ -211,6 +230,7 @@ const PY = {
   "仪": "yí",
   "们": "men",
   "件": "jiàn",
+  "优": "yōu",
   "会": "huì",
   "传": "chuán",
   "位": "wèi",
@@ -219,11 +239,14 @@ const PY = {
   "体": "tǐ",
   "作": "zuò",
   "你": "nǐ",
+  "侦": "zhēn",
   "便": "biàn",
   "信": "xìn",
+  "修": "xiū",
   "倒": "dào",
   "候": "hòu",
   "借": "jiè",
+  "值": "zhí",
   "做": "zuò",
   "停": "tíng",
   "像": "xiàng",
@@ -234,11 +257,14 @@ const PY = {
   "免": "miǎn",
   "入": "rù",
   "全": "quán",
+  "八": "bā",
   "公": "gōng",
   "六": "liù",
   "共": "gòng",
   "关": "guān",
+  "兴": "xìng",
   "具": "jù",
+  "典": "diǎn",
   "养": "yǎng",
   "内": "nèi",
   "册": "cè",
@@ -253,17 +279,22 @@ const PY = {
   "冻": "dòng",
   "准": "zhǔn",
   "凉": "liáng",
+  "减": "jiǎn",
   "几": "jǐ",
   "出": "chū",
   "击": "jī",
+  "函": "hán",
   "分": "fēn",
   "切": "qiē",
+  "列": "liè",
   "则": "zé",
   "刚": "gāng",
   "初": "chū",
   "判": "pàn",
   "别": "bié",
   "到": "dào",
+  "制": "zhì",
+  "刷": "shuā",
   "刻": "kè",
   "前": "qián",
   "力": "lì",
@@ -287,6 +318,7 @@ const PY = {
   "危": "wēi",
   "卵": "luǎn",
   "卷": "juàn",
+  "历": "lì",
   "厉": "lì",
   "压": "yā",
   "原": "yuán",
@@ -297,12 +329,15 @@ const PY = {
   "反": "fǎn",
   "发": "fā",
   "变": "biàn",
+  "叠": "dié",
   "口": "kǒu",
+  "另": "lìng",
   "只": "zhǐ",
   "叫": "jiào",
   "叭": "bā",
   "可": "kě",
   "台": "tái",
+  "右": "yòu",
   "叶": "yè",
   "号": "hào",
   "吃": "chī",
@@ -313,6 +348,7 @@ const PY = {
   "后": "hòu",
   "向": "xiàng",
   "吗": "ma",
+  "否": "fǒu",
   "吧": "ba",
   "听": "tīng",
   "吵": "chǎo",
@@ -333,6 +369,7 @@ const PY = {
   "喘": "chuǎn",
   "喜": "xǐ",
   "喝": "hē",
+  "喵": "miāo",
   "嘴": "zuǐ",
   "器": "qì",
   "四": "sì",
@@ -354,9 +391,12 @@ const PY = {
   "垃": "lā",
   "型": "xíng",
   "城": "chéng",
+  "基": "jī",
   "塑": "sù",
   "塔": "tǎ",
+  "墙": "qiáng",
   "增": "zēng",
+  "壁": "bì",
   "士": "shì",
   "声": "shēng",
   "壶": "hú",
@@ -379,6 +419,7 @@ const PY = {
   "妈": "mā",
   "始": "shǐ",
   "委": "wěi",
+  "娃": "wá",
   "子": "zi",
   "孔": "kǒng",
   "字": "zì",
@@ -407,8 +448,10 @@ const PY = {
   "少": "shǎo",
   "就": "jiù",
   "尺": "chǐ",
+  "层": "céng",
   "属": "shǔ",
   "山": "shān",
+  "工": "gōng",
   "左": "zuǒ",
   "己": "jǐ",
   "已": "yǐ",
@@ -425,6 +468,7 @@ const PY = {
   "并": "bìng",
   "幸": "xìng",
   "幼": "yòu",
+  "广": "guǎng",
   "床": "chuáng",
   "序": "xù",
   "库": "kù",
@@ -439,6 +483,7 @@ const PY = {
   "弱": "ruò",
   "弹": "tán",
   "强": "qiáng",
+  "归": "guī",
   "当": "dāng",
   "录": "lù",
   "形": "xíng",
@@ -449,6 +494,7 @@ const PY = {
   "待": "dài",
   "很": "hěn",
   "得": "de",
+  "循": "xún",
   "微": "wēi",
   "心": "xīn",
   "忙": "máng",
@@ -456,10 +502,12 @@ const PY = {
   "态": "tài",
   "怎": "zěn",
   "怕": "pà",
+  "思": "sī",
   "性": "xìng",
   "总": "zǒng",
   "想": "xiǎng",
   "意": "yì",
+  "感": "gǎn",
   "慢": "màn",
   "懂": "dǒng",
   "戏": "xì",
@@ -476,22 +524,27 @@ const PY = {
   "扔": "rēng",
   "扣": "kòu",
   "执": "zhí",
+  "找": "zhǎo",
   "把": "bǎ",
   "抓": "zhuā",
   "抖": "dǒu",
   "报": "bào",
+  "抹": "mǒ",
   "抽": "chōu",
   "拉": "lā",
   "拌": "bàn",
+  "拍": "pāi",
   "拖": "tuō",
   "拟": "nǐ",
   "择": "zé",
   "拼": "pīn",
+  "拿": "ná",
   "持": "chí",
   "指": "zhǐ",
   "按": "àn",
   "挡": "dǎng",
   "挤": "jǐ",
+  "挨": "āi",
   "振": "zhèn",
   "捏": "niē",
   "换": "huàn",
@@ -533,6 +586,7 @@ const PY = {
   "星": "xīng",
   "是": "shì",
   "晒": "shài",
+  "晕": "yūn",
   "晚": "wǎn",
   "普": "pǔ",
   "暖": "nuǎn",
@@ -553,15 +607,19 @@ const PY = {
   "来": "lái",
   "杯": "bēi",
   "板": "bǎn",
+  "构": "gòu",
+  "林": "lín",
   "果": "guǒ",
   "柄": "bǐng",
   "柜": "guì",
   "查": "chá",
   "标": "biāo",
+  "栈": "zhàn",
   "树": "shù",
   "样": "yàng",
   "核": "hé",
   "根": "gēn",
+  "格": "gé",
   "案": "àn",
   "桶": "tǒng",
   "梯": "tī",
@@ -581,11 +639,15 @@ const PY = {
   "段": "duàn",
   "每": "měi",
   "比": "bǐ",
+  "毛": "máo",
   "气": "qì",
   "氧": "yǎng",
   "水": "shuǐ",
+  "永": "yǒng",
+  "汉": "hàn",
   "池": "chí",
   "汤": "tāng",
+  "汪": "wāng",
   "汽": "qì",
   "沉": "chén",
   "沙": "shā",
@@ -594,6 +656,7 @@ const PY = {
   "沿": "yán",
   "法": "fǎ",
   "泡": "pào",
+  "波": "bō",
   "泥": "ní",
   "注": "zhù",
   "洋": "yáng",
@@ -605,6 +668,8 @@ const PY = {
   "涂": "tú",
   "液": "yè",
   "淡": "dàn",
+  "深": "shēn",
+  "混": "hùn",
   "清": "qīng",
   "温": "wēn",
   "湿": "shī",
@@ -614,6 +679,7 @@ const PY = {
   "滚": "gǔn",
   "满": "mǎn",
   "滴": "dī",
+  "漆": "qī",
   "演": "yǎn",
   "潮": "cháo",
   "灭": "miè",
@@ -638,6 +704,7 @@ const PY = {
   "猫": "māo",
   "王": "wáng",
   "玩": "wán",
+  "环": "huán",
   "球": "qiú",
   "理": "lǐ",
   "琴": "qín",
@@ -648,6 +715,7 @@ const PY = {
   "电": "diàn",
   "画": "huà",
   "界": "jiè",
+  "留": "liú",
   "疼": "téng",
   "登": "dēng",
   "白": "bái",
@@ -656,6 +724,7 @@ const PY = {
   "盆": "pén",
   "盐": "yán",
   "监": "jiān",
+  "盒": "hé",
   "盖": "gài",
   "盘": "pán",
   "直": "zhí",
@@ -672,8 +741,11 @@ const PY = {
   "矮": "ǎi",
   "石": "shí",
   "砖": "zhuān",
+  "础": "chǔ",
   "确": "què",
+  "碍": "ài",
   "碎": "suì",
+  "碰": "pèng",
   "碳": "tàn",
   "磁": "cí",
   "磨": "mó",
@@ -681,20 +753,25 @@ const PY = {
   "离": "lí",
   "种": "zhǒng",
   "科": "kē",
+  "秒": "miǎo",
   "积": "jī",
   "移": "yí",
   "程": "chéng",
   "稳": "wěn",
+  "究": "jiū",
   "空": "kōng",
+  "穿": "chuān",
   "窗": "chuāng",
   "立": "lì",
   "竖": "shù",
   "站": "zhàn",
+  "符": "fú",
   "第": "dì",
   "等": "děng",
   "筐": "kuāng",
   "答": "dá",
   "简": "jiǎn",
+  "算": "suàn",
   "管": "guǎn",
   "箭": "jiàn",
   "箱": "xiāng",
@@ -724,6 +801,7 @@ const PY = {
   "缘": "yuán",
   "网": "wǎng",
   "置": "zhì",
+  "羽": "yǔ",
   "老": "lǎo",
   "考": "kǎo",
   "者": "zhě",
@@ -748,7 +826,9 @@ const PY = {
   "节": "jié",
   "花": "huā",
   "芽": "yá",
+  "苏": "sū",
   "苗": "miáo",
+  "英": "yīng",
   "蒸": "zhēng",
   "蓝": "lán",
   "藏": "cáng",
@@ -761,11 +841,14 @@ const PY = {
   "蛋": "dàn",
   "蛹": "yǒng",
   "蛾": "é",
+  "蝙": "biān",
+  "蝠": "fú",
   "融": "róng",
   "行": "xíng",
   "衣": "yī",
   "补": "bǔ",
   "表": "biǎo",
+  "袜": "wà",
   "被": "bèi",
   "裂": "liè",
   "装": "zhuāng",
@@ -779,6 +862,7 @@ const PY = {
   "角": "jiǎo",
   "解": "jiě",
   "言": "yán",
+  "计": "jì",
   "认": "rèn",
   "让": "ràng",
   "议": "yì",
@@ -787,7 +871,9 @@ const PY = {
   "论": "lùn",
   "设": "shè",
   "访": "fǎng",
+  "证": "zhèng",
   "评": "píng",
+  "识": "shí",
   "试": "shì",
   "话": "huà",
   "询": "xún",
@@ -822,9 +908,12 @@ const PY = {
   "软": "ruǎn",
   "轻": "qīng",
   "载": "zài",
+  "较": "jiào",
+  "辑": "jí",
   "边": "biān",
   "过": "guò",
   "运": "yùn",
+  "近": "jìn",
   "还": "hái",
   "这": "zhè",
   "进": "jìn",
@@ -835,19 +924,23 @@ const PY = {
   "送": "sòng",
   "逃": "táo",
   "选": "xuǎn",
+  "递": "dì",
   "途": "tú",
   "通": "tōng",
+  "逻": "luó",
   "遍": "biàn",
   "道": "dào",
   "避": "bì",
   "那": "nà",
   "部": "bù",
   "都": "dōu",
+  "醋": "cù",
   "醒": "xǐng",
   "里": "lǐ",
   "重": "zhòng",
   "量": "liàng",
   "金": "jīn",
+  "针": "zhēn",
   "钉": "dīng",
   "钟": "zhōng",
   "钮": "niǔ",
@@ -858,6 +951,8 @@ const PY = {
   "铜": "tóng",
   "银": "yín",
   "链": "liàn",
+  "锅": "guō",
+  "锈": "xiù",
   "错": "cuò",
   "键": "jiàn",
   "长": "cháng",
@@ -874,6 +969,8 @@ const PY = {
   "降": "jiàng",
   "险": "xiǎn",
   "随": "suí",
+  "隔": "gé",
+  "障": "zhàng",
   "雨": "yǔ",
   "雪": "xuě",
   "雹": "báo",
@@ -893,6 +990,7 @@ const PY = {
   "飞": "fēi",
   "食": "shí",
   "饭": "fàn",
+  "饼": "bǐng",
   "首": "shǒu",
   "马": "mǎ",
   "验": "yàn",
@@ -905,6 +1003,7 @@ const PY = {
   "鼠": "shǔ",
 };
 /*PYEND*/
+
 
 function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
@@ -924,19 +1023,22 @@ function rubyize(s){
   return out;
 }
 function pickVoice(){
-  const vs = speechSynthesis.getVoices() || [];
+  const vs = (window.speechSynthesis && speechSynthesis.getVoices()) || [];
   if(!vs.length) return null;
   const score = v => {
     const n = (v.name + " " + v.lang).toLowerCase();
-    if(/xiaoxiao|xiaoyi|xiaoyan|xiaoshuang|xiaomeng|yaoyao|huihui|yunxi|yunyang/.test(n)) return 120;
+    if(/xiaoxiao|xiaoyi|xiaoyan|xiaoshuang|xiaomeng|yaoyao|huihui|yunxi|yunyang|kangkang/.test(n)) return 120;
     if(/tingting|ting-ting|meijia|hanhan/.test(n)) return 110;
+    if(/microsoft/.test(n) && /zh|chinese|中文|普通话|cmn/.test(n)) return 100;
     if(/female|女/.test(n) && /zh/.test(n)) return 90;
     if(/google/.test(n) && /zh|chinese|中文|普通话/.test(n)) return 80;
-    if(/zh-cn/.test(n)) return 60;
-    if(/zh|chinese|中文/.test(n)) return 50;
+    if(/zh-cn|zh_cn|cmn-hans/.test(n)) return 70;
+    if(/zh-hk|zh-tw|zh/.test(n) || /chinese|中文|普通话|汉语/.test(n)) return 50;
     return 0;
   };
-  return [...vs].sort((a,b) => score(b) - score(a))[0];
+  let best = null, bestS = 0;
+  vs.forEach(v => { const s = score(v); if(s>bestS){ bestS=s; best=v; } });
+  return bestS > 0 ? best : null;
 }
 function speakChunks(text){
   const sentences = String(text).split(/[。！？!?；;\n]+/).map(s => s.trim()).filter(Boolean);
@@ -948,30 +1050,97 @@ function speakChunks(text){
   });
   return out.length ? out : [String(text)];
 }
+function isChineseVoice(v){
+  if(!v) return false;
+  return /zh|cmn|chinese|中文|普通话|汉语/i.test((v.lang||"")+" "+(v.name||""));
+}
+let speechUnlocked = false;
+function hideSpeechGate(){
+  const g = document.getElementById("speechGate");
+  if(g) g.classList.add("hide");
+}
+function unlockSpeech(){
+  speechUnlocked = true;
+  hideSpeechGate();
+  try{
+    speechSynthesis.getVoices();
+    const v = pickVoice();
+    if(v) preferredVoice = v;
+    if(speechSynthesis.paused) speechSynthesis.resume();
+  }catch(e){}
+}
+function queueUtterances(parts, token){
+  const fab = document.getElementById("btnSpeak");
+  if(fab) fab.classList.add("talk");
+  const v = pickVoice();
+  if(v) preferredVoice = v;
+  const voice = isChineseVoice(preferredVoice) ? preferredVoice : null;
+  try{ if(speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
+  parts.forEach((p, i) => {
+    const u = new SpeechSynthesisUtterance(p);
+    u.lang = "zh-CN";
+    u.rate = 0.72;
+    u.pitch = 1.08;
+    u.volume = 1;
+    if(voice) u.voice = voice;
+    if(i === parts.length-1){
+      u.onend = () => { if(token===speakToken && fab) fab.classList.remove("talk"); };
+    }
+    u.onerror = (ev) => {
+      if(fab) fab.classList.remove("talk");
+      if(ev && ev.error === "not-allowed"){
+        speechUnlocked = false;
+        const g = document.getElementById("speechGate");
+        if(g) g.classList.remove("hide");
+        const t = document.getElementById("gateText");
+        if(t) t.textContent = "请再点一次「我要听」，喇叭才会响。";
+      }
+    };
+    speechSynthesis.speak(u);
+  });
+}
 function speak(text){
   lastSpeak = text || lastSpeak;
   if(!text) text = lastSpeak;
   if(!text) return;
-  try{
-    window.speechSynthesis.cancel();
-    const token = ++speakToken;
-    preferredVoice = pickVoice() || preferredVoice;
-    const parts = speakChunks(text);
-    const sayOne = (i) => {
-      if(token !== speakToken || i >= parts.length) return;
-      const u = new SpeechSynthesisUtterance(parts[i]);
-      u.lang = "zh-CN";
-      u.rate = 0.72;
-      u.pitch = 1.08;
-      u.volume = 1;
-      if(preferredVoice) u.voice = preferredVoice;
-      u.onend = () => setTimeout(() => sayOne(i + 1), 420);
-      speechSynthesis.speak(u);
-    };
-    sayOne(0);
-  }catch(e){}
+  if(!window.speechSynthesis){
+    const g = document.getElementById("gateText");
+    if(g) g.textContent = "这个浏览器没有喇叭，请用谷歌 Chrome。";
+    return;
+  }
+  if(!speechUnlocked) return;
+  const token = ++speakToken;
+  const parts = speakChunks(text);
+  const busy = speechSynthesis.speaking || speechSynthesis.pending;
+  const start = () => {
+    if(token !== speakToken) return;
+    try{ queueUtterances(parts, token); }catch(e){}
+  };
+  // First tap: speak in this click. Do not wait for voices.
+  // Later pages: cancel the previous line, then queue the new one.
+  if(busy){
+    try{ speechSynthesis.cancel(); }catch(e){}
+    setTimeout(start, 60);
+  } else {
+    start();
+    setTimeout(() => {
+      if(token !== speakToken) return;
+      if(!speechSynthesis.speaking && !speechSynthesis.pending) start();
+    }, 280);
+  }
 }
-speechSynthesis.onvoiceschanged = () => { preferredVoice = pickVoice(); };
+if(window.speechSynthesis){
+  speechSynthesis.onvoiceschanged = () => {
+    const v = pickVoice();
+    if(v) preferredVoice = v;
+  };
+  setInterval(() => {
+    try{ if(speechSynthesis.speaking && speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
+  }, 400);
+  document.addEventListener("visibilitychange", () => {
+    try{ if(!document.hidden && speechSynthesis.paused) speechSynthesis.resume(); }catch(e){}
+  });
+}
 
 const MODULES = [
   {id:"m0", ic:"🎒", name:"准备出发", c:"#34d399", color:"准备比赛和检查电脑"},
@@ -1690,7 +1859,9 @@ const PAPERS = [
 ]}
 ];
 const MIX_I = PAPERS.length;
+const TOPICS = window.E2_TOPICS || [];
 let paperI = 0;
+let topicI = 0;
 let mixedQs = null;
 function examQs(){ return paperI === MIX_I ? (mixedQs || []) : PAPERS[paperI].qs; }
 function shuffle(arr){
@@ -1729,7 +1900,14 @@ function goHome(){
   view = "home"; render();
 }
 document.getElementById("btnHome").onclick = goHome;
-document.getElementById("btnSpeak").onclick = () => speak(lastSpeak);
+document.getElementById("btnSpeak").onclick = () => {
+  unlockSpeech();
+  speak(lastSpeak || currentSpeak());
+};
+document.getElementById("speechGate").addEventListener("click", () => {
+  unlockSpeech();
+  speak(currentSpeak() || "小鱼你好呀。先点大按钮，喇叭就会说话。");
+});
 
 function stopCam(){
   if(camStream){ camStream.getTracks().forEach(t=>t.stop()); camStream=null; }
@@ -1749,9 +1927,18 @@ function markDone(id){
 }
 
 function nextStep(){
-  const arr = STEPS[mid];
+  const arr = view==="topic" ? (TOPICS[topicI] && TOPICS[topicI].steps) : STEPS[mid];
+  if(!arr) return;
   if(step < arr.length-1){ step++; picked=null; orderSel=[]; render(); }
-  else { markDone(mid); view="doneMod"; render(); }
+  else {
+    if(view==="topic"){
+      const id = TOPICS[topicI].id;
+      if(!state.topicDone) state.topicDone = {};
+      state.topicDone[id] = true;
+      save();
+      view="topicHub"; render();
+    } else { markDone(mid); view="doneMod"; render(); }
+  }
 }
 
 function htmlHome(){
@@ -1764,6 +1951,7 @@ function htmlHome(){
     <div class="bubble">${rubyize("9 月 13 日 下午 2 点 · 三点那场进不去")}</div>
     <div class="row">
       <button class="big" id="goStart">▶ 开始复习</button>
+      <button class="big sec" id="goTopics">📚 知识点小课</button>
       <button class="big sec" id="goParent">👨‍👦 给爸爸妈妈</button>
     </div>
   </div>
@@ -1876,7 +2064,8 @@ function htmlParent(){
       <li><b>场地</b>：封闭、独立、安静。电脑答题 + 手机/平板微信监考（≥8.0.30）</li>
       <li><b>电脑</b>：Win10 或 macOS 11+（<b>不要在 Mac 上装 Windows 来考</b>），内存 8G，C 盘 4G，<b>Chrome ≥109</b>，前置摄像头，键鼠能用，建议 50Mbps，<b>插上电源</b></li>
       <li><b>摄像头小窗</b>：选「访问该网站时允许」。脸和上半身在画面里。页面常开，中途退出可能丢进度</li>
-      <li><b>支持</b>：设备/网络/系统问题立刻联系组委会。李老师 17675966796 · 咨询 010-58800540</li>
+      <li><b>喇叭</b>：打开网页先点「我要听」。Chrome 不允许一进门就自动说话。右下角大喇叭可再听一遍。电脑系统里要有中文语音</li>
+      <li><b>知识点小课</b>：建模大赛、建模 11–18 已做成「先听故事，再做选择题」。广度 / 深度只用图画故事，不要念问卷星原题</li>
     </ul>
     <p>网页课里的「模拟考」是给孩子练手的，<b>不是</b>官网那一次正式考试。弹出语言选择时选图形化 / Scratch，不要选 Python。</p>
     <div class="row">
@@ -1884,6 +2073,25 @@ function htmlParent(){
       <button class="big" id="reset" style="background:#64748b">清空星星重来</button>
     </div>
   </div>`;
+}
+
+function htmlTopicHub(){
+  const n = Object.keys(state.topicDone||{}).length;
+  const cards = TOPICS.map((t,i)=>{
+    const on = state.topicDone && state.topicDone[t.id];
+    return `<button class="mod ${on?"done":""}" data-t="${i}" style="--c:#38bdf8">
+      <div class="ic">${t.ic}</div>
+      <h3>${rubyize(t.name)}</h3>
+      <p>${rubyize(t.about||t.src||"")}</p>
+      ${on?'<span class="badge">★ 听过啦</span>':'<span class="badge" style="color:#94a3b8">先听再选</span>'}
+    </button>`;
+  }).join("");
+  return `<div class="emoji">📚</div>
+    <h2 class="title">${rubyize("知识点小课")}</h2>
+    <p class="lines" style="text-align:center">${rubyize("先听故事，再点选择题。")}</p>
+    <p class="tiny">${rubyize("来自建模大赛和建模十一到十八。已经听 "+n+" / "+TOPICS.length+" 课")}</p>
+    <div class="grid">${cards}</div>
+    <div class="row"><button class="big sec" id="back">← 回家</button></div>`;
 }
 
 function htmlExamHub(){
@@ -1975,9 +2183,11 @@ function htmlExamEnd(){
 }
 
 function currentSpeak(){
-  if(view==="home") return "小鱼你好呀。点开始复习吧。也可以先点一个关卡。";
+  if(view==="home") return "小鱼你好呀。先点中间大按钮，喇叭才会说话。也可以先点知识点小课。";
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
   if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
+  if(view==="topicHub") return "先选一课。每一课先听，再做选择题。";
+  if(view==="topic") return (TOPICS[topicI] && TOPICS[topicI].steps[step] && (TOPICS[topicI].steps[step].speak || TOPICS[topicI].steps[step].prompt)) || "";
   if(view==="examHub") return "先选一套卷子吧。有六套，还可以抽幸运卷。每套三十题。";
   if(view==="examQ") return examQs()[examI].speak;
   if(view==="examEnd") {
@@ -1996,6 +2206,20 @@ function render(skipSpeak){
 
   if(view==="home") body += htmlHome();
   else if(view==="parent") body += htmlParent();
+  else if(view==="topicHub") body += `<div class="card">${htmlTopicHub()}</div>`;
+  else if(view==="topic"){
+    const t = TOPICS[topicI];
+    const arr = t.steps;
+    const s = arr[step];
+    const pct = Math.round(step/arr.length*100);
+    body += `<div class="card">
+      <p class="tiny">${t.ic} ${rubyize(t.name)} · ${step+1}/${arr.length}</p>
+      <p class="tiny">${rubyize(t.src||"")}</p>
+      <div class="prog"><i style="width:${pct}%"></i></div>
+      ${s.type==="say"?htmlSay(s):""}
+      ${s.type==="quiz"?htmlQuiz(s,true):""}
+    </div>`;
+  }
   else if(view==="examHub") body += `<div class="card">${htmlExamHub()}</div>`;
   else if(view==="examQ") body += `<div class="card">${htmlExamQ()}</div>`;
   else if(view==="examEnd") body += `<div class="card">${htmlExamEnd()}</div>`;
@@ -2034,10 +2258,11 @@ function bind(){
     else openMod(first.id);
   });
   document.getElementById("goParent")?.addEventListener("click", ()=>{ view="parent"; render(); });
+  document.getElementById("goTopics")?.addEventListener("click", ()=>{ view="topicHub"; render(); });
   document.getElementById("back")?.addEventListener("click", goHome);
   document.getElementById("reset")?.addEventListener("click", ()=>{
     localStorage.removeItem(STORE);
-    state.stars = 0; state.done = {}; state.examBest = 0; state.paperBest = {};
+    state.stars = 0; state.done = {}; state.examBest = 0; state.paperBest = {}; state.topicDone = {};
     goHome();
   });
   document.getElementById("again")?.addEventListener("click", ()=>{ view="examHub"; render(); });
@@ -2052,6 +2277,9 @@ function bind(){
     if(b.dataset.m==="m7"){ view="examHub"; render(); }
     else openMod(b.dataset.m);
   });
+  document.querySelectorAll("[data-t]").forEach(b=>b.onclick = ()=>{
+    topicI = +b.dataset.t; step=0; picked=null; view="topic"; render();
+  });
   document.querySelectorAll("[data-p]").forEach(b=>b.onclick = ()=>{
     paperI = +b.dataset.p;
     render(true);
@@ -2065,7 +2293,9 @@ function bind(){
     else nextStep();
   });
 
-  const quizRoot = view==="examQ" ? examQs()[examI] : (view==="mod" ? STEPS[mid][step] : null);
+  const quizRoot = view==="examQ" ? examQs()[examI]
+    : (view==="mod" ? STEPS[mid][step]
+    : (view==="topic" ? (TOPICS[topicI] && TOPICS[topicI].steps[step]) : null));
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
     wireQuiz(quizRoot, view==="examQ" && examMode);
   }
@@ -2187,6 +2417,12 @@ function wireDevice(){
   });
 }
 
+(function(){
+  const t = document.getElementById("gateText");
+  if(t) t.innerHTML = rubyize("点一下，开始听说话");
+  const b = document.getElementById("gateGo");
+  if(b) b.innerHTML = "🔊 " + rubyize("我要听");
+})();
 render();
 </script>
 </body>

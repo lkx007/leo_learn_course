@@ -188,6 +188,8 @@ def collect_groups():
             return (0, 0, name)
         if "家长" in name:
             return (0, 1, name)
+        if "知识点" in name:
+            return (0, 2, name)
         return (1, first_number(name), name)
 
     e2_files.sort(key=e2_key)
@@ -425,7 +427,7 @@ def copy_assets():
     site_dir = os.path.join(ROOT, "site")
     if os.path.isdir(site_dir):
         for name in os.listdir(site_dir):
-            if name.endswith(".html"):
+            if name.endswith(".html") or name.endswith(".js"):
                 shutil.copy2(os.path.join(site_dir, name), os.path.join(DOCS_DIR, name))
 
 
