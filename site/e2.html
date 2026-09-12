@@ -162,6 +162,11 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 .imgzoom p{color:#fff;font-weight:800;margin:12px 0 0}
 .opt.sel{border-color:#38bdf8;background:#e0f2fe}
 .wjxmark{display:inline-block;background:#fff7ed;border:2px solid #fdba74;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:800;color:#9a3412;margin:0 auto 8px}
+.revq{border:3px solid #e2e8f0;border-radius:18px;padding:12px 14px;margin:12px 0;background:#f8fafc;text-align:left}
+.revq.wrong{border-color:#fecaca;background:#fff7f7}
+.revq.right{border-color:#bbf7d0;background:#f0fdf4}
+.revq h3{margin:0 0 8px;font-size:1.15rem;text-align:left}
+.revans{margin:6px 0;font-weight:800}
 @media (max-width:520px){
   .title{font-size:1.32rem}.lines{font-size:1.12rem}
   .tf{grid-template-columns:1fr}
@@ -183,8 +188,8 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
   <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
   <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
 </div>
-<script src="e2-topics.js?v=url2"></script>
-<script src="e2-wjx.js?v=url2"></script>
+<script src="e2-topics.js?v=seal1"></script>
+<script src="e2-wjx.js?v=seal1"></script>
 <script>
 const STORE = "leo-e2-v5";
 const state = load();
@@ -966,6 +971,7 @@ const PY = {
   "觉": "jiào",
   "角": "jiǎo",
   "解": "jiě",
+  "析": "xī",
   "言": "yán",
   "计": "jì",
   "认": "rèn",
@@ -1376,6 +1382,10 @@ let examWrong = [];
 let picked = null;
 let orderSel = [];
 let device = {chrome:false, sound:false, click:false, net:false, cam:false};
+let groupPicks = {};
+let reviewKind = "";
+let reviewStart = 0;
+let reviewRows = [];
 
 function qPts(s){ return s.tf ? 2 : 4; }
 function examFull(){ return examQs().reduce((a,q)=>a+qPts(q),0); }
@@ -1399,7 +1409,7 @@ function stopCam(){
 }
 
 function openMod(id){
-  mid = id; step = 0; picked=null; orderSel=[]; view="mod";
+  mid = id; step = 0; picked=null; orderSel=[]; groupPicks={}; view="mod";
   render();
 }
 
@@ -1414,6 +1424,10 @@ function markDone(id){
 function nextStep(){
   const arr = view==="topic" ? topicSteps(TOPICS[topicI]) : STEPS[mid];
   if(!arr) return;
+  if(isQuiz(arr[step]) && lastQuizInGroup(arr, step)){
+    openReview(view==="topic" ? "topic" : "mod");
+    return;
+  }
   if(step < arr.length-1){ step++; picked=null; orderSel=[]; render(); }
   else {
     if(view==="topic"){
@@ -1433,7 +1447,7 @@ function htmlHome(){
     <div class="mascot">🐟</div>
     <h1>${rubyize("小鱼的积木比赛")}</h1>
     <p class="sub">${rubyize("积木编程课 · 少字 · 能听 · 点图画")}</p>
-    <div class="bubble">${rubyize("先听例子，再做问卷星原题 · 9 月 13 日下午 2 点")}</div>
+    <div class="bubble">${rubyize("先听例子，再做题。做完交卷，才看答案 · 9 月 13 日下午 2 点")}</div>
     <div class="row">
       <button class="big" id="goTopics">📚 知识点小课</button>
       <button class="big sec" id="goStart">🎒 比赛怎么考</button>
@@ -1480,22 +1494,84 @@ function htmlSay(s){
     <div class="row"><button class="big" id="next">下一页 ▶</button></div>`;
 }
 
-function htmlQuiz(s, lock){
+function isQuiz(s){ return !!(s && s.type==="quiz"); }
+function currentArr(){
+  if(view==="examQ" || view==="examEnd" || (view==="review" && reviewKind==="exam")) return examQs();
+  if(view==="topic" || (view==="review" && reviewKind==="topic")) return topicSteps(TOPICS[topicI]);
+  return STEPS[mid] || [];
+}
+function lastQuizInGroup(arr, i){
+  return isQuiz(arr[i]) && (i===arr.length-1 || !isQuiz(arr[i+1]));
+}
+function firstQuizInGroup(arr, i){
+  let a = i;
+  while(a>0 && isQuiz(arr[a-1])) a--;
+  return a;
+}
+function pickKey(kind, idx){
+  if(kind==="exam") return "e"+idx;
+  if(kind==="topic") return "t"+idx;
+  if(kind==="mod") return "m"+idx;
+  if(view==="examQ") return "e"+idx;
+  if(view==="topic") return "t"+idx;
+  return "m"+idx;
+}
+function getPick(s, idx){
+  const kind = view==="examQ" ? "exam" : (view==="topic" ? "topic" : "mod");
+  return groupPicks[pickKey(kind, idx==null ? (view==="examQ"?examI:step) : idx)] || null;
+}
+function setPick(val){
+  const kind = view==="examQ" ? "exam" : (view==="topic" ? "topic" : "mod");
+  const idx = view==="examQ" ? examI : step;
+  groupPicks[pickKey(kind, idx)] = val;
+}
+function hasPick(s, p){
+  p = p || getPick(s);
+  if(!p) return false;
+  if(s.multi) return Array.isArray(p.ids) && p.ids.length>0;
+  return Number.isInteger(p.i);
+}
+function gradePick(s, p){
+  const need = (s.options||[]).map((o,i)=>o.ok?i:-1).filter(i=>i>=0);
+  const pickedIdx = s.multi ? (p && p.ids ? p.ids.slice() : []) : (p && Number.isInteger(p.i) ? [p.i] : []);
+  const good = pickedIdx.length===need.length && need.every(i=>pickedIdx.includes(i));
+  return {good, picked:pickedIdx, need};
+}
+function optText(s, idxs){
+  if(!idxs || !idxs.length) return "没选";
+  return idxs.map(i => {
+    const o = s.options[i];
+    return o ? (o.e + " " + o.t) : "";
+  }).filter(Boolean).join("、");
+}
+
+function htmlQuiz(s){
+  const arr = currentArr();
+  const idx = view==="examQ" ? examI : step;
+  const last = view==="examQ" ? (idx === arr.length-1) : lastQuizInGroup(arr, idx);
+  const first = view==="examQ" ? (idx===0) : (idx === firstQuizInGroup(arr, idx));
+  const nextLabel = last ? "交卷" : "下一题 ▶";
+  const p = getPick(s, idx);
+  const canNext = hasPick(s, p);
   const cls = s.tf ? "opts tf" : "opts";
   const pts = qPts(s);
   const kind = s.multi ? "多选题，对的都要点" : (s.tf ? "判断题" : "选择题");
   const src = s.src==="wjx" ? `<div class="wjxmark">${rubyize("问卷星原题")}</div>` : "";
   const img = s.img ? `<div class="qimg-wrap"><img class="qimg" src="${s.img}" alt="积木图"><p class="tiny">${rubyize("字看不清就点图，可以放大")}</p></div>` : "";
-  const chk = s.multi ? `<button class="big sec" id="chkMulti">检查多选</button>` : "";
   return `${src}<h2 class="title">${rubyize(s.prompt)}</h2>
     ${img}
-    <p class="tiny">${rubyize(kind+" · "+pts+" 分")}</p>
+    <p class="tiny">${rubyize(kind+" · "+pts+" 分 · 先选好，做完再交卷")}</p>
     <div class="${cls}">
-      ${s.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="e">${o.e}</span><span class="han">${rubyize(o.t)}</span></button>`).join("")}
+      ${s.options.map((o,i)=>{
+        const on = s.multi ? (p && p.ids && p.ids.includes(i)) : (p && p.i===i);
+        return `<button class="opt${on?" sel":""}" data-i="${i}"><span class="e">${o.e}</span><span class="han">${rubyize(o.t)}</span></button>`;
+      }).join("")}
     </div>
-    <div class="fb" id="fb"></div>
-    <div class="row">${chk}
-      <button class="big" id="next" ${lock?"disabled":""} style="${lock?"opacity:.4":""}">下一页 ▶</button></div>`;
+    <p class="tiny">${rubyize(s.multi?"对的都要点。现在不看答案。":"选错了也不出答案。做完交卷再看。")}</p>
+    <div class="row">
+      ${first?"":`<button class="big sec" id="prev">上一题</button>`}
+      <button class="big" id="next" ${canNext?"":"disabled"} style="${canNext?"":"opacity:.4"}">${rubyize(nextLabel)}</button>
+    </div>`;
 }
 
 function htmlOrder(s){
@@ -1557,7 +1633,7 @@ function htmlParent(){
       <li><b>摄像头小窗</b>：选「访问该网站时允许」。脸和上半身在画面里。页面常开，中途退出可能丢进度</li>
       <li><b>喇叭</b>：打开网页先点「我要听」。Chrome 不允许一进门就自动说话。右下角大喇叭可再听一遍。电脑系统里要有中文语音。请硬刷新（Ctrl+Shift+R）</li>
       <li><b>这是编程课</b>：算法、图形化积木、顺序、如果、嵌套判断、变量、逻辑、侦测、函数、递归、列表、字典、栈、广度、深度。科学常识 / 科学探究两套问卷星也收进来了，因为压缩包里有</li>
-      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子，再做<strong>问卷星原题</strong>（字是原句，家长帮忙念）。十六套 .url 共 320 题都在，闯关小测验也是同一批原题</li>
+      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子，再做<strong>问卷星原题</strong>（字是原句，家长帮忙念）。<b>做完一组再点交卷</b>，这时才出答案和解析。选错中途不出答案，避免孩子看答案乱点。十六套 .url 共 320 题都在，闯关小测验也是同一批原题</li>
     </ul>
     <p>网页课里的「模拟考」是给孩子练手的，<b>不是</b>官网那一次正式考试。弹出语言选择时选图形化 / Scratch，不要选 Python。</p>
     <div class="row">
@@ -1575,13 +1651,13 @@ function htmlTopicHub(){
       <div class="ic">${t.ic}</div>
       <h3>${rubyize(t.name)}</h3>
       <p>${rubyize(t.about||t.src||"")}</p>
-      ${on?'<span class="badge">★ 听过啦</span>':'<span class="badge" style="color:#94a3b8">先听再选</span>'}
+      ${on?'<span class="badge">★ 听过啦</span>':'<span class="badge" style="color:#94a3b8">先听再做</span>'}
     </button>`;
   }).join("");
   return `<div class="emoji">📚</div>
     <h2 class="title">${rubyize("知识点小课")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先听例子，再做问卷星原来的题。")}</p>
-    <p class="tiny">${rubyize("先听例子，再做问卷星原题。已经听 "+n+" / "+TOPICS.length+" 课")}</p>
+    <p class="lines" style="text-align:center">${rubyize("先听例子，再做题。做完交卷，才看答案。")}</p>
+    <p class="tiny">${rubyize("已经听 "+n+" / "+TOPICS.length+" 课")}</p>
     <div class="grid">${cards}</div>
     <div class="row"><button class="big sec" id="back">← 回家</button></div>`;
 }
@@ -1599,7 +1675,7 @@ function htmlExamHub(){
   return `<div class="emoji">⭐</div>
     <h2 class="title">${rubyize("闯关小测验")}</h2>
     <p class="lines" style="text-align:center">${rubyize("十六套都是问卷星原题。每套二十题。")}</p>
-    <p class="tiny">${rubyize("先听知识点小课，再做这套原题。幸运卷从全部原题里抽三十题。")}</p>
+    <p class="tiny">${rubyize("先听知识点小课。做完交卷，才看答案和解析。")}</p>
     <div class="papers">${papers}
       <button class="paper ${mixOn?"on":""}" data-p="${MIX_I}" style="grid-column:1/-1">
         <span class="ic">🎲</span>${rubyize("幸运卷 · 题库里抽三十题")}
@@ -1607,8 +1683,7 @@ function htmlExamHub(){
       </button>
     </div>
     <div class="row">
-      <button class="big ok" id="prac">😊 练一练<br><span style="font-size:.8rem;font-weight:600">选错了可以再选</span></button>
-      <button class="big" id="exam">📝 模拟考<br><span style="font-size:.8rem;font-weight:600">一遍过，看分数</span></button>
+      <button class="big" id="exam">📝 开始做题<br><span style="font-size:.8rem;font-weight:600">${rubyize("做完交卷才看答案")}</span></button>
     </div>`;
 }
 
@@ -1618,8 +1693,8 @@ function htmlExamQ(){
   const pct = Math.round(examI/qs.length*100);
   const pname = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
   return `<div class="prog"><i style="width:${pct}%"></i></div>
-    <div class="scorebar">${rubyize(pname+" · 第 "+(examI+1)+" / "+qs.length+" 题")}　·　${rubyize("已得 "+examPts+" 分")}</div>
-    ${htmlQuiz(s, true)}`;
+    <div class="scorebar">${rubyize(pname+" · 第 "+(examI+1)+" / "+qs.length+" 题")}　·　${rubyize("做完交卷才看答案")}</div>
+    ${htmlQuiz(s)}`;
 }
 
 function scoreTier(pct){
@@ -1645,50 +1720,100 @@ function scoreTier(pct){
   };
 }
 
-function htmlExamEnd(){
-  const qs = examQs();
-  const full = examFull();
-  const pct = full ? Math.min(100, Math.round(examPts/full*100)) : 0;
-  const pid = paperI === MIX_I ? "mix" : PAPERS[paperI].id;
-  if(examMode){
+function htmlExamEnd(){ return htmlReview(); }
+
+function htmlReview(){
+  const rows = reviewRows;
+  const n = rows.length || 1;
+  const right = rows.filter(r=>r.good).length;
+  const full = rows.reduce((a,r)=>a+qPts(r.s),0);
+  const pts = rows.reduce((a,r)=>a+(r.good?qPts(r.s):0),0);
+  const pct = full ? Math.min(100, Math.round(pts/full*100)) : 0;
+  const tier = scoreTier(pct);
+  const confetti = pct>=60 ? `<div class="confetti">${Array.from({length:22},(_,i)=>`<i style="left:${4+i*4.4}%;animation-delay:${(i%7)*0.12}s">${["⭐","🎉","🐟","🌟","🎈"][i%5]}</i>`).join("")}</div>` : "";
+  const title = reviewKind==="exam"
+    ? (paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name)
+    : (reviewKind==="topic" ? TOPICS[topicI].name : (MODULES.find(x=>x.id===mid)||{}).name || "");
+  const items = rows.map((r,i)=>{
+    const img = r.s.img ? `<div class="qimg-wrap"><img class="qimg" src="${r.s.img}" alt="积木图"></div>` : "";
+    return `<div class="revq ${r.good?"right":"wrong"}">
+      <p class="tiny">${rubyize((r.good?"对了":"错了")+" · 第 "+(i+1)+" / "+n+" 题")}</p>
+      <h3>${rubyize(r.s.prompt)}</h3>
+      ${img}
+      <p class="revans">${rubyize("你选："+optText(r.s, r.picked))}</p>
+      <p class="revans">${rubyize("答案："+optText(r.s, r.need))}</p>
+      <p>${rubyize("解析："+(r.s.why||""))}</p>
+    </div>`;
+  }).join("");
+  return `${confetti}<div class="cert">
+    <div class="cup">${tier.cup}</div>
+    <h2 class="title">${rubyize("交卷啦")}</h2>
+    <p class="lines">${rubyize(title)} · ${rubyize("答对 "+right+" / "+n+" 题")}</p>
+    <div class="scorebar">${rubyize("得分 "+pts+" / "+full)}　·　${rubyize("大约 "+pct+" 分")}</div>
+    <p class="tier">${rubyize(tier.line)}</p>
+    <p><b>${rubyize("下面是答案和解析")}</b></p>
+  </div>
+  ${items}
+  <div class="row">
+    <button class="big" id="retryGroup">再做一遍</button>
+    <button class="big sec" id="backReview">回去</button>
+  </div>`;
+}
+
+function openReview(kind){
+  const arr = kind==="exam" ? examQs() : (kind==="topic" ? topicSteps(TOPICS[topicI]) : STEPS[mid]);
+  const end = kind==="exam" ? arr.length-1 : step;
+  const start = kind==="exam" ? 0 : firstQuizInGroup(arr, end);
+  reviewKind = kind;
+  reviewStart = start;
+  reviewRows = [];
+  examWrong = [];
+  examScore = 0;
+  examPts = 0;
+  for(let i=start;i<=end;i++){
+    const s = arr[i];
+    if(!isQuiz(s)) continue;
+    const g = gradePick(s, groupPicks[pickKey(kind, i)]);
+    reviewRows.push({s, ...g});
+    if(g.good){ examScore++; examPts += qPts(s); }
+    else examWrong.push(s);
+  }
+  if(kind==="exam"){
+    const full = examFull();
+    const pct = full ? Math.min(100, Math.round(examPts/full*100)) : 0;
+    const pid = paperI === MIX_I ? "mix" : PAPERS[paperI].id;
     if(pct>state.examBest){ state.examBest=pct; }
     if(!state.paperBest) state.paperBest = {};
     if(!(pid in state.paperBest) || pct>state.paperBest[pid]) state.paperBest[pid]=pct;
     save();
+    markDone("m7");
+  } else if(kind==="topic"){
+    const id = TOPICS[topicI].id;
+    if(!state.topicDone) state.topicDone = {};
+    state.topicDone[id] = true;
+    save();
+  } else {
+    markDone(mid);
   }
-  markDone("m7");
-  const tier = scoreTier(pct);
-  const wr = examWrong.map(w=>`<li>${rubyize(w.prompt)} → ${rubyize(w.why)}</li>`).join("");
-  const allRight = examScore === qs.length && !examWrong.length;
-  const confetti = pct>=60 ? `<div class="confetti">${Array.from({length:22},(_,i)=>`<i style="left:${4+i*4.4}%;animation-delay:${(i%7)*0.12}s">${["⭐","🎉","🐟","🌟","🎈"][i%5]}</i>`).join("")}</div>` : "";
-  const pname = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
-  return `${confetti}<div class="cert">
-    <div class="cup">${tier.cup}</div>
-    <h2 class="title">${rubyize(tier.title)}</h2>
-    <p class="lines">${rubyize(pname)} · ${rubyize("答对 "+examScore+" / "+qs.length+" 题")}</p>
-    <div class="scorebar">${rubyize("得分 "+examPts+" / "+full)}　·　${rubyize("大约 "+pct+" 分")}</div>
-    <p class="tier">${rubyize(tier.line)}</p>
-    ${wr?`<p><b>${rubyize("再听这些：")}</b></p><ul style="text-align:left">${wr}</ul>`:(allRight?`<p>${rubyize("全对！太棒了！")}</p>`:"")}
-    <div class="row"><button class="big" id="again">再来一次</button>
-      <button class="big sec" id="back">回家</button></div>
-  </div>`;
+  view = "review";
+  render();
 }
 
 function currentSpeak(){
-  if(view==="home") return "小鱼你好呀。先点知识点小课。每一课先听，再做选择题。";
+  if(view==="home") return "小鱼你好呀。先点知识点小课。先听，再做题。做完交卷，才看答案。";
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
   if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
-  if(view==="topicHub") return "先选一课。每一课先听，再做选择题。";
+  if(view==="topicHub") return "先选一课。先听例子，再做题。做完交卷，才看答案。";
   if(view==="topic"){
     const s = topicSteps(TOPICS[topicI])[step];
     return (s && (s.speak || s.prompt)) || "";
   }
-  if(view==="examHub") return "这些卷子就是问卷星原来的题。先选一套，做完一套再换一套。";
+  if(view==="examHub") return "先选一套卷子。做完交卷，才看答案和解析。";
   if(view==="examQ") return examQs()[examI].speak;
-  if(view==="examEnd") {
-    const full = examFull();
-    const pct = full ? Math.round(examPts/full*100) : 0;
-    return scoreTier(pct).speak;
+  if(view==="review" || view==="examEnd") {
+    const n = reviewRows.length || 1;
+    const right = reviewRows.filter(r=>r.good).length;
+    return "交卷啦。对了 "+right+" 题，一共 "+n+" 题。往下看，才有答案和解析。";
   }
   const s = STEPS[mid][step];
   return s.speak || s.prompt || "";
@@ -1712,12 +1837,12 @@ function render(skipSpeak){
       <p class="tiny">${rubyize(t.src||"")}</p>
       <div class="prog"><i style="width:${pct}%"></i></div>
       ${s.type==="say"?htmlSay(s):""}
-      ${s.type==="quiz"?htmlQuiz(s,true):""}
+      ${s.type==="quiz"?htmlQuiz(s):""}
     </div>`;
   }
   else if(view==="examHub") body += `<div class="card">${htmlExamHub()}</div>`;
   else if(view==="examQ") body += `<div class="card">${htmlExamQ()}</div>`;
-  else if(view==="examEnd") body += `<div class="card">${htmlExamEnd()}</div>`;
+  else if(view==="examEnd" || view==="review") body += `<div class="card">${htmlReview()}</div>`;
   else if(view==="doneMod"){
     const m = MODULES.find(x=>x.id===mid);
     body += `<div class="card cert"><div class="cup">⭐</div>
@@ -1734,7 +1859,7 @@ function render(skipSpeak){
       <p class="tiny">${m.ic} ${m.name} · ${step+1}/${arr.length}</p>
       <div class="prog"><i style="width:${pct}%"></i></div>
       ${s.type==="say"?htmlSay(s):""}
-      ${s.type==="quiz"?htmlQuiz(s,true):""}
+      ${s.type==="quiz"?htmlQuiz(s):""}
       ${s.type==="order"?htmlOrder(s):""}
       ${s.type==="device"?htmlDevice():""}
     </div>`;
@@ -1773,26 +1898,37 @@ function bind(){
     else openMod(b.dataset.m);
   });
   document.querySelectorAll("[data-t]").forEach(b=>b.onclick = ()=>{
-    topicI = +b.dataset.t; step=0; picked=null; view="topic"; render();
+    topicI = +b.dataset.t; step=0; picked=null; groupPicks={}; view="topic"; render();
   });
   document.querySelectorAll("[data-p]").forEach(b=>b.onclick = ()=>{
     paperI = +b.dataset.p;
     render(true);
     const name = paperI === MIX_I ? "幸运卷" : PAPERS[paperI].name;
-    speak(name + "。点练一练，或者点模拟考。");
+    speak(name + "。点开始做题。做完交卷，才看答案。");
   });
-  document.getElementById("prac")?.addEventListener("click", ()=> startExam(false));
   document.getElementById("exam")?.addEventListener("click", ()=> startExam(true));
   document.getElementById("next")?.addEventListener("click", ()=>{
     if(view==="examQ") examAdvance();
     else nextStep();
+  });
+  document.getElementById("prev")?.addEventListener("click", ()=>{
+    if(view==="examQ" && examI>0){ examI--; picked=null; render(); }
+    else if((view==="topic" || view==="mod") && step>0 && isQuiz(currentArr()[step-1])){
+      step--; picked=null; render();
+    }
+  });
+  document.getElementById("retryGroup")?.addEventListener("click", retryGroup);
+  document.getElementById("backReview")?.addEventListener("click", ()=>{
+    if(reviewKind==="exam"){ view="examHub"; render(); }
+    else if(reviewKind==="topic"){ view="topicHub"; render(); }
+    else { view="doneMod"; render(); }
   });
 
   const quizRoot = view==="examQ" ? examQs()[examI]
     : (view==="mod" ? STEPS[mid][step]
     : (view==="topic" ? topicSteps(TOPICS[topicI])[step] : null));
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
-    wireQuiz(quizRoot, view==="examQ" && examMode);
+    wireQuiz(quizRoot);
   }
   wireImgZoom();
   if(view==="mod" && STEPS[mid][step].type==="order") wireOrder(STEPS[mid][step]);
@@ -1815,79 +1951,51 @@ function wireImgZoom(){
 
 function startExam(mode){
   if(paperI === MIX_I) mixedQs = mixPaper();
-  examMode = mode; examI=0; examScore=0; examPts=0; examWrong=[]; picked=null;
+  examMode = mode; examI=0; examScore=0; examPts=0; examWrong=[]; picked=null; groupPicks={};
   view="examQ"; render();
 }
 
-function wireQuiz(s, isExam){
-  const fb = document.getElementById("fb");
+function wireQuiz(s){
   const next = document.getElementById("next");
-  const finish = (good)=>{
-    if(good || isExam){
-      document.querySelectorAll(".opt").forEach((x,idx)=>{
-        if(s.options[idx].ok) x.classList.add("good");
-        else if(x.classList.contains("sel") || (!s.multi && picked===idx && !s.options[idx].ok)) x.classList.add("bad");
-      });
-    }
-    fb.className="fb "+(good?"good":"bad");
-    fb.innerHTML=rubyize((good?"对啦！":(isExam?"这题先记着。":"再想想。"))+ (s.why||""));
-    speak((good?"对啦，真棒。":(isExam?"这题先记着，下次就知道啦。":"没关系，再想想。"))+ (s.why||""));
-    if(good){
-      next.disabled=false; next.style.opacity=1;
-      if(view==="examQ"){ examScore++; examPts += qPts(s); }
-    }else{
-      if(isExam){
-        next.disabled=false; next.style.opacity=1;
-        examWrong.push(s);
-      } else picked = null;
-    }
+  const refreshNext = ()=>{
+    if(!next) return;
+    if(hasPick(s)){ next.disabled=false; next.style.opacity=1; }
+    else { next.disabled=true; next.style.opacity=.4; }
   };
   if(s.multi){
     document.querySelectorAll(".opt").forEach(b=>{
       b.onclick = ()=>{
-        if(picked!==null && isExam) return;
         b.classList.toggle("sel");
+        const ids = [...document.querySelectorAll(".opt")].map((x,i)=>x.classList.contains("sel")?i:-1).filter(i=>i>=0);
+        setPick({ids});
+        refreshNext();
       };
-    });
-    document.getElementById("chkMulti")?.addEventListener("click", ()=>{
-      if(picked!==null && isExam) return;
-      const sel = [...document.querySelectorAll(".opt")].map((x,i)=>x.classList.contains("sel")?i:-1).filter(i=>i>=0);
-      const need = s.options.map((o,i)=>o.ok?i:-1).filter(i=>i>=0);
-      const good = sel.length===need.length && need.every(i=>sel.includes(i));
-      picked = good ? 1 : (isExam ? 0 : null);
-      finish(good);
     });
     return;
   }
   document.querySelectorAll(".opt").forEach(b=>{
     b.onclick = ()=>{
-      const i = +b.dataset.i;
-      const o = s.options[i];
-      if(!isExam){
-        document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
-        if(o.ok){
-          b.classList.add("good");
-          picked=i;
-          finish(true);
-        }else{
-          b.classList.add("bad");
-          picked=null;
-          finish(false);
-        }
-      }else{
-        if(picked!==null) return;
-        picked=i;
-        document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
-        b.classList.add(o.ok?"good":"bad");
-        finish(!!o.ok);
-      }
+      document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel","good","bad"));
+      b.classList.add("sel");
+      setPick({i:+b.dataset.i});
+      refreshNext();
     };
   });
 }
 
 function examAdvance(){
   if(examI < examQs().length-1){ examI++; picked=null; view="examQ"; render(); }
-  else { view="examEnd"; render(); }
+  else openReview("exam");
+}
+
+function retryGroup(){
+  const arr = reviewKind==="exam" ? examQs() : (reviewKind==="topic" ? topicSteps(TOPICS[topicI]) : STEPS[mid]);
+  const end = reviewKind==="exam" ? arr.length-1 : (reviewStart + reviewRows.length - 1);
+  for(let i=reviewStart;i<=end;i++) delete groupPicks[pickKey(reviewKind, i)];
+  examScore=0; examPts=0; examWrong=[]; picked=null;
+  if(reviewKind==="exam"){ examI=0; view="examQ"; }
+  else { step = reviewStart; view = reviewKind==="topic" ? "topic" : "mod"; }
+  render();
 }
 
 function wireOrder(s){
