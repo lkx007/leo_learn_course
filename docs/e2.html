@@ -151,7 +151,15 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 .paper .ic{font-size:1.8rem;display:block}
 .paper.on{border-color:#f59e0b;background:#fff7ed}
 .paper .best{display:block;margin-top:4px;font-size:.8rem;color:#9a3412}
-.qimg{display:block;max-width:100%;height:auto;margin:8px auto 12px;border-radius:12px;border:3px solid #e2e8f0;background:#fff}
+.qimg-wrap{background:#fff;border:3px solid #e2e8f0;border-radius:16px;padding:10px;margin:8px 0 12px;overflow-x:auto}
+.qimg{display:block;width:100%;max-width:100%;height:auto;cursor:zoom-in;border-radius:8px;background:#fff}
+.imgzoom{
+  position:fixed;inset:0;z-index:50;background:rgba(15,23,42,.88);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px
+}
+.imgzoom.hide{display:none}
+.imgzoom img{max-width:96vw;max-height:80vh;width:auto;height:auto;background:#fff;border-radius:12px}
+.imgzoom p{color:#fff;font-weight:800;margin:12px 0 0}
 .opt.sel{border-color:#38bdf8;background:#e0f2fe}
 .wjxmark{display:inline-block;background:#fff7ed;border:2px solid #fdba74;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:800;color:#9a3412;margin:0 auto 8px}
 @media (max-width:520px){
@@ -163,6 +171,10 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 </head>
 <body>
 <div id="app"></div>
+<div class="imgzoom hide" id="imgZoom">
+  <img id="imgZoomPic" alt="放大的积木图">
+  <p>再点一下关上</p>
+</div>
 <button class="fab home" id="btnHome" title="回家">🏠</button>
 <button class="fab" id="btnSpeak" title="再听一遍">🔊</button>
 <div class="gate" id="speechGate">
@@ -171,8 +183,8 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
   <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
   <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
 </div>
-<script src="e2-topics.js?v=url1"></script>
-<script src="e2-wjx.js?v=url1"></script>
+<script src="e2-topics.js?v=url2"></script>
+<script src="e2-wjx.js?v=url2"></script>
 <script>
 const STORE = "leo-e2-v5";
 const state = load();
@@ -1473,7 +1485,7 @@ function htmlQuiz(s, lock){
   const pts = qPts(s);
   const kind = s.multi ? "多选题，对的都要点" : (s.tf ? "判断题" : "选择题");
   const src = s.src==="wjx" ? `<div class="wjxmark">${rubyize("问卷星原题")}</div>` : "";
-  const img = s.img ? `<img class="qimg" src="${s.img}" alt="">` : "";
+  const img = s.img ? `<div class="qimg-wrap"><img class="qimg" src="${s.img}" alt="积木图"><p class="tiny">${rubyize("字看不清就点图，可以放大")}</p></div>` : "";
   const chk = s.multi ? `<button class="big sec" id="chkMulti">检查多选</button>` : "";
   return `${src}<h2 class="title">${rubyize(s.prompt)}</h2>
     ${img}
@@ -1782,8 +1794,23 @@ function bind(){
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
     wireQuiz(quizRoot, view==="examQ" && examMode);
   }
+  wireImgZoom();
   if(view==="mod" && STEPS[mid][step].type==="order") wireOrder(STEPS[mid][step]);
   if(view==="mod" && STEPS[mid][step].type==="device") wireDevice();
+}
+
+function wireImgZoom(){
+  const box = document.getElementById("imgZoom");
+  const pic = document.getElementById("imgZoomPic");
+  if(!box || !pic) return;
+  document.querySelectorAll(".qimg").forEach(img=>{
+    img.onclick = ()=>{
+      pic.src = img.getAttribute("src") || "";
+      box.classList.remove("hide");
+      speak("图放大了。再点一下就能关上。");
+    };
+  });
+  box.onclick = ()=> box.classList.add("hide");
 }
 
 function startExam(mode){

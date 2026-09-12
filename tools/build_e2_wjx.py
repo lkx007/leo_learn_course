@@ -165,7 +165,8 @@ def main():
             multi = (not tf) and key.isalpha() and len(key) > 1
             img = ""
             if q["imgs"]:
-                img = f"e2-img/{sid}_{q['id']}_0.png"
+                svg = ROOT / "site" / "e2-img" / f"{sid}_{q['id']}_0.svg"
+                img = f"e2-img/{sid}_{q['id']}_0.svg" if svg.exists() else f"e2-img/{sid}_{q['id']}_0.png"
             options = []
             for i, t in enumerate(q["options"]):
                 e = "✅" if (tf and t in TF_YES or (tf and i == 0 and t in ("对", "正确"))) else (
