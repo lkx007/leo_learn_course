@@ -313,7 +313,7 @@ def build_course_html(*, online: bool = False):
                     rel_dir = ""
                 body = fix_relative_links(body, rel_dir)
                 if "E2课程" in path.replace("\\", "/"):
-                    e2_href = "e2.html?v=url1" if online else "site/e2.html"
+                    e2_href = "e2.html?v=url2" if online else "site/e2.html"
                     body += (
                         '<p class="run-web-wrap"><a class="run-web" href="%s">'
                         "▶ 打开小鱼的积木比赛（网页课）</a></p>" % e2_href
@@ -647,7 +647,7 @@ LANDING_PAGE = """<!DOCTYPE html>
     <h1>🐟 小鱼编程课程</h1>
     <p>为 7 岁孩子设计的编程学习站 · E2 比赛复习 · Scratch 玩 · Python 练 · AI 创</p>
     <div class="hero-btns">
-      <a class="btn btn-primary" href="e2.html?v=url1">🏆 E2 积木比赛复习</a>
+      <a class="btn btn-primary" href="e2.html?v=url2">🏆 E2 积木比赛复习</a>
       <a class="btn btn-secondary" href="course.html">📖 打开全部课程（{total} 篇）</a>
     </div>
   </header>
@@ -655,7 +655,7 @@ LANDING_PAGE = """<!DOCTYPE html>
   <div class="path e2-banner">
     <p>🏆 小鱼已报名 <strong>E2 图形化编程建模（个人赛）</strong></p>
     <p>小学低年级初赛 · <strong>9 月 13 日 14:00–15:00</strong> · 选择题 + 判断题</p>
-    <p style="margin-top:14px"><a class="btn btn-primary" href="e2.html?v=url1">🐟 打开能听能点的复习课</a>
+    <p style="margin-top:14px"><a class="btn btn-primary" href="e2.html?v=url2">🐟 打开能听能点的复习课</a>
       <a class="btn btn-secondary" href="course.html#doc-E2课程大纲-md" style="margin-left:8px">家长指南</a></p>
   </div>
 
@@ -675,7 +675,7 @@ LANDING_PAGE = """<!DOCTYPE html>
   <section class="section tools-section">
     <h2>快捷入口</h2>
     <div class="hero-btns">
-      <a class="btn btn-primary" href="e2.html?v=url1">🏆 E2 复习课</a>
+      <a class="btn btn-primary" href="e2.html?v=url2">🏆 E2 复习课</a>
       <a class="btn btn-primary" href="day1.html">⭐ 第一课流程</a>
       <a class="btn btn-primary" href="python.html">🐍 Python 实验室</a>
       <a class="btn btn-primary" href="voice-ai.html">🎤 语音指挥 AI</a>
