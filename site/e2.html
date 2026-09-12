@@ -188,8 +188,8 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
   <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
   <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
 </div>
-<script src="e2-topics.js?v=seal1"></script>
-<script src="e2-wjx.js?v=seal1"></script>
+<script src="e2-topics.js?v=teach1"></script>
+<script src="e2-wjx.js?v=teach1"></script>
 <script>
 const STORE = "leo-e2-v5";
 const state = load();
@@ -1132,6 +1132,101 @@ const PY = {
   "默": "mò",
   "鼠": "shǔ",
   "齐": "qí",
+  "专": "zhuān",
+  "世": "shì",
+  "丙": "bǐng",
+  "亿": "yì",
+  "令": "lìng",
+  "伍": "wǔ",
+  "伸": "shēn",
+  "余": "yú",
+  "依": "yī",
+  "保": "bǎo",
+  "偶": "ǒu",
+  "其": "qí",
+  "况": "kuàng",
+  "凸": "tū",
+  "升": "shēng",
+  "厚": "hòu",
+  "双": "shuāng",
+  "叮": "dīng",
+  "含": "hán",
+  "坏": "huài",
+  "壳": "ké",
+  "处": "chù",
+  "奖": "jiǎng",
+  "姓": "xìng",
+  "守": "shǒu",
+  "将": "jiāng",
+  "尔": "ěr",
+  "尽": "jìn",
+  "尾": "wěi",
+  "岛": "dǎo",
+  "差": "chā",
+  "布": "bù",
+  "弄": "nòng",
+  "张": "zhāng",
+  "律": "lǜ",
+  "必": "bì",
+  "情": "qíng",
+  "托": "tuō",
+  "抄": "chāo",
+  "拆": "chāi",
+  "招": "zhāo",
+  "搜": "sōu",
+  "效": "xiào",
+  "敌": "dí",
+  "旋": "xuán",
+  "暗": "àn",
+  "杂": "zá",
+  "杆": "gān",
+  "极": "jí",
+  "栏": "lán",
+  "桥": "qiáo",
+  "械": "xiè",
+  "梳": "shū",
+  "母": "mǔ",
+  "港": "gǎng",
+  "溢": "yì",
+  "澳": "ào",
+  "煤": "méi",
+  "珠": "zhū",
+  "疑": "yí",
+  "矩": "jǔ",
+  "研": "yán",
+  "端": "duān",
+  "筛": "shāi",
+  "签": "qiān",
+  "终": "zhōng",
+  "绕": "rào",
+  "绩": "jì",
+  "翘": "qiào",
+  "良": "liáng",
+  "词": "cí",
+  "误": "wù",
+  "跷": "qiāo",
+  "输": "shū",
+  "达": "dá",
+  "返": "fǎn",
+  "逐": "zhú",
+  "速": "sù",
+  "造": "zào",
+  "逢": "féng",
+  "遵": "zūn",
+  "邻": "lín",
+  "配": "pèi",
+  "锁": "suǒ",
+  "阶": "jiē",
+  "阻": "zǔ",
+  "限": "xiàn",
+  "隧": "suì",
+  "靠": "kào",
+  "须": "xū",
+  "预": "yù",
+  "餐": "cān",
+  "骗": "piàn",
+  "收": "shōu",
+  "缩": "suō",
 };
 /*PYEND*/
 
@@ -1447,7 +1542,7 @@ function htmlHome(){
     <div class="mascot">🐟</div>
     <h1>${rubyize("小鱼的积木比赛")}</h1>
     <p class="sub">${rubyize("积木编程课 · 少字 · 能听 · 点图画")}</p>
-    <div class="bubble">${rubyize("先听例子，再做题。做完交卷，才看答案 · 9 月 13 日下午 2 点")}</div>
+    <div class="bubble">${rubyize("先把原题会考的词听懂，再做题交卷 · 9 月 13 日下午 2 点")}</div>
     <div class="row">
       <button class="big" id="goTopics">📚 知识点小课</button>
       <button class="big sec" id="goStart">🎒 比赛怎么考</button>
@@ -1633,7 +1728,7 @@ function htmlParent(){
       <li><b>摄像头小窗</b>：选「访问该网站时允许」。脸和上半身在画面里。页面常开，中途退出可能丢进度</li>
       <li><b>喇叭</b>：打开网页先点「我要听」。Chrome 不允许一进门就自动说话。右下角大喇叭可再听一遍。电脑系统里要有中文语音。请硬刷新（Ctrl+Shift+R）</li>
       <li><b>这是编程课</b>：算法、图形化积木、顺序、如果、嵌套判断、变量、逻辑、侦测、函数、递归、列表、字典、栈、广度、深度。科学常识 / 科学探究两套问卷星也收进来了，因为压缩包里有</li>
-      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子，再做<strong>问卷星原题</strong>（字是原句，家长帮忙念）。<b>做完一组再点交卷</b>，这时才出答案和解析。选错中途不出答案，避免孩子看答案乱点。十六套 .url 共 320 题都在，闯关小测验也是同一批原题</li>
+      <li><b>怎么练</b>：先点「知识点小课」。每一课会先把这套原题要考的词讲完（比如一层一层找会先讲队列、时间复杂度 O(n+m)），再做<strong>问卷星原题</strong>（字是原句，家长帮忙念）。<b>做完一组再点交卷</b>，这时才出答案和解析。选错中途不出答案。十六套 .url 共 320 题都在</li>
     </ul>
     <p>网页课里的「模拟考」是给孩子练手的，<b>不是</b>官网那一次正式考试。弹出语言选择时选图形化 / Scratch，不要选 Python。</p>
     <div class="row">
@@ -1656,7 +1751,7 @@ function htmlTopicHub(){
   }).join("");
   return `<div class="emoji">📚</div>
     <h2 class="title">${rubyize("知识点小课")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先听例子，再做题。做完交卷，才看答案。")}</p>
+    <p class="lines" style="text-align:center">${rubyize("每一课先教原题会考的词，再做题。")}</p>
     <p class="tiny">${rubyize("已经听 "+n+" / "+TOPICS.length+" 课")}</p>
     <div class="grid">${cards}</div>
     <div class="row"><button class="big sec" id="back">← 回家</button></div>`;
@@ -1800,10 +1895,10 @@ function openReview(kind){
 }
 
 function currentSpeak(){
-  if(view==="home") return "小鱼你好呀。先点知识点小课。先听，再做题。做完交卷，才看答案。";
+  if(view==="home") return "小鱼你好呀。先点知识点小课。每一课先把原题会考的词听懂，再做题。";
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
   if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
-  if(view==="topicHub") return "先选一课。先听例子，再做题。做完交卷，才看答案。";
+  if(view==="topicHub") return "先选一课。先听这一课会考的词，再做题。做完交卷，才看答案。";
   if(view==="topic"){
     const s = topicSteps(TOPICS[topicI])[step];
     return (s && (s.speak || s.prompt)) || "";
