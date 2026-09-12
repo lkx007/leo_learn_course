@@ -17,7 +17,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"好算法可以永远不停吗？", prompt:"好算法能永远不停吗？", tf:true,
    options:[{e:"✅", t:"能永远转", ok:false},{e:"🛑", t:"不行，要能停下", ok:true}], why:"做完要停。"}
 ]},
-{id:"g1", ic:"🐱", name:"图形化编程", src:"建模大赛 · 图形化 / 函数", about:"拼积木、自制积木", steps:[
+{id:"g1", wjx:"mepsL4r", ic:"🐱", name:"图形化编程", src:"建模大赛 · 图形化 / 函数", about:"拼积木、自制积木", steps:[
   {type:"say", emoji:"🧩", title:"图形化是什么？", speak:"图形化编程，就是用积木画画一样拼程序。不用打很多字。一块积木，常常就是算法里的一步。",
    lines:["积木拼在一起","不用打很多字","一块积木 ≈ 一步"]},
   {type:"say", emoji:"🚩", title:"绿旗开始", speak:"绿旗是开始。红圆是停止。积木要从上往下手拉手。上面的先做，下面的后做。",
@@ -39,7 +39,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"绿旗是停止吗？", prompt:"绿旗是停止吗？", tf:true,
    options:[{e:"✅", t:"是停止", ok:false},{e:"🚩", t:"不是，绿旗是开始", ok:true}], why:"绿旗开始，红圆停止。"}
 ]},
-{id:"g2", ic:"⬇️", name:"从上往下做", src:"建模大赛 · 顺序结构", about:"程序像排队", steps:[
+{id:"g2", wjx:"wFT7CW7", ic:"⬇️", name:"从上往下做", src:"建模大赛 · 顺序结构", about:"程序像排队", steps:[
   {type:"say", emoji:"🚶", title:"谁先谁后", speak:"积木手拉手，上面的先做，下面的后做。这叫顺序。算法也要排队。",
    lines:["上面先","下面后","顺序 = 排队做事"]},
   {type:"say", emoji:"🧦", title:"先穿袜子", speak:"先穿袜子，再穿鞋子。要是先穿鞋子，袜子就穿不进去。程序也一样。",
@@ -55,7 +55,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"可以先说你好，再点绿旗开始吗？", prompt:"能先说话再开始吗？", tf:true,
    options:[{e:"✅", t:"能，倒过来也行", ok:false},{e:"🚩", t:"不行，要先开始", ok:true}], why:"没有开始，后面的积木不会动。"}
 ]},
-{id:"g3", ic:"❓", name:"如果积木", src:"建模大赛 · 条件判断", about:"对了才做", steps:[
+{id:"g3", wjx:"hVttuQl", ic:"❓", name:"如果积木", src:"建模大赛 · 条件判断", about:"对了才做", steps:[
   {type:"say", emoji:"🚦", title:"先问再做", speak:"过马路要先看灯。灯是绿的，才走。灯是红的，就停。程序也会先问一句。",
    lines:["先问对不对","对了才做"]},
   {type:"say", emoji:"🚪", title:"如果…那么", speak:"如果碰到墙壁，那么就转身。条件成立，才做里面的事。不成立，就跳过。",
@@ -66,6 +66,8 @@ window.E2_TOPICS = [
    lines:["60 分不够 90 分","走否则那条路"]},
   {type:"say", emoji:"🪆", title:"里面还有如果", speak:"外面先问及格了吗。及格了，再问是不是优秀。外面不对，里面就先不做。",
    lines:["外面先问","外面对了，才问里面"]},
+  {type:"say", emoji:"🔁", title:"和再做一遍不一样", speak:"如果是选一条路，里面最多做一遍。循环是再做很多遍。一个选路，一个转圈。原题里也会问这两兄弟有什么不一样。",
+   lines:["如果：选路","循环：再做"]},
   {type:"quiz", speak:"如果积木是干什么的？", prompt:"如果积木是？",
    options:[{e:"❓", t:"先判断，对了才做", ok:true},{e:"🔁", t:"一直重复做", ok:false}], why:"如果是选路，不是转圈。"},
   {type:"quiz", speak:"条件不成立，里面的积木会做吗？", prompt:"条件不对，里面会做吗？",
@@ -75,23 +77,17 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"那么和否则会同时做完吗？", prompt:"那么和否则会同时做吗？", tf:true,
    options:[{e:"✅", t:"会同时做", ok:false},{e:"1️⃣", t:"不会，只走一条", ok:true}], why:"一次只走一条路。"}
 ]},
-{id:"g4", ic:"🔁", name:"再做一遍", src:"建模大赛 · 循环", about:"转圈做事", steps:[
-  {type:"say", emoji:"👏", title:"拍手十次", speak:"想拍手十次。可以写十块拍手积木。也可以写：重复十次，拍手。这叫循环。",
-   lines:["重复 = 再做几遍","比写十次更省事"]},
-  {type:"say", emoji:"🔁", title:"橙色积木", speak:"橙色积木常常说：再做一遍。可以做固定次数，也可以一直做到某个条件为止。",
-   lines:["做几遍","或者做到条件成立"]},
-  {type:"say", emoji:"🪆", title:"里面还有圈", speak:"外面转三圈。每转一圈，里面拍两下手。这叫圈圈里还有圈圈。一共拍六下手。",
-   lines:["外面 3 次","里面每次 2 下","3 乘 2 = 6"]},
-  {type:"say", emoji:"🛤️", title:"和如果不一样", speak:"如果是选一条路，里面最多做一遍。循环是再做很多遍。一个选路，一个转圈。",
-   lines:["如果：选路","循环：再做"]},
-  {type:"quiz", speak:"重复积木常常干什么？", prompt:"重复积木常常？",
-   options:[{e:"🔁", t:"再做几遍", ok:true},{e:"❓", t:"只判断一次", ok:false}], why:"循环是重复做。"},
-  {type:"quiz", speak:"分支和循环有什么不一样？", prompt:"分支和循环谁不同？",
-   options:[{e:"🛤️", t:"分支选路，循环再做", ok:true},{e:"🍪", t:"完全一样", ok:false}], why:"分支选一条路，循环做很多遍。"},
-  {type:"quiz", speak:"外面转圈、里面再拍手，可以吗？", prompt:"圈圈里面还能有圈圈吗？", tf:true,
-   options:[{e:"✅", t:"可以", ok:true},{e:"❌", t:"不可以", ok:false}], why:"循环里面还可以再放循环。"}
+{id:"g4", wjx:"Qve0fU5", ic:"🪆", name:"嵌套判断", src:"7-嵌套循环结构.url · 实为嵌套如果", about:"如果里面再放如果", steps:[
+  {type:"say", emoji:"🪆", title:"如果里面还有如果", speak:"外面先问：及格了吗。及格了，再问：优秀吗。外面不对，里面先不问。这就叫嵌套判断。",
+   lines:["外面先问","外面对了，才问里面"]},
+  {type:"say", emoji:"💯", title:"分数例子", speak:"六十分。外面问：大于六十分吗。没有。所以不会再问优不优秀。什么都不说。",
+   lines:["60 分不够及格线","里面那一层不做"]},
+  {type:"say", emoji:"🔑", title:"两把钥匙", speak:"门要先有钥匙，再问有没有宝石。少了钥匙，根本不问宝石。两层问题，叠在一起。",
+   lines:["先钥匙","再宝石"]},
+  {type:"say", emoji:"🔁", title:"和循环不一样", speak:"循环是再做几遍。嵌套如果还是在选路，只是路里面还有岔路。压缩包文件名叫嵌套循环，卷子上其实是嵌套如果。",
+   lines:["循环：再做","嵌套如果：路里面还有路"]}
 ]},
-{id:"g5", ic:"👀", name:"侦测小眼睛", src:"建模11-18 · 侦测与感知", about:"碰到、问一问", steps:[
+{id:"g5", wjx:"topN3MT", ic:"👀", name:"侦测小眼睛", src:"建模11-18 · 侦测与感知", about:"碰到、问一问", steps:[
   {type:"say", emoji:"👀", title:"侦测积木", speak:"侦测积木像小眼睛、小耳朵。问：碰到鼠标了吗？碰到颜色了吗？现在亮不亮？",
    lines:["侦测 = 看一看、问一问"]},
   {type:"say", emoji:"🐱", title:"举个例子", speak:"小猫碰到红苹果，就加一分。程序要先侦测：碰到红色了吗？碰到了，才加分。",
@@ -111,7 +107,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"计时器常常算侦测积木吗？", prompt:"计时器算侦测吗？", tf:true,
    options:[{e:"✅", t:"算", ok:true},{e:"❌", t:"不算", ok:false}], why:"计时器在侦测一类里。"}
 ]},
-{id:"g6", ic:"📦", name:"小盒子变量", src:"建模大赛 · 变量", about:"盒子里放数字", steps:[
+{id:"g6", wjx:"Q0Wn0tC", ic:"📦", name:"小盒子变量", src:"建模大赛 · 变量", about:"盒子里放数字", steps:[
   {type:"say", emoji:"📦", title:"变量是盒子", speak:"变量像小盒子。盒子有名字，里面可以放数字，也可以放字。分数、步数，都能放进去。",
    lines:["盒子有名字","里面放数字或字"]},
   {type:"say", emoji:"🎮", title:"举个例子", speak:"做一个得分盒子。开始是零。吃到金币，盒子变成一。再吃一个，变成二。",
@@ -127,7 +123,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"把盒子里的数说出来，会改盒子吗？", prompt:"说出来会改盒子吗？", tf:true,
    options:[{e:"✅", t:"会改", ok:false},{e:"🗣️", t:"不会改，只是看一看", ok:true}], why:"读出来不会赋值。"}
 ]},
-{id:"g7", ic:"🔗", name:"并且或者不是", src:"建模大赛 · 逻辑", about:"两个条件怎么连", steps:[
+{id:"g7", wjx:"h03VuQl", ic:"🔗", name:"并且或者不是", src:"建模大赛 · 逻辑", about:"两个条件怎么连", steps:[
   {type:"say", emoji:"🤝", title:"并且", speak:"并且，是两个都要对。出门要穿鞋子，并且要带书包。少一样都不行。",
    lines:["并且 = 两个都要"]},
   {type:"say", emoji:"🔑", title:"开门例子", speak:"门要钥匙，并且要宝石，才开。只有钥匙，门还是关着。",
@@ -143,7 +139,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"开门要钥匙并且宝石。只有钥匙，门开吗？", prompt:"只有钥匙，并且门开吗？", tf:true,
    options:[{e:"✅", t:"开", ok:false},{e:"🔒", t:"不开，还要宝石", ok:true}], why:"并且要两个都有。"}
 ]},
-{id:"g8", ic:"➕", name:"数字会算", src:"建模大赛 · 运算符", about:"加一加、减一减", steps:[
+{id:"g8", wjx:"wf76hCW", ic:"➕", name:"数字会算", src:"建模大赛 · 运算符", about:"加一加、减一减", steps:[
   {type:"say", emoji:"➕", title:"加和减", speak:"积木里也可以算数。三加二等于五。五减一等于四。加会变多，减会变少。",
    lines:["3 + 2 = 5","5 − 1 = 4"]},
   {type:"say", emoji:"🍎", title:"比苹果", speak:"左边五颗苹果，右边三颗。五大于三，所以左边更多。大于就是更大。小于就是更小。等于就是一样。",
@@ -157,7 +153,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"有括号要先算括号吗？", prompt:"有括号先算括号吗？", tf:true,
    options:[{e:"✅", t:"要先算", ok:true},{e:"❌", t:"不用", ok:false}], why:"括号里的优先。"}
 ]},
-{id:"g11", ic:"🪆", name:"套娃积木", src:"建模11-18 · 递归", about:"自己叫自己", steps:[
+{id:"g11", wjx:"rXLL5Y5", ic:"🪆", name:"套娃积木", src:"建模11-18 · 递归", about:"自己叫自己", steps:[
   {type:"say", emoji:"🧭", title:"先记住算法", speak:"算法是一步一步的小办法。递归也是一种算法。它的办法很特别：请更小的自己来帮忙。",
    lines:["递归也是一种算法","请更小的自己帮忙"]},
   {type:"say", emoji:"🪆", title:"套娃", speak:"打开一个套娃，里面还有更小的套娃。再打开，还有更小的。一直到最小那个，打不开了，就停。",
@@ -183,7 +179,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"递归和循环完全一样吗？", prompt:"递归就是循环吗？", tf:true,
    options:[{e:"✅", t:"完全一样", ok:false},{e:"🪆", t:"不一样，递归请更小的自己", ok:true}], why:"循环转圈，递归套娃。"}
 ]},
-{id:"g12", ic:"🍽️", name:"盘子叠叠乐", src:"建模11-18 · 栈", about:"后放的先拿", steps:[
+{id:"g12", wjx:"rbLCkY5", ic:"🍽️", name:"盘子叠叠乐", src:"建模11-18 · 栈", about:"后放的先拿", steps:[
   {type:"say", emoji:"🍽️", title:"一叠盘子", speak:"盘子叠起来。最后放上去的，最先拿下来。这叫栈。只能拿最上面那个。中间的抽不出来。",
    lines:["后放的先拿","只能拿最上面"]},
   {type:"say", emoji:"🅰️🅱️🅲", title:"举个例子", speak:"先放红盘子，再放黄盘子，再放蓝盘子。要洗碗，先拿蓝的，再拿黄的，最后拿红的。",
@@ -199,7 +195,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"超市排队是栈吗？", prompt:"超市排队是栈吗？", tf:true,
    options:[{e:"🍽️", t:"是栈", ok:false},{e:"🚶", t:"不是，排队是先来先走", ok:true}], why:"排队是队列，不是栈。"}
 ]},
-{id:"g13", ic:"📓", name:"名字小本本", src:"建模11-18 · 字典", about:"名字对着东西", steps:[
+{id:"g13", wjx:"Ot1W0t4", ic:"📓", name:"名字小本本", src:"建模11-18 · 字典", about:"名字对着东西", steps:[
   {type:"say", emoji:"📓", title:"小本本", speak:"字典像小本本。写着：小猫对应喵，小狗对应汪。用名字找到东西。",
    lines:["名字 → 东西"]},
   {type:"say", emoji:"🐟", title:"举个例子", speak:"本本上写：小鱼对应七岁。小花对应八岁。问小鱼几岁，就翻到小鱼，看到七。",
@@ -213,7 +209,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"列表用第几号找，字典用名字找，对吗？", prompt:"列表和字典找法不同吗？", tf:true,
    options:[{e:"✅", t:"对", ok:true},{e:"❌", t:"完全一样", ok:false}], why:"列表看序号，字典看名字。"}
 ]},
-{id:"g14", ic:"📋", name:"一排小格子", src:"建模11-18 · 列表", about:"一个一个排好", steps:[
+{id:"g14", wjx:"t4S0FMh", ic:"📋", name:"一排小格子", src:"建模11-18 · 列表", about:"一个一个排好", steps:[
   {type:"say", emoji:"📋", title:"列表", speak:"列表像一排小格子。第一个、第二个、第三个。图形化里常常从一号开始数。",
    lines:["排成一排","常常从一号开始"]},
   {type:"say", emoji:"🍓", title:"水果格子", speak:"格子里放：草莓、芒果、蓝莓。一号草莓，二号芒果，三号蓝莓。想拿芒果，就拿第二格。",
@@ -229,7 +225,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"一个一个看格子，叫遍历吗？", prompt:"一个一个看叫遍历吗？", tf:true,
    options:[{e:"✅", t:"叫", ok:true},{e:"❌", t:"不叫", ok:false}], why:"遍历就是挨个看。"}
 ]},
-{id:"g15", ic:"💧", name:"一层一层找", src:"建模11-18 · 广度优先", about:"先找身边的朋友", steps:[
+{id:"g15", wjx:"exvSViR", ic:"💧", name:"一层一层找", src:"建模11-18 · 广度优先", about:"先找身边的朋友", steps:[
   {type:"say", emoji:"💧", title:"水波纹", speak:"把小石子丢进水里，波纹一圈一圈往外。找朋友也一样：先找身边的，再找更远的。这叫广度优先。",
    lines:["先找近的","再找远的"]},
   {type:"say", emoji:"🏫", title:"教室里找人", speak:"小鱼要找老师。先问旁边桌子的同学。旁边没有，再问再远一点的桌子。一圈一圈问出去。",
@@ -243,7 +239,7 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"先找身边的朋友，再找更远的，对吗？", prompt:"先近后远对吗？", tf:true,
    options:[{e:"✅", t:"对", ok:true},{e:"❌", t:"不对", ok:false}], why:"广度优先就是先近后远。"}
 ]},
-{id:"g16", ic:"🌲", name:"一条路走到底", src:"建模11-18 · 深度优先", about:"走到底再换路", steps:[
+{id:"g16", wjx:"Q0Rm0lQ", ic:"🌲", name:"一条路走到底", src:"建模11-18 · 深度优先", about:"走到底再换路", steps:[
   {type:"say", emoji:"🌲", title:"小路", speak:"树林里找路：先选一条，走到头。走不通，再退回来换另一条。这叫深度优先。",
    lines:["一条路走到底","不通就退回来"]},
   {type:"say", emoji:"🏠", title:"迷宫例子", speak:"迷宫有三条岔路。先走左边。左边是死路，退回来。再走中间。中间通了，就到家。右边还没走也没关系。",
@@ -257,6 +253,23 @@ window.E2_TOPICS = [
   {type:"quiz", speak:"走不通的时候，可以退回来换路吗？", prompt:"走不通能退回来吗？", tf:true,
    options:[{e:"✅", t:"能退回来", ok:true},{e:"❌", t:"不能退", ok:false}], why:"走不通就退回来，再换一条。"}
 ]}
+,{id:"g17", wjx:"m3sZsJo", ic:"🔬", name:"科学常识", src:"1-基础科学常识.url", about:"热气球、浮力、透镜", steps:[
+  {type:"say", emoji:"🔬", title:"这课从哪来", speak:"这一课的题目，来自问卷星科学常识。先听两个小例子，再做原来的题。",
+   lines:["先听例子","再做问卷星原题"]},
+  {type:"say", emoji:"🎈", title:"热气球", speak:"热气球能上去，因为里面的热空气更轻。船能浮，因为船变大，水托得更用力。",
+   lines:["热空气更轻 → 升上去","船变大 → 浮力更大"]},
+  {type:"say", emoji:"👓", title:"凸透镜", speak:"老花镜和照相机镜头，常常是中间厚的凸透镜。先想方案，再做模型。不能为了好看改数据。",
+   lines:["中间厚 = 凸透镜","先方案，再模型"]}
+]}
+,{id:"g18", wjx:"YhVNsvx", ic:"🧪", name:"科学探究", src:"18科学探究与建模关联知识.url", about:"提问、模型、控制变量", steps:[
+  {type:"say", emoji:"🧪", title:"探究怎么走", speak:"科学探究先发现问题。再猜想。再做模型试一试。记下数据。最后才说结论。",
+   lines:["发现问题","猜想","做模型、记数据","再下结论"]},
+  {type:"say", emoji:"🎛️", title:"只改一个", speak:"控制变量，就是只改一个条件，别的都不动。这样才知道是谁在起作用。",
+   lines:["只改一个条件","别的保持不变"]},
+  {type:"say", emoji:"📐", title:"模型要简单", speak:"模型留下要紧的规律，拿掉不要紧的细节。结果和猜想不一样，要检查再试，不要改数据骗人。",
+   lines:["留下要紧的","不要改数据"]}
+]}
+
 ];
 
 window.E2_PAPERS = [
