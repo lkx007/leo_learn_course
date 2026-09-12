@@ -151,6 +151,9 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
 .paper .ic{font-size:1.8rem;display:block}
 .paper.on{border-color:#f59e0b;background:#fff7ed}
 .paper .best{display:block;margin-top:4px;font-size:.8rem;color:#9a3412}
+.qimg{display:block;max-width:100%;height:auto;margin:8px auto 12px;border-radius:12px;border:3px solid #e2e8f0;background:#fff}
+.opt.sel{border-color:#38bdf8;background:#e0f2fe}
+.wjxmark{display:inline-block;background:#fff7ed;border:2px solid #fdba74;border-radius:999px;padding:2px 10px;font-size:.8rem;font-weight:800;color:#9a3412;margin:0 auto 8px}
 @media (max-width:520px){
   .title{font-size:1.32rem}.lines{font-size:1.12rem}
   .tf{grid-template-columns:1fr}
@@ -168,7 +171,8 @@ rt{font-size:.48em;color:#64748b;font-weight:700;letter-spacing:.02em;font-famil
   <p class="tiny" style="max-width:22em">要用谷歌 Chrome。电脑要开声音。点完喇叭才会响。</p>
   <div class="row"><button class="big" id="gateGo">🔊 我要听</button></div>
 </div>
-<script src="e2-topics.js?v=prog2"></script>
+<script src="e2-topics.js?v=url1"></script>
+<script src="e2-wjx.js?v=url1"></script>
 <script>
 const STORE = "leo-e2-v5";
 const state = load();
@@ -1318,13 +1322,21 @@ m1:[
 
 };
 
-const PAPERS = window.E2_PAPERS || [];
+const PAPERS = window.E2_WJX_PAPERS || window.E2_PAPERS || [];
 const MIX_I = PAPERS.length;
 const TOPICS = window.E2_TOPICS || [];
 let paperI = 0;
 let topicI = 0;
 let mixedQs = null;
 function examQs(){ return paperI === MIX_I ? (mixedQs || []) : PAPERS[paperI].qs; }
+function topicSteps(t){
+  if(!t) return [];
+  const say = (t.steps||[]).filter(s => s.type === "say");
+  if(t.wjx && window.E2_WJX && window.E2_WJX[t.wjx]){
+    return say.concat(window.E2_WJX[t.wjx].qs || []);
+  }
+  return t.steps || [];
+}
 function shuffle(arr){
   const a = arr.slice();
   for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; }
@@ -1388,7 +1400,7 @@ function markDone(id){
 }
 
 function nextStep(){
-  const arr = view==="topic" ? (TOPICS[topicI] && TOPICS[topicI].steps) : STEPS[mid];
+  const arr = view==="topic" ? topicSteps(TOPICS[topicI]) : STEPS[mid];
   if(!arr) return;
   if(step < arr.length-1){ step++; picked=null; orderSel=[]; render(); }
   else {
@@ -1409,7 +1421,7 @@ function htmlHome(){
     <div class="mascot">🐟</div>
     <h1>${rubyize("小鱼的积木比赛")}</h1>
     <p class="sub">${rubyize("积木编程课 · 少字 · 能听 · 点图画")}</p>
-    <div class="bubble">${rubyize("先听概念和例子，再做题 · 9 月 13 日下午 2 点")}</div>
+    <div class="bubble">${rubyize("先听例子，再做问卷星原题 · 9 月 13 日下午 2 点")}</div>
     <div class="row">
       <button class="big" id="goTopics">📚 知识点小课</button>
       <button class="big sec" id="goStart">🎒 比赛怎么考</button>
@@ -1459,13 +1471,19 @@ function htmlSay(s){
 function htmlQuiz(s, lock){
   const cls = s.tf ? "opts tf" : "opts";
   const pts = qPts(s);
-  return `<h2 class="title">${rubyize(s.prompt)}</h2>
-    <p class="tiny">${rubyize(s.tf ? "判断题 · "+pts+" 分" : "选择题 · "+pts+" 分")}</p>
+  const kind = s.multi ? "多选题，对的都要点" : (s.tf ? "判断题" : "选择题");
+  const src = s.src==="wjx" ? `<div class="wjxmark">${rubyize("问卷星原题")}</div>` : "";
+  const img = s.img ? `<img class="qimg" src="${s.img}" alt="">` : "";
+  const chk = s.multi ? `<button class="big sec" id="chkMulti">检查多选</button>` : "";
+  return `${src}<h2 class="title">${rubyize(s.prompt)}</h2>
+    ${img}
+    <p class="tiny">${rubyize(kind+" · "+pts+" 分")}</p>
     <div class="${cls}">
       ${s.options.map((o,i)=>`<button class="opt" data-i="${i}"><span class="e">${o.e}</span><span class="han">${rubyize(o.t)}</span></button>`).join("")}
     </div>
     <div class="fb" id="fb"></div>
-    <div class="row"><button class="big" id="next" ${lock?"disabled":""} style="${lock?"opacity:.4":""}">下一页 ▶</button></div>`;
+    <div class="row">${chk}
+      <button class="big" id="next" ${lock?"disabled":""} style="${lock?"opacity:.4":""}">下一页 ▶</button></div>`;
 }
 
 function htmlOrder(s){
@@ -1526,8 +1544,8 @@ function htmlParent(){
       <li><b>电脑</b>：Win10 或 macOS 11+（<b>不要在 Mac 上装 Windows 来考</b>），内存 8G，C 盘 4G，<b>Chrome ≥109</b>，前置摄像头，键鼠能用，建议 50Mbps，<b>插上电源</b></li>
       <li><b>摄像头小窗</b>：选「访问该网站时允许」。脸和上半身在画面里。页面常开，中途退出可能丢进度</li>
       <li><b>喇叭</b>：打开网页先点「我要听」。Chrome 不允许一进门就自动说话。右下角大喇叭可再听一遍。电脑系统里要有中文语音。请硬刷新（Ctrl+Shift+R）</li>
-      <li><b>这是编程课</b>：算法、图形化积木、顺序、如果、循环、变量、逻辑、侦测、函数、递归、列表、字典、栈、广度、深度。水和空气、声音和光那些科学常识课已经拿掉</li>
-      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子（比如递归用套娃和数楼梯），再做判断和选择；然后再去闯关小测验做 30 题。问卷星原题文字太难，这里用一年级能听懂的说法</li>
+      <li><b>这是编程课</b>：算法、图形化积木、顺序、如果、嵌套判断、变量、逻辑、侦测、函数、递归、列表、字典、栈、广度、深度。科学常识 / 科学探究两套问卷星也收进来了，因为压缩包里有</li>
+      <li><b>怎么练</b>：先点「知识点小课」。每一课先讲概念、举例子，再做<strong>问卷星原题</strong>（字是原句，家长帮忙念）。十六套 .url 共 320 题都在，闯关小测验也是同一批原题</li>
     </ul>
     <p>网页课里的「模拟考」是给孩子练手的，<b>不是</b>官网那一次正式考试。弹出语言选择时选图形化 / Scratch，不要选 Python。</p>
     <div class="row">
@@ -1550,8 +1568,8 @@ function htmlTopicHub(){
   }).join("");
   return `<div class="emoji">📚</div>
     <h2 class="title">${rubyize("知识点小课")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先听概念和例子，再做判断和选择。")}</p>
-    <p class="tiny">${rubyize("来自建模大赛和建模十一到十八的编程知识点。已经听 "+n+" / "+TOPICS.length+" 课")}</p>
+    <p class="lines" style="text-align:center">${rubyize("先听例子，再做问卷星原来的题。")}</p>
+    <p class="tiny">${rubyize("先听例子，再做问卷星原题。已经听 "+n+" / "+TOPICS.length+" 课")}</p>
     <div class="grid">${cards}</div>
     <div class="row"><button class="big sec" id="back">← 回家</button></div>`;
 }
@@ -1568,8 +1586,8 @@ function htmlExamHub(){
   const mixBest = state.paperBest && state.paperBest.mix;
   return `<div class="emoji">⭐</div>
     <h2 class="title">${rubyize("闯关小测验")}</h2>
-    <p class="lines" style="text-align:center">${rubyize("先选一套。有六套，每套三十题。")}</p>
-    <p class="tiny">${rubyize("对照初赛：20 道选择 + 10 道判断，都是积木编程题")}</p>
+    <p class="lines" style="text-align:center">${rubyize("十六套都是问卷星原题。每套二十题。")}</p>
+    <p class="tiny">${rubyize("先听知识点小课，再做这套原题。幸运卷从全部原题里抽三十题。")}</p>
     <div class="papers">${papers}
       <button class="paper ${mixOn?"on":""}" data-p="${MIX_I}" style="grid-column:1/-1">
         <span class="ic">🎲</span>${rubyize("幸运卷 · 题库里抽三十题")}
@@ -1649,8 +1667,11 @@ function currentSpeak(){
   if(view==="parent") return "这一页是给爸爸妈妈看的。";
   if(view==="doneMod") return "这一关亮起来啦。你真厉害。";
   if(view==="topicHub") return "先选一课。每一课先听，再做选择题。";
-  if(view==="topic") return (TOPICS[topicI] && TOPICS[topicI].steps[step] && (TOPICS[topicI].steps[step].speak || TOPICS[topicI].steps[step].prompt)) || "";
-  if(view==="examHub") return "先选一套卷子吧。有六套，还可以抽幸运卷。每套三十题。";
+  if(view==="topic"){
+    const s = topicSteps(TOPICS[topicI])[step];
+    return (s && (s.speak || s.prompt)) || "";
+  }
+  if(view==="examHub") return "这些卷子就是问卷星原来的题。先选一套，做完一套再换一套。";
   if(view==="examQ") return examQs()[examI].speak;
   if(view==="examEnd") {
     const full = examFull();
@@ -1671,7 +1692,7 @@ function render(skipSpeak){
   else if(view==="topicHub") body += `<div class="card">${htmlTopicHub()}</div>`;
   else if(view==="topic"){
     const t = TOPICS[topicI];
-    const arr = t.steps;
+    const arr = topicSteps(t);
     const s = arr[step];
     const pct = Math.round(step/arr.length*100);
     body += `<div class="card">
@@ -1757,7 +1778,7 @@ function bind(){
 
   const quizRoot = view==="examQ" ? examQs()[examI]
     : (view==="mod" ? STEPS[mid][step]
-    : (view==="topic" ? (TOPICS[topicI] && TOPICS[topicI].steps[step]) : null));
+    : (view==="topic" ? topicSteps(TOPICS[topicI])[step] : null));
   if(quizRoot && quizRoot.type!=="order" && quizRoot.type!=="device" && quizRoot.options){
     wireQuiz(quizRoot, view==="examQ" && examMode);
   }
@@ -1772,45 +1793,66 @@ function startExam(mode){
 }
 
 function wireQuiz(s, isExam){
+  const fb = document.getElementById("fb");
+  const next = document.getElementById("next");
+  const finish = (good)=>{
+    if(good || isExam){
+      document.querySelectorAll(".opt").forEach((x,idx)=>{
+        if(s.options[idx].ok) x.classList.add("good");
+        else if(x.classList.contains("sel") || (!s.multi && picked===idx && !s.options[idx].ok)) x.classList.add("bad");
+      });
+    }
+    fb.className="fb "+(good?"good":"bad");
+    fb.innerHTML=rubyize((good?"对啦！":(isExam?"这题先记着。":"再想想。"))+ (s.why||""));
+    speak((good?"对啦，真棒。":(isExam?"这题先记着，下次就知道啦。":"没关系，再想想。"))+ (s.why||""));
+    if(good){
+      next.disabled=false; next.style.opacity=1;
+      if(view==="examQ"){ examScore++; examPts += qPts(s); }
+    }else{
+      if(isExam){
+        next.disabled=false; next.style.opacity=1;
+        examWrong.push(s);
+      } else picked = null;
+    }
+  };
+  if(s.multi){
+    document.querySelectorAll(".opt").forEach(b=>{
+      b.onclick = ()=>{
+        if(picked!==null && isExam) return;
+        b.classList.toggle("sel");
+      };
+    });
+    document.getElementById("chkMulti")?.addEventListener("click", ()=>{
+      if(picked!==null && isExam) return;
+      const sel = [...document.querySelectorAll(".opt")].map((x,i)=>x.classList.contains("sel")?i:-1).filter(i=>i>=0);
+      const need = s.options.map((o,i)=>o.ok?i:-1).filter(i=>i>=0);
+      const good = sel.length===need.length && need.every(i=>sel.includes(i));
+      picked = good ? 1 : (isExam ? 0 : null);
+      finish(good);
+    });
+    return;
+  }
   document.querySelectorAll(".opt").forEach(b=>{
     b.onclick = ()=>{
-      if(picked!==null && (!isExam && examMode===false) && document.getElementById("next")?.disabled===false && !isExam){
-        // already answered in practice with next enabled - ignore extra
-      }
       const i = +b.dataset.i;
       const o = s.options[i];
-      const fb = document.getElementById("fb");
-      const next = document.getElementById("next");
       if(!isExam){
         document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
         if(o.ok){
           b.classList.add("good");
-          fb.className="fb good"; fb.innerHTML=rubyize("对啦！"+ (s.why||""));
-          speak("对啦，真棒。"+ (s.why||""));
-          next.disabled=false; next.style.opacity=1;
           picked=i;
-          if(view==="examQ"){ examScore++; examPts += qPts(s); }
+          finish(true);
         }else{
           b.classList.add("bad");
-          fb.className="fb bad"; fb.innerHTML=rubyize("再想想。"+ (s.why||""));
-          speak("没关系，再想想。"+ (s.why||""));
           picked=null;
-          if(view==="examQ" && isExam && !examWrong.includes(s)) examWrong.push(s);
+          finish(false);
         }
       }else{
         if(picked!==null) return;
         picked=i;
         document.querySelectorAll(".opt").forEach(x=>x.classList.remove("good","bad"));
         b.classList.add(o.ok?"good":"bad");
-        if(!o.ok){
-          const right = s.options.find(x=>x.ok);
-          [...document.querySelectorAll(".opt")].forEach((x,idx)=>{ if(s.options[idx].ok) x.classList.add("good"); });
-        }
-        fb.className="fb "+(o.ok?"good":"bad");
-        fb.innerHTML=rubyize((o.ok?"对啦！":"这题先记着。")+ (s.why||""));
-        speak((o.ok?"对啦，真棒。":"这题先记着，下次就知道啦。")+ (s.why||""));
-        if(o.ok){ examScore++; examPts += qPts(s); } else examWrong.push(s);
-        next.disabled=false; next.style.opacity=1;
+        finish(!!o.ok);
       }
     };
   });
